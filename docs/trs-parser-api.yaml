@@ -20,6 +20,11 @@ paths:
     post:
       summary: Parse TRS
       operationId: parseTrs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
       responses:
         '200':
           description: |
