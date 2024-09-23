@@ -126,6 +126,9 @@ func lexer(a string) (res []Lexem){
 }
 
 
+func parseTRS(m Lexem[]) bool{
+	
+}
 
 func main(){
 	test := "variables = x,y,z\n f(x,S(y)) = S(f(x,y)) \n\r f(x, T) = T"
