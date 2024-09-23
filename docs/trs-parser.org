@@ -1,0 +1,49 @@
+#+title: TRS parser RFC
+
+* Лексер
+
+#+begin_src
+<lexem> ::= "variables" | "=" | letter | "," | "*" | "{" | "}" | "(" | ")" | "+" | number | \r | \n | \r\n
+#+end_src
+
+* Грамматика для TRS
+
+Из условия лабы:
+
+[[./images/trs-grammar.png]]
+
+LL(1):
+
+#+begin_src
+<s> ::= <vars> <rules>
+<eol> ::= \n | \r | \r\n
+<vars> ::= "variables" "=" <letters> <eol>
+<letters> ::= <letter> <letters-tail>
+<letters-tail> ::= "," <letter> <letters-tail> | ε
+<rules> ::= <rule> <eol> <rules-tail>
+<rules-tail> ::= <rule> <eol> <rules-tail> | ε
+<rule> ::= <term> "=" <term>
+<term> ::= var | constructor <args>
+<args> ::= ε | "(" <term> <terms-tail> ")"
+<terms-tail> ::= "," <term> <terms-tail> | ε
+#+end_src
+
+* Грамматика для инетпретаций
+
+[[./images/trs-interpret-grammar.png]]
+
+LL(1):
+
+#+begin_src
+<interprets> ::= <func-rule> <eol> <interprets> | <const-rule> <eol> <interprets> | ε
+<const-rule> ::= constructor "(" <letters> ")" "=" <monomial> <monomials-tail>
+<monomials-tail> ::= "+" <monomial> <monomials-tail> | ε
+<monomial> ::= number | <power-product> <power-products-tail>
+<power-products-tails> ::= <power-product> <power-products-tail> | ε
+<power-product> ::= <coeff> var <power>
+<coeff> ::= ε | number "*"
+<power> ::= ε | "{" number "}"
+#+end_src
+* API
+
+[[./trs-parser-api.yaml]]

@@ -1,0 +1,177 @@
+openapi: 3.0.0
+info:
+  title: TRS parser
+  description: |
+    Term Rewrite System formal parser
+  version: 0.1.0
+servers:
+  - url: http://localhost:8080/
+    description: Local
+
+paths:
+  /ping:
+    get:
+      summary: Healthcheck
+      operationId: ping
+      responses:
+        '200':
+          description: OK
+  /trs/parse:
+    post:
+      summary: Parse TRS
+      operationId: parseTrs
+      responses:
+        '200':
+          description: |
+            OK. Returns parse error description or parsed trs
+          content:
+            application/json:
+              schema:
+                type: object
+                oneOf:
+                  - $ref: '#/components/schemas/ParseError'
+                  - $ref: '#/components/schemas/Trs'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+components:
+  responses:
+    ErrorResponse:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    Trs:
+      type: object
+      required:
+        - variables
+        - rules
+        - interpretations
+      properties:
+        variables:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        rules:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Rule'
+        iterpretations:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Interpretation'
+
+    ParseError:
+      type: object
+      required:
+        - line
+        - range
+        - summary
+      properties:
+        summary:
+          type: string
+        message:
+          type: string
+        line:
+          type: integer
+        range:
+          type: object
+          required:
+            - from
+            - to
+          properties:
+            from:
+              type: integer
+            to:
+              type: integer
+    Rule:
+      type: object
+      required:
+        - lhs
+        - rhs
+      properties:
+        lhs:
+          $ref: '#/components/schemas/Subexpression'
+        rhs:
+          $ref: '#/components/schemas/Subexpression'
+    Subexpression:
+      type: object
+      required:
+        - letter
+      properties:
+        letter:
+          $ref: '#/components/schemas/Letter'
+        args:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Subexpression'
+    Letter:
+      type: object
+      description: Variable or constructor
+      required:
+        - name
+        - isVariable
+      properties:
+        name:
+          type: string
+        isVariable:
+          type: boolean
+    Interpretation:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ConstInterpretation'
+        - $ref: '#/components/schemas/ConstructorInterpretation'
+    ConstInterpretation:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+    ConstructorInterpretation:
+      type: object
+      required:
+        - name
+        - args
+        - value
+      properties:
+        name:
+          type: string
+        args:
+          type: array
+          items:
+            type: string
+        value:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/Monomial'
+              - $ref: '#/components/schemas/Constant'
+    Monomial:
+      type: object
+      required:
+        - variable
+      properties:
+        variable:
+          type: string
+        coefficient:
+          type: integer
+        power:
+          type: integer
+    Constant:
+      type: integer
