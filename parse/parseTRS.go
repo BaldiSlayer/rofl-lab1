@@ -37,6 +37,9 @@ grammatic
 <terms-tail> ::= "," <term> <terms-tail> | ε
 */
 
+
+
+//<lexem> ::= "variables" | "=" | letter | "," | "*" | "{" | "}" | "(" | ")" | "+" | number | '\r' | \n | \r\n
 const (
 	lex_VAR int = iota
 	lex_EQ
@@ -89,7 +92,7 @@ func lexer(a string) (res []Lexem){
 					if i < len(a)-1 && (a[i] == '\n' || a[i] == '\r'){
 						i++
 					}
-				}else if a[i] >= 'a' && a[i] <= 'z'{
+				}else if a[i] >= 'a' && a[i] <= 'z' || a[i] >= 'A' && a[i] <= 'Z'{
 					if a[i] == 'v' && i + 8< len(a){
 						t := true
 						j := 0
@@ -115,7 +118,7 @@ func lexer(a string) (res []Lexem){
 					res=append(res,Lexem{i, lex_NUM})
 					for; i< len(a) || (a[i] >= '0' && a[i] <= '9'); i++{} 
 				}else{
-					panic("unknown symbol at pos " + strconv.Itoa(i))
+					panic("unknown symbol at pos " + strconv.Itoa(i) + ":"+string(a[i]))
 				}
 		}
 	}
@@ -125,7 +128,7 @@ func lexer(a string) (res []Lexem){
 
 
 func main(){
-	test := "variables = x,y,z"
+	test := "variables = x,y,z\n f(x,S(y)) = S(f(x,y)) \n\r f(x, T) = T"
 	a := lexer(test)
 	for _, e := range a{
 		fmt.Printf("%d %d\n", e.index, e.lex_type)
