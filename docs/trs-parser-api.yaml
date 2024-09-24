@@ -31,7 +31,6 @@ components:
           minItems: 1
           items:
             $ref: '#/components/schemas/Interpretation'
-
     ParseError:
       type: object
       required:
@@ -90,25 +89,11 @@ components:
           type: boolean
     Interpretation:
       type: object
-      oneOf:
-        - $ref: '#/components/schemas/ConstInterpretation'
-        - $ref: '#/components/schemas/ConstructorInterpretation'
-    ConstInterpretation:
-      type: object
-      required:
-        - name
-        - value
-      properties:
-        name:
-          $ref: '#/components/schemas/NonEmptyString'
-        value:
-          type: integer
-    ConstructorInterpretation:
-      type: object
       required:
         - name
         - args
-        - value
+        - monomials
+        - constants
       properties:
         name:
           $ref: '#/components/schemas/NonEmptyString'
@@ -116,12 +101,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NonEmptyString'
-        value:
+        monomials:
           type: array
           items:
-            oneOf:
-              - $ref: '#/components/schemas/Monomial'
-              - $ref: '#/components/schemas/Constant'
+            $ref: '#/components/schemas/Monomial'
+        constants:
+          type: array
+          items:
+            type: integer
+            minimum: 1
     Monomial:
       type: object
       required:
@@ -135,8 +123,6 @@ components:
         power:
           type: integer
           minimum: 1
-    Constant:
-      type: integer
     NonEmptyString:
       type: string
       minLength: 1
