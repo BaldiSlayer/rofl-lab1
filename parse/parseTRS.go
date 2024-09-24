@@ -124,11 +124,78 @@ func lexer(a string) (res []Lexem){
 	}
 	return res
 }
+/*********************************************************************************/
 
 
-func parseTRS(m Lexem[]) bool{
+/*
+<s> ::= <vars> <rules>
+
+<vars> ::= "variables" "=" <letters> <eol>
+<letters> ::= <letter> <letters-tail>
+<letters-tail> ::= "," <letter> <letters-tail> | ε
+
+<rules> ::= <rule> <eol> <rules-tail>
+<rules-tail> ::= <rule> <eol> <rules-tail> | ε
+<rule> ::= <term> "=" <term>
+<term> ::= var | constructor <args>
+<args> ::= ε | "(" <term> <terms-tail> ")"
+<terms-tail> ::= "," <term> <terms-tail> | ε
+*/
+
+func lexCheckOrPanic(l Lexem, Ltype int) bool{
+	if l.lex_type != Ltype{
+		panic("on index"+ strconv.Itoa(l.index)+ " expected "+ strconv.Itoa(Ltype)+ ", found " + strconv.Itoa(l.lex_type))
+		return false
+	}
+	return true
+}
+func lexCheck(l Lexem, Ltype int) bool{
+	return l.lex_type == Ltype
+}
+
+// <vars> ::= "variables" "=" <letters> <eol>
+func TRS_parseVars(input string, m []Lexem, index *int){
+	lexCheckOrPanic(m[*index], lex_VAR)
+	*index++
+	lexCheckOrPanic(m[*index], lex_EQ)
+	*index++
+	TRS_parseLetters(m, index)
+	lexCheckOrPanic(m[*index], lex_EOL)
+	*index++
+
+}
+//<letters> ::= <letter> <letters-tail>
+func TRS_parseLetters(input string, m []Lexem, index *int){
+	lexCheckOrPanic(m[*index], lex_LETTER)
+	*index++
+	TRS_parseLettersTail(m, index)
+}
+
+//<letters-tail> ::= "," <letter> <letters-tail> | ε
+func TRS_parseLettersTail(m []Lexem, index *int){
+	if lexCheck(m[*index], lex_COMMA){
+		*index++
+		lexCheckOrPanic(m[*index], lex_LETTER)
+		*index++
+		TRS_parseLettersTail(m, index)
+	}
 	
 }
+
+
+// <rules> ::= <rule> <eol> <rules-tail>
+func TRS_parseRules(m []Lexem, index *int){}
+func TRS_parseRulesTail(m []Lexem, index *int){}
+func TRS_parseRule(m []Lexem, index *int){}
+func TRS_parseTerm(m []Lexem, index *int){}
+func TRS_parseArgs(m []Lexem, index *int){}
+func TRS_parseTermsTail(m []Lexem, index *int){}
+
+func parseTRS(m []Lexem) bool{
+	return false
+}
+
+/*********************************************************************************/
 
 func main(){
 	test := "variables = x,y,z\n f(x,S(y)) = S(f(x,y)) \n\r f(x, T) = T"
