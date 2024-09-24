@@ -30,6 +30,12 @@ func TestParsesBasicTrs(t *testing.T) {
 			},
 		},
 	}
+	inter := Interpretation{
+		Args:      []string{},
+		Constants: []int{5},
+		Monomials: []Monomial{},
+		Name:      "f",
+	}
 
 	trs, err := Parser{}.Parse(
 `variables = a
@@ -41,7 +47,7 @@ f = 5
 
 	assert.NoError(t, err)
 	assert.Equal(t, Trs{
-		Interpretations: []Interpretation{NewConstInterpretation("f", 5)},
+		Interpretations: []Interpretation{inter},
 		Rules:           []Rule{rule},
 		Variables:       []string{"a"},
 		}, *trs)

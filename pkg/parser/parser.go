@@ -9,6 +9,12 @@ func (p Parser) Parse(input string) (*Trs, error) {
 		return nil, fmt.Errorf("empty input")
 	}
 
+	inter := Interpretation{
+		Args:      []string{},
+		Constants: []int{5},
+		Monomials: []Monomial{},
+		Name:      "f",
+	}
 	rule := Rule{
 		Lhs: Subexpression{
 			Args:   nil,
@@ -27,7 +33,7 @@ func (p Parser) Parse(input string) (*Trs, error) {
 	}
 
 	return &Trs{
-		Interpretations: []Interpretation{NewConstInterpretation("f", 5)},
+		Interpretations: []Interpretation{inter},
 		Rules:           []Rule{rule},
 		Variables:       []string{"a"},
 	}, nil
