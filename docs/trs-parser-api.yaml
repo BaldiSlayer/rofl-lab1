@@ -24,12 +24,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - trs
-              properties:
-                trs:
-                  $ref: '#/components/schemas/NonEmptyString'
+              $ref: '#/components/schemas/ParseRequest'
       responses:
         '200':
           description: |
@@ -37,10 +32,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                oneOf:
-                  - $ref: '#/components/schemas/ParseError'
-                  - $ref: '#/components/schemas/Trs'
+                $ref: '#/components/schemas/ParseResult'
         default:
           $ref: '#/components/responses/ErrorResponse'
 components:
@@ -190,3 +182,15 @@ components:
     NonEmptyString:
       type: string
       minLength: 1
+    ParseRequest:
+      type: object
+      required:
+        - trs
+      properties:
+        trs:
+          $ref: '#/components/schemas/NonEmptyString'
+    ParseResult:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ParseError'
+        - $ref: '#/components/schemas/Trs'
