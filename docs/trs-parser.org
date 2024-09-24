@@ -23,12 +23,14 @@ LL(1):
 <rules> ::= <rule> <eol> <rules-tail>
 <rules-tail> ::= <rule> <eol> <rules-tail> | ε
 <rule> ::= <term> "=" <term>
-<term> ::= var | constructor <args>
+<term> ::= <var> | <constructor> <args>
+<var> ::= letter  // defined as variable
+<constructor> ::= letter
 <args> ::= ε | "(" <term> <terms-tail> ")"
 <terms-tail> ::= "," <term> <terms-tail> | ε
 #+end_src
 
-* Грамматика для инетпретаций
+* Грамматика для интерпретаций
 
 [[./images/trs-interpret-grammar.png]]
 
@@ -36,11 +38,11 @@ LL(1):
 
 #+begin_src
 <interprets> ::= <func-rule> <eol> <interprets> | <const-rule> <eol> <interprets> | ε
-<const-rule> ::= constructor "(" <letters> ")" "=" <monomial> <monomials-tail>
+<const-rule> ::= <constructor> "(" <letters> ")" "=" <monomial> <monomials-tail>
 <monomials-tail> ::= "+" <monomial> <monomials-tail> | ε
 <monomial> ::= number | <power-product> <power-products-tail>
-<power-products-tails> ::= <power-product> <power-products-tail> | ε
-<power-product> ::= <coeff> var <power>
+<power-products-tail> ::= <power-product> <power-products-tail> | ε
+<power-product> ::= <coeff> <var> <power>
 <coeff> ::= ε | number "*"
 <power> ::= ε | "{" number "}"
 #+end_src
