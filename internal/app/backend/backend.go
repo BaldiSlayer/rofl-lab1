@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -22,6 +21,7 @@ type Backend struct {
 
 type Option func(options *Backend) error
 
+// WithLogger инициализирует логгер
 func WithLogger() Option {
 	return func(options *Backend) error {
 		logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -32,6 +32,7 @@ func WithLogger() Option {
 	}
 }
 
+// New создает новый объект Backend
 func New(opts ...Option) *Backend {
 	backend := &Backend{}
 
@@ -56,8 +57,10 @@ func New(opts ...Option) *Backend {
 	return backend
 }
 
+// initRoutes производит инициализацию ручек сервиса
 func initRoutes(controller *controllers.Controller) *httprouter.Router {
 	router := httprouter.New()
+
 	router.GET(apiV1Prefix+"/trs", controller.TRSCheck)
 	router.GET(apiV1Prefix+"/knowledge_base", controller.KnowledgeBase)
 
@@ -66,6 +69,6 @@ func initRoutes(controller *controllers.Controller) *httprouter.Router {
 
 func (b *Backend) Run() {
 	if err := b.srv.ListenAndServe(); err != nil {
-		log.Fatalf("server was crushed %v", err)
+		slog.Error("server was crushed", "error", err)
 	}
 }
