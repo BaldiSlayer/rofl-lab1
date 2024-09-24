@@ -6,6 +6,7 @@ type Controller struct {
 	}
 
 	ModelClient interface {
-		SendRequest(request string) (string, error)
+		// Ask отправляет запрос к модели и возвращает ответ и ошибку, если что-то пошло не так
+		Ask(request string) (string, error)
 	}
 }

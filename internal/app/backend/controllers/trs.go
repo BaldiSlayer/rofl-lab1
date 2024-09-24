@@ -17,16 +17,25 @@ func (controller *Controller) TRSCheck(w http.ResponseWriter, r *http.Request, _
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Unable to read request body", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 	defer r.Body.Close()
 
 	var data RequestData
 	if err := json.Unmarshal(body, &data); err != nil {
-		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
-	fmt.Fprintf(w, "Welcome! Received request: %s\n", data.Request)
+	response, err := controller.ModelClient.Ask(data.Request)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	fmt.Fprintf(w, "%s", response)
 }
