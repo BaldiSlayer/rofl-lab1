@@ -4,53 +4,11 @@ info:
   description: |
     Term Rewrite System formal parser
   version: 0.1.0
-servers:
-  - url: http://localhost:8080/
-    description: Local
 
-paths:
-  /ping:
-    get:
-      summary: Healthcheck
-      operationId: ping
-      responses:
-        '200':
-          description: OK
-  /trs/parse:
-    post:
-      summary: Parse TRS
-      operationId: parseTrs
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ParseRequest'
-      responses:
-        '200':
-          description: |
-            OK. Returns parse error description or parsed trs
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ParseResult'
-        default:
-          $ref: '#/components/responses/ErrorResponse'
+paths: {}
+
 components:
-  responses:
-    ErrorResponse:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
   schemas:
-    Error:
-      type: object
-      properties:
-        message:
-          $ref: '#/components/schemas/NonEmptyString'
-      required:
-        - message
     Trs:
       type: object
       required:
@@ -182,15 +140,3 @@ components:
     NonEmptyString:
       type: string
       minLength: 1
-    ParseRequest:
-      type: object
-      required:
-        - trs
-      properties:
-        trs:
-          $ref: '#/components/schemas/NonEmptyString'
-    ParseResult:
-      type: object
-      oneOf:
-        - $ref: '#/components/schemas/ParseError'
-        - $ref: '#/components/schemas/Trs'
