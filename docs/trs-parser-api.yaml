@@ -102,7 +102,7 @@ components:
         name:
           $ref: '#/components/schemas/NonEmptyString'
         value:
-          $ref: '#/components/schemas/NonEmptyString'
+          type: integer
     ConstructorInterpretation:
       type: object
       required:

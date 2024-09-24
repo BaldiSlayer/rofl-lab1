@@ -12,7 +12,7 @@ import (
 // ConstInterpretation defines model for ConstInterpretation.
 type ConstInterpretation struct {
 	Name  NonEmptyString `json:"name"`
-	Value NonEmptyString `json:"value"`
+	Value int            `json:"value"`
 }
 
 // Constant defines model for Constant.
@@ -28,11 +28,6 @@ type ConstructorInterpretation struct {
 // ConstructorInterpretation_Value_Item defines model for ConstructorInterpretation.value.Item.
 type ConstructorInterpretation_Value_Item struct {
 	union json.RawMessage
-}
-
-// Error defines model for Error.
-type Error struct {
-	Message NonEmptyString `json:"message"`
 }
 
 // Interpretation defines model for Interpretation.
@@ -67,16 +62,6 @@ type ParseError struct {
 	Summary NonEmptyString `json:"summary"`
 }
 
-// ParseRequest defines model for ParseRequest.
-type ParseRequest struct {
-	Trs NonEmptyString `json:"trs"`
-}
-
-// ParseResult defines model for ParseResult.
-type ParseResult struct {
-	union json.RawMessage
-}
-
 // Rule defines model for Rule.
 type Rule struct {
 	Lhs Subexpression `json:"lhs"`
@@ -97,12 +82,6 @@ type Trs struct {
 	Rules           []Rule           `json:"rules"`
 	Variables       []NonEmptyString `json:"variables"`
 }
-
-// ErrorResponse defines model for ErrorResponse.
-type ErrorResponse = Error
-
-// ParseTrsJSONRequestBody defines body for ParseTrs for application/json ContentType.
-type ParseTrsJSONRequestBody = ParseRequest
 
 // AsMonomial returns the union data inside the ConstructorInterpretation_Value_Item as a Monomial
 func (t ConstructorInterpretation_Value_Item) AsMonomial() (Monomial, error) {
@@ -224,68 +203,6 @@ func (t Interpretation) MarshalJSON() ([]byte, error) {
 }
 
 func (t *Interpretation) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsParseError returns the union data inside the ParseResult as a ParseError
-func (t ParseResult) AsParseError() (ParseError, error) {
-	var body ParseError
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromParseError overwrites any union data inside the ParseResult as the provided ParseError
-func (t *ParseResult) FromParseError(v ParseError) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeParseError performs a merge with any union data inside the ParseResult, using the provided ParseError
-func (t *ParseResult) MergeParseError(v ParseError) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsTrs returns the union data inside the ParseResult as a Trs
-func (t ParseResult) AsTrs() (Trs, error) {
-	var body Trs
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromTrs overwrites any union data inside the ParseResult as the provided Trs
-func (t *ParseResult) FromTrs(v Trs) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeTrs performs a merge with any union data inside the ParseResult, using the provided Trs
-func (t *ParseResult) MergeTrs(v Trs) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t ParseResult) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *ParseResult) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
