@@ -11,7 +11,7 @@ type Interpretation struct {
 	Name      NonEmptyString   `json:"name"`
 }
 
-// Letter Variable or constructor
+// Letter represents variable or constructor
 type Letter struct {
 	IsVariable bool           `json:"isVariable"`
 	Name       NonEmptyString `json:"name"`
@@ -48,7 +48,7 @@ type Rule struct {
 type Subexpression struct {
 	Args *[]Subexpression `json:"args,omitempty"`
 
-	// Letter Variable or constructor
+	// Letter represents variable or constructor
 	Letter Letter `json:"letter"`
 }
 

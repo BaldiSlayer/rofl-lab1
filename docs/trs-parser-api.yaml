@@ -78,7 +78,7 @@ components:
             $ref: '#/components/schemas/Subexpression'
     Letter:
       type: object
-      description: Variable or constructor
+      description: represents variable or constructor
       required:
         - name
         - isVariable
