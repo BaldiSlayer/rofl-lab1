@@ -11,3 +11,36 @@ func TestErrorOnEmptyInput(t *testing.T) {
 
 	require.Error(t, err)
 }
+
+func TestParsesBasicTrs(t *testing.T) {
+	rule := Rule{
+		Lhs: Subexpression{
+			Args:   nil,
+			Letter: Letter{
+				IsVariable: false,
+				Name:       "f",
+			},
+		},
+		Rhs: Subexpression{
+			Args:   nil,
+			Letter: Letter{
+				IsVariable: true,
+				Name:       "a",
+			},
+		},
+	}
+
+	trs, _ := Parser{}.Parse(
+`variables = a
+f = a
+-----
+f = 5
+`,
+	)
+
+	require.Equal(t, Trs{
+		Interpretations: []Interpretation{NewConstInterpretation("f", 5)},
+		Rules:           []Rule{rule},
+		Variables:       []string{"a"},
+		}, *trs)
+}
