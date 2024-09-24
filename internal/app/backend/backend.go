@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/bconfig"
 	"log/slog"
 	"net/http"
 	"os"
@@ -16,10 +17,25 @@ const (
 )
 
 type Backend struct {
-	srv *http.Server
+	srv    *http.Server
+	config *bconfig.BackendConfig
 }
 
 type Option func(options *Backend) error
+
+// WithConfig инициализирует конфиг
+func WithConfig() Option {
+	return func(options *Backend) error {
+		config, err := bconfig.LoadBackendConfig()
+		if err != nil {
+			return err
+		}
+
+		options.config = config
+
+		return nil
+	}
+}
 
 // WithLogger инициализирует логгер
 func WithLogger() Option {

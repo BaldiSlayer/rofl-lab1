@@ -6,6 +6,7 @@ import (
 
 func main() {
 	app := backend.New(
+		backend.WithConfig(),
 		backend.WithLogger(),
 	)
 
