@@ -9,7 +9,7 @@ import (
 )
 
 type BackendConfig struct {
-	Port string `env:"PORT"`
+	Port string `env:"PORT" envDefault:"9000"`
 }
 
 func LoadBackendConfig() (*BackendConfig, error) {
