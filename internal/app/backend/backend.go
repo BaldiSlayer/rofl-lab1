@@ -84,6 +84,8 @@ func initRoutes(controller *controllers.Controller) *httprouter.Router {
 }
 
 func (b *Backend) Run() {
+	slog.Info("backend has successfully started at port " + b.config.Port)
+
 	if err := b.srv.ListenAndServe(); err != nil {
 		slog.Error("server was crushed", "error", err)
 	}
