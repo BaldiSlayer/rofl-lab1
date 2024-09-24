@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,7 +31,7 @@ func TestParsesBasicTrs(t *testing.T) {
 		},
 	}
 
-	trs, _ := Parser{}.Parse(
+	trs, err := Parser{}.Parse(
 `variables = a
 f = a
 -----
@@ -38,7 +39,8 @@ f = 5
 `,
 	)
 
-	require.Equal(t, Trs{
+	assert.NoError(t, err)
+	assert.Equal(t, Trs{
 		Interpretations: []Interpretation{NewConstInterpretation("f", 5)},
 		Rules:           []Rule{rule},
 		Variables:       []string{"a"},
