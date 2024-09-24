@@ -17,7 +17,12 @@ func (controller *Controller) TRSCheck(w http.ResponseWriter, r *http.Request, _
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		ErrorHandler(errorRow{
+			w:         w,
+			code:      http.StatusBadRequest,
+			err:       err,
+			errorText: "failed to read request body",
+		})
 
 		return
 	}
@@ -25,17 +30,15 @@ func (controller *Controller) TRSCheck(w http.ResponseWriter, r *http.Request, _
 
 	var data RequestData
 	if err := json.Unmarshal(body, &data); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		ErrorHandler(errorRow{
+			w:         w,
+			code:      http.StatusBadRequest,
+			err:       err,
+			errorText: "failed to unmarshall data",
+		})
 
 		return
 	}
 
-	response, err := controller.ModelClient.Ask(data.Request)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-
-		return
-	}
-
-	fmt.Fprintf(w, "%s", response)
+	fmt.Fprintf(w, "test")
 }
