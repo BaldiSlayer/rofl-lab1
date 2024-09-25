@@ -6,13 +6,16 @@ import (
 	"net/http"
 )
 
+// Controller - тип, который объединяет все ручки
+// служит для удобного хранения данных, общих для всех ручек
 type Controller struct {
 	TRSParserClient interface {
+		// Parse выполняет парсинг TRS, которая была выделена с помощью модели
 		Parse(trs string) (string, error)
 	}
 
 	ModelClient interface {
-		// Ask отправляет запрос к модели и возвращает ответ и ошибку, если что-то пошло не так
+		// Ask отправляет запрос к модели
 		Ask(request string) (string, error)
 	}
 }

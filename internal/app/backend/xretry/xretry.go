@@ -3,14 +3,22 @@ package xretry
 import (
 	"errors"
 	"fmt"
+	"time"
 )
 
 type Retrier struct {
-	f func() error
+	f     func() error
+	delay time.Duration
 }
 
 func Retry(f func() error) *Retrier {
 	return &Retrier{f: f}
+}
+
+func (r *Retrier) WithDelay(delay time.Duration) *Retrier {
+	r.delay = delay
+
+	return r
 }
 
 func (r *Retrier) Count(count int) error {
@@ -23,6 +31,13 @@ func (r *Retrier) Count(count int) error {
 		}
 
 		err = errors.Join(err, err1)
+
+		// чтобы не ждать после последнего выполнения
+		if i == count-1 {
+			break
+		}
+
+		time.Sleep(r.delay)
 	}
 
 	return fmt.Errorf(

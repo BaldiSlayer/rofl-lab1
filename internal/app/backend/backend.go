@@ -1,15 +1,15 @@
 package backend
 
 import (
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/bconfig"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/mclient"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/trsclient"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/bconfig"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/controllers"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/mclient"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/trsclient"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -71,7 +71,7 @@ func New(opts ...Option) *Backend {
 
 	backend.srv = &http.Server{
 		Handler:           router,
-		Addr:              ":9000",
+		Addr:              ":" + backend.config.Port,
 		ReadHeaderTimeout: ServerReadHeaderTimeout,
 	}
 

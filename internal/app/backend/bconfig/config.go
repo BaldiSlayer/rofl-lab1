@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/caarlos0/env/v11"
-	// Используется для автоматической загрузки переменных, из файла ".env".
-	_ "github.com/joho/godotenv/autoload"
 )
 
 type BackendConfig struct {
