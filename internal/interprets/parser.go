@@ -1,28 +1,12 @@
 package interprets
 
-type Lexem interface {
-	String() string
-	Type() int
-}
-
-const (
-	lex_VAR int = iota
-	lex_EQ
-	lex_LETTER
-	lex_COMMA
-	lex_MUL
-	lex_ADD
-	lex_LCB
-	lex_RCB
-	lex_LB
-	lex_RB
-	lex_NUM
-	lex_EOL
+import (
+	"github.com/BaldiSlayer/rofl-lab1/internal/trs"
 )
 
 type Parser struct {}
 
-func (p Parser) Parse(input chan Lexem, constructorArity map[string]int) ([]Interpretation, error) {
+func (p Parser) Parse(input chan trs.Lexem, constructorArity map[string]int) ([]Interpretation, error) {
 	if constructorArity["f"] == 2 {
 		return nil, &ParseError{
 			llmMessage: "неверная арность интерпретации конструктора f: ожидалось 2, получено 1",

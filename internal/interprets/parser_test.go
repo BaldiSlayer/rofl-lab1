@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/BaldiSlayer/rofl-lab1/internal/trs"
 )
 
 type lexem struct {
@@ -19,21 +21,25 @@ func (l lexem) Type() int {
 	return l.t
 }
 
+func toInputChannel(lexems []lexem) chan trs.Lexem {
+	channel := make(chan trs.Lexem, 100)
+	for _, el := range lexems {
+		channel <- el
+	}
+	return channel
+}
+
 func TestInterpretationArityMismatch(t *testing.T) {
 	// f(x) = 5
-	lexems := []lexem{
-		{lex_LETTER, "f"},
-		{lex_LB, "("},
-		{lex_LETTER, "x"},
-		{lex_RB, ")"},
-		{lex_EQ, "="},
-		{lex_NUM, "5"},
-	}
+	input := toInputChannel([]lexem{
+		{trs.LexLETTER, "f"},
+		{trs.LexLB, "("},
+		{trs.LexLETTER, "x"},
+		{trs.LexRB, ")"},
+		{trs.LexEQ, "="},
+		{trs.LexNUM, "5"},
+	})
 	constructorArity := map[string]int{"f": 2}
-	input := make(chan Lexem, 100)
-	for _, el := range lexems {
-		input <- el
-	}
 
 	_, err := Parser{}.Parse(input, constructorArity)
 
@@ -44,19 +50,15 @@ func TestInterpretationArityMismatch(t *testing.T) {
 
 func TestSingleInterpretation(t *testing.T) {
 	// f(x) = 5
-	lexems := []lexem{
-		{lex_LETTER, "f"},
-		{lex_LB, "("},
-		{lex_LETTER, "x"},
-		{lex_RB, ")"},
-		{lex_EQ, "="},
-		{lex_NUM, "5"},
-	}
+	input := toInputChannel([]lexem{
+		{trs.LexLETTER, "f"},
+		{trs.LexLB, "("},
+		{trs.LexLETTER, "x"},
+		{trs.LexRB, ")"},
+		{trs.LexEQ, "="},
+		{trs.LexNUM, "5"},
+	})
 	constructorArity := map[string]int{"f": 1}
-	input := make(chan Lexem, 100)
-	for _, el := range lexems {
-		input <- el
-	}
 
 	interpretations, err := Parser{}.Parse(input, constructorArity)
 
