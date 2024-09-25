@@ -1,12 +1,13 @@
-package parser
-
-import "fmt"
+package trsparser
 
 type Parser struct {}
 
 func (p Parser) Parse(input string) (*Trs, error) {
 	if input == "" {
-		return nil, fmt.Errorf("empty input")
+		return nil, &ParseError{
+			LlmMessage: "система должна содержать хотя бы одно правило переписывания и его интерпретацию",
+			Summary:    "empty input",
+		}
 	}
 
 	inter := Interpretation{

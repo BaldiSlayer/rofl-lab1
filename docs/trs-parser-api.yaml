@@ -34,26 +34,13 @@ components:
     ParseError:
       type: object
       required:
-        - line
-        - range
+        - llmMessage
         - summary
       properties:
+        llmMessage:
+          $ref: '#/components/schemas/NonEmptyString'
         summary:
           $ref: '#/components/schemas/NonEmptyString'
-        message:
-          $ref: '#/components/schemas/NonEmptyString'
-        line:
-          type: integer
-        range:
-          type: object
-          required:
-            - from
-            - to
-          properties:
-            from:
-              type: integer
-            to:
-              type: integer
     Rule:
       type: object
       required:
