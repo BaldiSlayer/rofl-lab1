@@ -34,7 +34,7 @@ LL(1):
 
 [[./images/trs-interpret-grammar.png]]
 
-LL(1):
+LL(2):
 
 #+begin_src
 <interprets> ::= <func-rule> <eol> <interprets> | <const-rule> <eol> <interprets> | ε

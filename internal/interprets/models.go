@@ -1,5 +1,7 @@
 package interprets
 
+import "fmt"
+
 type Interpretation struct {
 	name string
 	args []string
@@ -15,11 +17,18 @@ type Monomial struct {
 
 type ParseError struct {
 	llmMessage string
-	summary string
+	message string
+}
+
+func (child *ParseError) wrap(parent *ParseError) *ParseError {
+	return &ParseError{
+		llmMessage: fmt.Sprintf("%s: %s", parent.llmMessage, child.llmMessage),
+		message:    fmt.Sprintf("%s: %s", parent.message, child.message),
+	}
 }
 
 func (e *ParseError) Error() string {
-	return e.summary
+	return e.message
 }
 
 func (e *ParseError) LlmMessage() string {
