@@ -50,7 +50,7 @@ func (p *Parser) accept(expectedType trs.LexemType, expectedMessage, expectedLlm
 	got := p.stream.next()
 	if got.Type() != expectedType {
 		return trs.Lexem{}, &ParseError{
-			llmMessage: fmt.Sprintf("ожидалось %s, получено %v", expectedLlmMessage, got.String()),
+			llmMessage: fmt.Sprintf("%s, получено %v", expectedLlmMessage, got.String()),
 			message:    fmt.Sprintf("expected %s, got %v", expectedMessage, got.String()),
 		}
 	}
@@ -77,7 +77,7 @@ func (p *Parser) interprets() ([]Interpretation, *ParseError) {
 		constructor, err := p.accept(
 			trs.LexLETTER,
 			"constructor name",
-			"название конструктора",
+			"ожидалось название конструктора",
 		)
 		if err != nil {
 			return nil, err.wrap(&ParseError{
@@ -93,6 +93,8 @@ func (p *Parser) interprets() ([]Interpretation, *ParseError) {
 				message:    "wrong interpretation definition",
 			})
 		}
+
+		p.accept(trs.LexEOL, "EOL", "ожидался перенос строки")
 
 		res = append(res, interpret)
 	}
@@ -121,7 +123,7 @@ func (p *Parser) constOrFuncRule(name string) (Interpretation, *ParseError) {
 
 func (p *Parser) constRule() (int, *ParseError) {
 	p.stream.next()
-	lexem, err := p.accept(trs.LexNUM, "number", "натуральное число после знака = в интерпретации константы")
+	lexem, err := p.accept(trs.LexNUM, "number", "ожидалось натуральное число после знака = в интерпретации константы")
 	num, _ := strconv.Atoi(lexem.String())
 	return num, err
 }

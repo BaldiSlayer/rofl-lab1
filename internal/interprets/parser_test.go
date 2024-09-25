@@ -52,6 +52,38 @@ func TestSingleConstInterpretation(t *testing.T) {
 	}, interpretations)
 }
 
+func TestMultipleConstInterpretations(t *testing.T) {
+	// f = 5
+	input := toInputChannel([]trs.Lexem{
+		{LexemType: trs.LexLETTER, Str: "f"},
+		{LexemType: trs.LexEQ, Str: "="},
+		{LexemType: trs.LexNUM, Str: "5"},
+		{LexemType: trs.LexEOL, Str: "\\n"},
+		{LexemType: trs.LexLETTER, Str: "g"},
+		{LexemType: trs.LexEQ, Str: "="},
+		{LexemType: trs.LexNUM, Str: "1"},
+	})
+	constructorArity := map[string]int{"f": 0, "g": 0}
+
+	interpretations, err := NewParser(input, constructorArity).Parse()
+
+	assert.NoError(t, err)
+	assert.Equal(t, []Interpretation{
+		{
+			name:      "f",
+			args:      []string{},
+			monomials: []Monomial{},
+			constants: []int{5},
+		},
+		{
+			name:      "g",
+			args:      []string{},
+			monomials: []Monomial{},
+			constants: []int{1},
+		},
+	}, interpretations)
+}
+
 func TestInterpretationArityMismatch(t *testing.T) {
 	t.SkipNow()
 	// f(x) = 5
