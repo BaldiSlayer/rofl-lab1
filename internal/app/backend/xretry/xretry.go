@@ -1,6 +1,9 @@
 package xretry
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type Retrier struct {
 	f func() error
@@ -11,13 +14,20 @@ func Retry(f func() error) *Retrier {
 }
 
 func (r *Retrier) Count(count int) error {
+	var err error
+
 	for i := 0; i < count; i++ {
-		err := r.f()
-		if err == nil {
+		err1 := r.f()
+		if err1 == nil {
 			return nil
 		}
+
+		err = errors.Join(err, err1)
 	}
 
-	// не получилось за count попыток
-	return errors.New("")
+	return fmt.Errorf(
+		"the function did not complete correctly in %d calls with errors: %w",
+		count,
+		err,
+	)
 }
