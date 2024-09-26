@@ -185,28 +185,10 @@ func (p *Parser) letters() ([]string, *ParseError) {
 }
 
 func (p *Parser) funcInterpretationBody() ([]Monomial, []int, *ParseError) {
-	monomial, constant, err := p.monomial()
-	if err != nil {
-		return nil, nil, err
-	}
-
 	monomials := []Monomial{}
-	if monomial != nil {
-		monomials = append(monomials, *monomial)
-	}
 	constants := []int{}
-	if constant != nil {
-		constants = append(constants, *constant)
-	}
 
-	for p.peek() == trs.LexADD {
-		p.stream.next()
-
-		monomial, constant, err = p.monomial()
-		if err != nil {
-			return nil, nil, err
-		}
-
+	appendIfNotNil := func(monomial *Monomial, constant *int) {
 		if monomial != nil {
 			monomials = append(monomials, *monomial)
 		}
@@ -215,10 +197,26 @@ func (p *Parser) funcInterpretationBody() ([]Monomial, []int, *ParseError) {
 		}
 	}
 
+	monomial, constant, err := p.monomialOrConstant()
+	if err != nil {
+		return nil, nil, err
+	}
+	appendIfNotNil(monomial, constant)
+
+	for p.peek() == trs.LexADD {
+		p.stream.next()
+
+		monomial, constant, err = p.monomialOrConstant()
+		if err != nil {
+			return nil, nil, err
+		}
+		appendIfNotNil(monomial, constant)
+	}
+
 	return monomials, constants, nil
 }
 
-func (p *Parser) monomial() (*Monomial, *int, *ParseError) {
+func (p *Parser) monomialOrConstant() (*Monomial, *int, *ParseError) {
 	coefficient := 1
 
 	if p.peek() == trs.LexNUM {
@@ -229,6 +227,7 @@ func (p *Parser) monomial() (*Monomial, *int, *ParseError) {
 		}
 
 		if p.peek() != trs.LexMUL {
+			// read constant
 			return nil, &num, nil
 		}
 
