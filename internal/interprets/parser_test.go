@@ -61,7 +61,7 @@ func TestMultipleConstInterpretations(t *testing.T) {
 		{LexemType: trs.LexEOL, Str: "\\n"},
 		{LexemType: trs.LexLETTER, Str: "g"},
 		{LexemType: trs.LexEQ, Str: "="},
-		{LexemType: trs.LexNUM, Str: "1"},
+		{LexemType: trs.LexNUM, Str: "100"},
 	})
 	constructorArity := map[string]int{"f": 0, "g": 0}
 
@@ -79,7 +79,7 @@ func TestMultipleConstInterpretations(t *testing.T) {
 			name:      "g",
 			args:      []string{},
 			monomials: []Monomial{},
-			constants: []int{1},
+			constants: []int{100},
 		},
 	}, interpretations)
 }
@@ -119,6 +119,8 @@ func TestSingleInterpretation(t *testing.T) {
 		{LexemType: trs.LexLETTER, Str: "x"},
 		{LexemType: trs.LexRB, Str: ")"},
 		{LexemType: trs.LexEQ, Str: "="},
+		{LexemType: trs.LexLETTER, Str: "x"},
+		{LexemType: trs.LexADD, Str: "+"},
 		{LexemType: trs.LexNUM, Str: "5"},
 	})
 	constructorArity := map[string]int{"f": 1}
@@ -130,8 +132,75 @@ func TestSingleInterpretation(t *testing.T) {
 		{
 			name:      "f",
 			args:      []string{"x"},
-			monomials: []Monomial{},
+			monomials: []Monomial{{
+				variable:    "x",
+				coefficient: 1,
+				power:       1,
+			}},
 			constants: []int{5},
+		},
+	}, interpretations)
+}
+
+
+func TestMultipleInterpretations(t *testing.T) {
+	// f(x) = 5
+	input := toInputChannel([]trs.Lexem{
+		{LexemType: trs.LexLETTER, Str: "f"},
+		{LexemType: trs.LexLB, Str: "("},
+		{LexemType: trs.LexLETTER, Str: "x"},
+		{LexemType: trs.LexRB, Str: ")"},
+		{LexemType: trs.LexEQ, Str: "="},
+		{LexemType: trs.LexLETTER, Str: "x"},
+		{LexemType: trs.LexEOL, Str: "\n"},
+		{LexemType: trs.LexLETTER, Str: "g"},
+		{LexemType: trs.LexLB, Str: "("},
+		{LexemType: trs.LexLETTER, Str: "x"},
+		{LexemType: trs.LexCOMMA, Str: ","},
+		{LexemType: trs.LexLETTER, Str: "y"},
+		{LexemType: trs.LexRB, Str: ")"},
+		{LexemType: trs.LexEQ, Str: "="},
+		{LexemType: trs.LexLETTER, Str: "y"},
+		{LexemType: trs.LexLCB, Str: "{"},
+		{LexemType: trs.LexNUM, Str: "5"},
+		{LexemType: trs.LexRCB, Str: "}"},
+		{LexemType: trs.LexADD, Str: "+"},
+		{LexemType: trs.LexNUM, Str: "13"},
+		{LexemType: trs.LexMUL, Str: "*"},
+		{LexemType: trs.LexLETTER, Str: "x"},
+	})
+	constructorArity := map[string]int{"f": 1, "g": 1}
+
+	interpretations, err := NewParser(input, constructorArity).Parse()
+
+	assert.NoError(t, err)
+	assert.Equal(t, []Interpretation{
+		{
+			name:      "f",
+			args:      []string{"x"},
+			monomials: []Monomial{{
+				variable:    "x",
+				coefficient: 1,
+				power:       1,
+			}},
+			constants: []int{},
+		},
+		{
+			name:      "g",
+			args:      []string{"x", "y"},
+			monomials: []Monomial{
+				{
+					variable:    "y",
+					coefficient: 1,
+					power:       5,
+				},
+				{
+					variable:    "x",
+					coefficient: 13,
+					power:       1,
+				},
+			},
+			constants: []int{},
 		},
 	}, interpretations)
 }
