@@ -111,28 +111,7 @@ func TestNoConstructorName(t *testing.T) {
 	assert.Equal(t, "неверно задана интерпретация: ожидалось название конструктора, получено =", parseError.LlmMessage())
 }
 
-func TestInterpretationArityMismatch(t *testing.T) {
-	t.SkipNow()
-	// f(x) = 5
-	input := toInputChannel([]trs.Lexem{
-		{LexemType: trs.LexLETTER, Str: "f"},
-		{LexemType: trs.LexLB, Str: "("},
-		{LexemType: trs.LexLETTER, Str: "x"},
-		{LexemType: trs.LexRB, Str: ")"},
-		{LexemType: trs.LexEQ, Str: "="},
-		{LexemType: trs.LexNUM, Str: "5"},
-	})
-	constructorArity := map[string]int{"f": 2}
-
-	_, err := NewParser(input, constructorArity).Parse()
-
-	var parseError *ParseError
-	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверная арность интерпретации конструктора f: ожидалось 2, получено 1", parseError.LlmMessage())
-}
-
 func TestSingleInterpretation(t *testing.T) {
-	t.SkipNow()
 	// f(x) = 5
 	input := toInputChannel([]trs.Lexem{
 		{LexemType: trs.LexLETTER, Str: "f"},
@@ -156,3 +135,24 @@ func TestSingleInterpretation(t *testing.T) {
 		},
 	}, interpretations)
 }
+
+func TestInterpretationArityMismatch(t *testing.T) {
+	t.SkipNow()
+	// f(x) = 5
+	input := toInputChannel([]trs.Lexem{
+		{LexemType: trs.LexLETTER, Str: "f"},
+		{LexemType: trs.LexLB, Str: "("},
+		{LexemType: trs.LexLETTER, Str: "x"},
+		{LexemType: trs.LexRB, Str: ")"},
+		{LexemType: trs.LexEQ, Str: "="},
+		{LexemType: trs.LexNUM, Str: "5"},
+	})
+	constructorArity := map[string]int{"f": 2}
+
+	_, err := NewParser(input, constructorArity).Parse()
+
+	var parseError *ParseError
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(t, "неверная арность интерпретации конструктора f: ожидалось 2, получено 1", parseError.LlmMessage())
+}
+
