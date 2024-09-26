@@ -34,8 +34,12 @@ func TestParsesBasicTrs(t *testing.T) {
 	}
 	inter := Interpretation{
 		Args:      []string{},
-		Constants: []int{5},
-		Monomials: []Monomial{},
+		Constants: []int{},
+		Monomials: []Monomial{{
+			Coefficient: nil,
+			Power:       nil,
+			Variable:    "a",
+		}},
 		Name:      "f",
 	}
 
@@ -43,7 +47,7 @@ func TestParsesBasicTrs(t *testing.T) {
 		`variables = a
 f = a
 -----
-f = 5
+f = a
 `,
 	)
 
