@@ -24,27 +24,12 @@ func NewParser(input chan trs.Lexem, constructorArity map[string]int) *Parser {
 }
 
 func (p *Parser) Parse() ([]Interpretation, error) {
-	i, err := p.interprets()
+	i, err := p.interpretations()
 	if err != nil {
 		return nil, err
 	}
 	return i, nil
 }
-
-/*
-<interprets> ::= <func-rule> <eol> <interprets> | <const-rule> <eol> <interprets> | ε
-<const-rule> ::= <constructor> "=" number
-<func-rule> ::= <constructor> "(" <letters> ")" "=" <monomial> <monomials-tail>
-<monomials-tail> ::= "+" <monomial> <monomials-tail> | ε
-<monomial> ::= number | <power-product> <power-products-tail>
-<power-products-tail> ::= <power-product> <power-products-tail> | ε
-<power-product> ::= <coeff> <var> <power>
-<coeff> ::= ε | number "*"
-<power> ::= ε | "{" number "}"
-<letters> ::= letter <letters-tail>
-<letters-tail> ::= "," letter <letters-tail> | ε
-<eol> ::= \n | \r | \r\n
-*/
 
 func (p *Parser) accept(expectedType trs.LexemType, expectedMessage, expectedLlmMessage string) (trs.Lexem, *ParseError) {
 	got := p.stream.next()
@@ -61,7 +46,7 @@ func (p *Parser) peek() trs.LexemType {
 	return p.stream.peek().Type()
 }
 
-func (p *Parser) interprets() ([]Interpretation, *ParseError) {
+func (p *Parser) interpretations() ([]Interpretation, *ParseError) {
 	res := []Interpretation{}
 	for {
 		if p.peek() == trs.LexEOF && len(res) == 0 {
@@ -74,24 +59,9 @@ func (p *Parser) interprets() ([]Interpretation, *ParseError) {
 			return res, nil
 		}
 
-		constructor, err := p.accept(
-			trs.LexLETTER,
-			"constructor name",
-			"ожидалось название конструктора",
-		)
+		interpret, err := p.interpretation()
 		if err != nil {
-			return nil, err.wrap(&ParseError{
-				llmMessage: "неверно задана интерпретация",
-				message:    "wrong interpretation definition",
-			})
-		}
-
-		interpret, err := p.constOrFuncRule(constructor.String())
-		if err != nil {
-			return nil, err.wrap(&ParseError{
-				llmMessage: fmt.Sprintf("неверно задана интерпретация конструктора %s", constructor.String()),
-				message:    "wrong interpretation definition",
-			})
+			return nil, err
 		}
 
 		p.accept(trs.LexEOL, "EOL", "ожидался перенос строки после определения интерпретации")
@@ -100,10 +70,33 @@ func (p *Parser) interprets() ([]Interpretation, *ParseError) {
 	}
 }
 
-func (p *Parser) constOrFuncRule(name string) (Interpretation, *ParseError) {
+func (p *Parser) interpretation() (Interpretation, *ParseError) {
+	constructor, err := p.accept(
+		trs.LexLETTER,
+		"constructor name",
+		"ожидалось название конструктора",
+	)
+	if err != nil {
+		return Interpretation{}, err.wrap(&ParseError{
+			llmMessage: "неверно задана интерпретация",
+			message:    "wrong interpretation definition",
+		})
+	}
+
+	interpret, err := p.interpretationBody(constructor.String())
+	if err != nil {
+		return Interpretation{}, err.wrap(&ParseError{
+			llmMessage: fmt.Sprintf("неверно задана интерпретация конструктора %s", constructor.String()),
+			message:    "wrong interpretation definition",
+		})
+	}
+	return interpret, nil
+}
+
+func (p *Parser) interpretationBody(name string) (Interpretation, *ParseError) {
 	switch p.peek() {
 	case trs.LexEQ:
-		value, err := p.constRule()
+		value, err := p.constInterpretation()
 		return Interpretation{
 			name:      name,
 			args:      []string{},
@@ -111,7 +104,7 @@ func (p *Parser) constOrFuncRule(name string) (Interpretation, *ParseError) {
 			constants: []int{value},
 		}, err
 	case trs.LexLB:
-		return p.funcRule(name)
+		return p.funcInterpretation(name)
 	}
 
 	got := p.stream.next()
@@ -121,7 +114,7 @@ func (p *Parser) constOrFuncRule(name string) (Interpretation, *ParseError) {
 	}
 }
 
-func (p *Parser) constRule() (int, *ParseError) {
+func (p *Parser) constInterpretation() (int, *ParseError) {
 	p.stream.next()
 	lexem, err := p.accept(trs.LexNUM, "number", "ожидалось натуральное число после знака = в интерпретации константы")
 	if err != nil {
@@ -142,8 +135,7 @@ func (p *Parser) toInt(lexem trs.Lexem) (int, *ParseError) {
 	return num, nil
 }
 
-// <func-rule> ::= <constructor> "(" <letters> ")" "=" <monomial> <monomials-tail>
-func (p *Parser) funcRule(name string) (Interpretation, *ParseError) {
+func (p *Parser) funcInterpretation(name string) (Interpretation, *ParseError) {
 	p.stream.next()
 
 	// TODO: check if name occures in args
@@ -156,7 +148,7 @@ func (p *Parser) funcRule(name string) (Interpretation, *ParseError) {
 	p.accept(trs.LexRB, ")", "ожидалось закрытие скобки после объявления переменных через запятую")
 	p.accept(trs.LexEQ, "=", "ожидался знак равенства")
 
-	monomials, constants, err := p.monomials()
+	monomials, constants, err := p.funcInterpretationBody()
 	if err != nil {
 		return Interpretation{}, err
 	}
@@ -169,8 +161,6 @@ func (p *Parser) funcRule(name string) (Interpretation, *ParseError) {
 	}, nil
 }
 
-// <letters> ::= letter <letters-tail>
-// <letters-tail> ::= "," letter <letters-tail> | ε
 func (p *Parser) letters() ([]string, *ParseError) {
 	lexem, err := p.accept(trs.LexLETTER, "letter", "ожидалась буква - название переменной")
 	if err != nil {
@@ -194,15 +184,7 @@ func (p *Parser) letters() ([]string, *ParseError) {
 	return variables, nil
 }
 
-
-// <func-rule> ::= <constructor> "(" <letters> ")" "=" <monomial> <monomials-tail>
-// <monomials-tail> ::= "+" <monomial> <monomials-tail> | ε
-// <monomial> ::= number | <power-product> <power-products-tail>
-// <power-products-tail> ::= <power-product> <power-products-tail> | ε
-// <power-product> ::= <coeff> <var> <power>
-// <coeff> ::= ε | number "*"
-// <power> ::= ε | "{" number "}"
-func (p *Parser) monomials() ([]Monomial, []int, *ParseError) {
+func (p *Parser) funcInterpretationBody() ([]Monomial, []int, *ParseError) {
 	monomial, constant, err := p.monomial()
 	if err != nil {
 		return nil, nil, err
