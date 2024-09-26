@@ -227,7 +227,7 @@ func (p *Parser) monomialOrConstant() (*Monomial, *int, *ParseError) {
 		}
 
 		if p.peek() != trs.LexMUL {
-			// read constant
+			// NOTE: read constant
 			return nil, &num, nil
 		}
 
