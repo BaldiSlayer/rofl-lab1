@@ -7,7 +7,7 @@ __pycache__/
 *.so
 
 # Ollama
-# ollama/
+ollama/
 
 # Distribution / packaging
 .Python
