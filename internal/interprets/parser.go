@@ -94,7 +94,7 @@ func (p *Parser) interprets() ([]Interpretation, *ParseError) {
 			})
 		}
 
-		p.accept(trs.LexEOL, "EOL", "ожидался перенос строки")
+		p.accept(trs.LexEOL, "EOL", "ожидался перенос строки после определения интерпретации")
 
 		res = append(res, interpret)
 	}

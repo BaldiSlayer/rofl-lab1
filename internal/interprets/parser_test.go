@@ -84,6 +84,33 @@ func TestMultipleConstInterpretations(t *testing.T) {
 	}, interpretations)
 }
 
+func TestNoInterpretations(t *testing.T) {
+	input := toInputChannel([]trs.Lexem{})
+
+	_, err := NewParser(input, map[string]int{}).Parse()
+
+	var parseError *ParseError
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(t, "система должна содержать хотя бы одну интерпретацию", parseError.LlmMessage())
+}
+
+func TestNoConstructorName(t *testing.T) {
+	input := toInputChannel([]trs.Lexem{
+		{LexemType: trs.LexLETTER, Str: "f"},
+		{LexemType: trs.LexEQ, Str: "="},
+		{LexemType: trs.LexNUM, Str: "5"},
+		{LexemType: trs.LexEOL, Str: "\n"},
+		{LexemType: trs.LexEQ, Str: "="},
+		{LexemType: trs.LexNUM, Str: "5"},
+	})
+
+	_, err := NewParser(input, map[string]int{"f": 0, "g": 0}).Parse()
+
+	var parseError *ParseError
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(t, "неверно задана интерпретация: ожидалось название конструктора, получено =", parseError.LlmMessage())
+}
+
 func TestInterpretationArityMismatch(t *testing.T) {
 	t.SkipNow()
 	// f(x) = 5
