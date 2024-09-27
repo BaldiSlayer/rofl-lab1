@@ -4,20 +4,16 @@ go 1.20
 
 require (
 	github.com/caarlos0/env/v11 v11.2.2
-	github.com/joho/godotenv v1.5.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.3.0
-	github.com/oapi-codegen/runtime v1.1.1
 	github.com/stretchr/testify v1.9.0
 )
 
 require (
-	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/getkin/kin-openapi v0.125.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
-	github.com/google/uuid v1.5.0 // indirect
 	github.com/invopop/yaml v0.3.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect

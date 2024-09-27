@@ -18,8 +18,8 @@ LL(1):
 <s> ::= <vars> <rules>
 <eol> ::= \n | \r | \r\n
 <vars> ::= "variables" "=" <letters> <eol>
-<letters> ::= <letter> <letters-tail>
-<letters-tail> ::= "," <letter> <letters-tail> | ε
+<letters> ::= letter <letters-tail>
+<letters-tail> ::= "," letter <letters-tail> | ε
 <rules> ::= <rule> <eol> <rules-tail>
 <rules-tail> ::= <rule> <eol> <rules-tail> | ε
 <rule> ::= <term> "=" <term>
@@ -34,11 +34,12 @@ LL(1):
 
 [[./images/trs-interpret-grammar.png]]
 
-LL(1):
+LL(2):
 
 #+begin_src
 <interprets> ::= <func-rule> <eol> <interprets> | <const-rule> <eol> <interprets> | ε
-<const-rule> ::= <constructor> "(" <letters> ")" "=" <monomial> <monomials-tail>
+<const-rule> ::= <constructor> "=" number
+<func-rule> ::= <constructor> "(" <letters> ")" "=" <monomial> <monomials-tail>
 <monomials-tail> ::= "+" <monomial> <monomials-tail> | ε
 <monomial> ::= number | <power-product> <power-products-tail>
 <power-products-tail> ::= <power-product> <power-products-tail> | ε
@@ -46,6 +47,7 @@ LL(1):
 <coeff> ::= ε | number "*"
 <power> ::= ε | "{" number "}"
 #+end_src
+
 * API
 
 [[./trs-parser-api.yaml]]

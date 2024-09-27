@@ -1,4 +1,4 @@
-package: parser
+package: trsparser
 output: dto.gen.go
 generate:
   models: true
