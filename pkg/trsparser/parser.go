@@ -1,14 +1,21 @@
-package parser
-
-import "fmt"
+package trsparser
 
 type Parser struct {}
 
 func (p Parser) Parse(input string) (*Trs, error) {
 	if input == "" {
-		return nil, fmt.Errorf("empty input")
+		return nil, &ParseError{
+			LlmMessage: "система должна содержать хотя бы одно правило переписывания и его интерпретацию",
+			Summary:    "empty input",
+		}
 	}
 
+	inter := Interpretation{
+		Args:      []string{},
+		Constants: []int{5},
+		Monomials: []Monomial{},
+		Name:      "f",
+	}
 	rule := Rule{
 		Lhs: Subexpression{
 			Args:   nil,
@@ -27,7 +34,7 @@ func (p Parser) Parse(input string) (*Trs, error) {
 	}
 
 	return &Trs{
-		Interpretations: []Interpretation{NewConstInterpretation("f", 5)},
+		Interpretations: []Interpretation{inter},
 		Rules:           []Rule{rule},
 		Variables:       []string{"a"},
 	}, nil

@@ -31,30 +31,16 @@ components:
           minItems: 1
           items:
             $ref: '#/components/schemas/Interpretation'
-
     ParseError:
       type: object
       required:
-        - line
-        - range
+        - llmMessage
         - summary
       properties:
+        llmMessage:
+          $ref: '#/components/schemas/NonEmptyString'
         summary:
           $ref: '#/components/schemas/NonEmptyString'
-        message:
-          $ref: '#/components/schemas/NonEmptyString'
-        line:
-          type: integer
-        range:
-          type: object
-          required:
-            - from
-            - to
-          properties:
-            from:
-              type: integer
-            to:
-              type: integer
     Rule:
       type: object
       required:
@@ -79,7 +65,7 @@ components:
             $ref: '#/components/schemas/Subexpression'
     Letter:
       type: object
-      description: Variable or constructor
+      description: represents variable or constructor
       required:
         - name
         - isVariable
@@ -90,25 +76,11 @@ components:
           type: boolean
     Interpretation:
       type: object
-      oneOf:
-        - $ref: '#/components/schemas/ConstInterpretation'
-        - $ref: '#/components/schemas/ConstructorInterpretation'
-    ConstInterpretation:
-      type: object
-      required:
-        - name
-        - value
-      properties:
-        name:
-          $ref: '#/components/schemas/NonEmptyString'
-        value:
-          type: integer
-    ConstructorInterpretation:
-      type: object
       required:
         - name
         - args
-        - value
+        - monomials
+        - constants
       properties:
         name:
           $ref: '#/components/schemas/NonEmptyString'
@@ -116,12 +88,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NonEmptyString'
-        value:
+        monomials:
           type: array
           items:
-            oneOf:
-              - $ref: '#/components/schemas/Monomial'
-              - $ref: '#/components/schemas/Constant'
+            $ref: '#/components/schemas/Monomial'
+        constants:
+          type: array
+          items:
+            type: integer
+            minimum: 1
     Monomial:
       type: object
       required:
@@ -135,8 +110,6 @@ components:
         power:
           type: integer
           minimum: 1
-    Constant:
-      type: integer
     NonEmptyString:
       type: string
       minLength: 1
