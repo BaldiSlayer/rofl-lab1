@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -28,7 +29,9 @@ func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.
 			"К сожалению не удалось получить ответ на Ваш вопрос",
 		)
 		if err != nil {
-			return models.EmptyState, err
+			curState, err1 := controller.EmptyState(update)
+
+			return curState, errors.Join(err1, err)
 		}
 	case <-doneChan:
 		err = controller.Bot.SendMessage(
@@ -36,7 +39,9 @@ func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.
 			fmt.Sprintf("Ответ модели на Ваш вопрос: %s", answer),
 		)
 		if err != nil {
-			return models.EmptyState, err
+			curState, err1 := controller.EmptyState(update)
+
+			return curState, errors.Join(err1, err)
 		}
 	}
 

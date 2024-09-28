@@ -8,9 +8,9 @@ import (
 type MockBackendClient struct{}
 
 func (mbc *MockBackendClient) AskKB(ctx context.Context, question string) (string, error) {
-	time.Sleep(1 * time.Second)
+	time.Sleep(3 * time.Second)
 
-	return "пошел нахуй", nil
+	return "я не знаю", nil
 }
 
 func (mbc *MockBackendClient) ParseTRS(ctx context.Context, trs string) error {
