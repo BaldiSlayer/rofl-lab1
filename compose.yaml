@@ -13,3 +13,9 @@ services:
     tty: true
     restart: always
     entrypoint: ["/usr/bin/bash", "/entrypoint.sh"]
+  backend:
+    ports:
+      - "9000:9000"
+    build:
+      dockerfile: ./dockerfiles/backend.dockerfile
+    container_name: backend
