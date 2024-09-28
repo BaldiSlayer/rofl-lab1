@@ -8,7 +8,7 @@ import (
 type MockBackendClient struct{}
 
 func (mbc *MockBackendClient) AskKB(ctx context.Context, question string) (string, error) {
-	time.Sleep(3 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	return "я не знаю", nil
 }

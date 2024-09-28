@@ -9,8 +9,12 @@ import (
 	"time"
 )
 
+const (
+	waitForKBQuestionTimeout = 2 * time.Second
+)
+
 func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.UserState, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), waitForKBQuestionTimeout)
 	defer cancel()
 
 	var answer string

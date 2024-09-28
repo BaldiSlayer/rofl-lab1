@@ -13,9 +13,9 @@ var ErrNoAction = fmt.Errorf("action pooler has no action for this state")
 
 type BotActionsPool struct {
 	storage ustorage.UserDataStorage
-	actions map[models.UserState]func(update tgbotapi.Update) (models.UserState, error)
 
-	mu sync.Mutex
+	actions      map[models.UserState]func(update tgbotapi.Update) (models.UserState, error)
+	actionsMutex sync.Mutex
 }
 
 func New() (*BotActionsPool, error) {
@@ -38,16 +38,16 @@ func (b *BotActionsPool) AddController(state models.UserState, f func(update tgb
 func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
 	userState := b.storage.GetState(update.Message.Chat.ID)
 
-	b.mu.Lock()
+	b.actionsMutex.Lock()
 
 	f, ok := b.actions[userState]
 	if !ok {
-		b.mu.Unlock()
+		b.actionsMutex.Unlock()
 
 		return ErrNoAction
 	}
 
-	b.mu.Unlock()
+	b.actionsMutex.Unlock()
 
 	currentState, err := f(update)
 	if err != nil {
