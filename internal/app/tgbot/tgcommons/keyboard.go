@@ -21,17 +21,7 @@ func (bot *Bot) SendStartUpKeyboard(chatID int64) error {
 	return err
 }
 
-/*
-func (bot *TGBotApp) deleteCommand(update tgbotapi.Update) error {
-	err := bot.removeKeyboard(update.Message.Chat.ID)
-	if err != nil {
-		return fmt.Errorf("failed to remove keyboard: %w", err)
-	}
-
-	return nil
-}
-*/
-
+// RemoveKeyboard отправляет пользователю сообщение с заданным текстом и удаляет клавиатуру
 func (bot *Bot) RemoveKeyboard(chatID int64, messageText string) error {
 	removeKeyboard := tgbotapi.NewRemoveKeyboard(true)
 

@@ -7,7 +7,7 @@ import (
 )
 
 type TGBotConfig struct {
-	Token string `env:"TGBOTOKEN"`
+	Token string `env:"TGTOKEN"`
 }
 
 func LoadTGBotConfig() (*TGBotConfig, error) {

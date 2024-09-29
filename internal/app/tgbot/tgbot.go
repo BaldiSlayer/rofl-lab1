@@ -91,17 +91,17 @@ func (bot *App) initControllers() error {
 		BackendClient: &beclient.MockBackendClient{},
 	}
 
-	bot.actionsPooler.AddController(
+	bot.actionsPooler.AddStateTransition(
 		models.EmptyState,
 		controller.EmptyState,
 	)
 
-	bot.actionsPooler.AddController(
+	bot.actionsPooler.AddStateTransition(
 		models.StartState,
 		controller.Start,
 	)
 
-	bot.actionsPooler.AddController(
+	bot.actionsPooler.AddStateTransition(
 		models.WaitForKBQuestion,
 		controller.WaitForKBQuestion,
 	)
