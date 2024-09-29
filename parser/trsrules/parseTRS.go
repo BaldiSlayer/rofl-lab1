@@ -1,4 +1,4 @@
-package main
+package trsparser
 
 import (
 	"fmt"
@@ -38,30 +38,34 @@ grammatic
 
 //<lexem> ::= "variables" | "=" | letter | "," | "*" | "{" | "}" | "(" | ")" | "+" | number | '\r' | \n | \r\n
 const (
-	lex_VAR int = iota
-	lex_EQ
-	lex_LETTER
-	lex_COMMA
-	lex_MUL
-	lex_ADD
-	lex_LCB
-	lex_RCB
-	lex_LB
-	lex_RB
-	lex_NUM
-	lex_EOL
-	lex_SEPARATOR //('-')* - separate TRS input and interpet input: can be deleted in the future
+	lexVAR int = iota
+	lexEQ
+	lexLETTER
+	lexCOMMA
+	lexMUL
+	lexADD
+	lexLCB
+	lexRCB
+	lexLB
+	lexRB
+	lexNUM
+	lexEOL
+	lexSEPARATOR //('-')* - separate TRS input and interpet input: can be deleted in the future
 )
 
 type Lexem struct {
-	index, lex_type int
+	index, lexType int
 }
 
-func Lexer(text string) ([]Lexem, error) {
-	runes := []rune(text)
+type Parser struct{
+	text string
+}
+
+func (p Parser)Lexer() ([]Lexem, error) {
+	runes := []rune(p.text)
 	res := make([]Lexem, 0, len(runes))
 	
-	lex_variables := []rune("variables")
+	lexVARiables := []rune("variables")
 
 	for i := 0; i < len(runes); i++ {
 		switch runes[i] {
@@ -70,29 +74,29 @@ func Lexer(text string) ([]Lexem, error) {
 		case '\t':
 			continue
 		case '-':
-			res = append(res, Lexem{i, lex_SEPARATOR})
+			res = append(res, Lexem{i, lexSEPARATOR})
 			for i < len(runes) && runes[i] == '-'{
 				i++
 			}
 		case '=':
-			res = append(res, Lexem{i, lex_EQ})
+			res = append(res, Lexem{i, lexEQ})
 		case ',':
-			res = append(res, Lexem{i, lex_COMMA})
+			res = append(res, Lexem{i, lexCOMMA})
 		case '+':
-			res = append(res, Lexem{i, lex_ADD})
+			res = append(res, Lexem{i, lexADD})
 		case '*':
-			res = append(res, Lexem{i, lex_MUL})
+			res = append(res, Lexem{i, lexMUL})
 		case '{':
-			res = append(res, Lexem{i, lex_LCB})
+			res = append(res, Lexem{i, lexLCB})
 		case '}':
-			res = append(res, Lexem{i, lex_RCB})
+			res = append(res, Lexem{i, lexRCB})
 		case '(':
-			res = append(res, Lexem{i, lex_LB})
+			res = append(res, Lexem{i, lexLB})
 		case ')':
-			res = append(res, Lexem{i, lex_RB})
+			res = append(res, Lexem{i, lexRB})
 		default:
 			if runes[i] == '\n' || runes[i] == '\r' { // если перевод строки(причем могут быть 2), добавить лексему перевод строки
-				res = append(res, Lexem{i, lex_EOL})
+				res = append(res, Lexem{i, lexEOL})
 				if i < len(runes)-1 && (runes[i] == '\n' && runes[i+1] == '\r' || runes[i] == '\r' && runes[i+1] == '\n') {
 					i++
 				}
@@ -101,22 +105,22 @@ func Lexer(text string) ([]Lexem, error) {
 					t := true
 					j := 0
 					for ; j < 9; j++ {
-						if lex_variables[j] != runes[i+j] {
+						if lexVARiables[j] != runes[i+j] {
 							t = false
 							break
 						}
 					}
 					if t { // если найдено слово, добавляем и пропускаем
-						res = append(res, Lexem{i, lex_VAR})
+						res = append(res, Lexem{i, lexVAR})
 						i += 8
 					} else { // иначе добавляем букву 'v' и идем дальше посимвольно
-						res = append(res, Lexem{i, lex_LETTER})
+						res = append(res, Lexem{i, lexLETTER})
 					}
 				} else { // если найденная буква не v, то добавляем букву
-					res = append(res, Lexem{i, lex_LETTER})
+					res = append(res, Lexem{i, lexLETTER})
 				}
 			} else if runes[i] >= '0' && runes[i] <= '9' {
-				res = append(res, Lexem{i, lex_NUM})
+				res = append(res, Lexem{i, lexNUM})
 				for i < len(runes) && (runes[i] >= '0' && runes[i] <= '9'){
 					i++
 				}
@@ -146,62 +150,96 @@ func Lexer(text string) ([]Lexem, error) {
 */
 
 func lexCheck(l Lexem, Ltype int) (bool, error) {
-	if l.lex_type != Ltype {
-		return false, fmt.Errorf("on index %d expected %d, found %d", l.index, Ltype, l.lex_type)
+	if l.lexType != Ltype {
+		return false, fmt.Errorf("on index %d expected %d, found %d", l.index, Ltype, l.lexType)
 	}
 	return true, nil
 }
 
 // <vars> ::= "variables" "=" <letters> <eol>
-func TRS_parseVars(/*input string,*/ m []Lexem, index *int) {
-	lexCheck(m[*index], lex_VAR)
+func (p Parser) parseVars(/*input string,*/ m []Lexem, index *int) {
+	lexCheck(m[*index], lexVAR)
 	*index++
-	lexCheck(m[*index], lex_EQ)
+	lexCheck(m[*index], lexEQ)
 	*index++
-	TRS_parseLetters(m, index)
-	lexCheck(m[*index], lex_EOL)
+	p.parseLetters(m, index)
+	lexCheck(m[*index], lexEOL)
 	*index++
 
 }
 
 //<letters> ::= <letter> <letters-tail>
-func TRS_parseLetters(/*input string,*/ m []Lexem, index *int) {
-	lexCheck(m[*index], lex_LETTER)
+func (p Parser) parseLetters(/*input string,*/ m []Lexem, index *int) {
+	lexCheck(m[*index], lexLETTER)
 	*index++
-	TRS_parseLettersTail(m, index)
+	p.parseLettersTail(m, index)
 }
 
 //<letters-tail> ::= "," <letter> <letters-tail> | ε
-func TRS_parseLettersTail(m []Lexem, index *int) {
-	if m[*index].lex_type == lex_COMMA {
+func (p Parser) parseLettersTail(m []Lexem, index *int) {
+	// вместо if оптимизировано с ипользованием цикла
+	// для уменьшения глубины стека выполнения
+	for m[*index].lexType == lexCOMMA {
 		*index++
-		lexCheck(m[*index], lex_LETTER)
+		lexCheck(m[*index], lexLETTER)
 		*index++
-		TRS_parseLettersTail(m, index)
+		//p.parseLettersTail(m, index)
 	}
 }
 
 // <rules> ::= <rule> <eol> <rules-tail>
-func TRS_parseRules(m []Lexem, index *int)     {
-	TRS_parseRule(m, index)
-	lexCheck(m[*index], lex_EOL)
+func (p Parser) parseRules(m []Lexem, index *int)     {
+	p.parseRule(m, index)
+	lexCheck(m[*index], lexEOL)
 	*index++
-	TRS_parseRulesTail(m, index)
+	p.parseRulesTail(m, index)
 }
 // <rules-tail> ::= <rule> <eol> <rules-tail> | ε
-func TRS_parseRulesTail(m []Lexem, index *int) {
-	if m[*index].lex_type == lex_LETTER{
-		TRS_parseRule(m, index);
-		lexCheck(m[*index], lex_EOL)
+func (p Parser) parseRulesTail(m []Lexem, index *int) {
+	for m[*index].lexType == lexLETTER{
+		p.parseRule(m, index)
+		lexCheck(m[*index], lexEOL)
 		*index++
-		TRS_parseRulesTail(m, index)
+		//p.parseRulesTail(m, index)
 	}
 }
-func TRS_parseRule(m []Lexem, index *int)      {}
-func TRS_parseTerm(m []Lexem, index *int)      {}
-func TRS_parseArgs(m []Lexem, index *int)      {}
-func TRS_parseTermsTail(m []Lexem, index *int) {}
+// <rule> ::= <term> "=" <term>
+func (p Parser) parseRule(m []Lexem, index *int)      {
+	p.parseTerm(m, index)
+	lexCheck(m[*index], lexEQ)
+	*index++
+	p.parseTerm(m, index)
+}
+// <term> ::= var | constructor <args>
+func (p Parser) parseTerm(m []Lexem, index *int)      {
+	lexCheck(m[*index], lexLETTER)
+	*index++
+	if(true /*m[*index-1] not in vars*/){
+		p.parseArgs(m, index)
+	}
+}
+// <args> ::= ε | "(" <term> <terms-tail> ")"
+func (p Parser) parseArgs(m []Lexem, index *int)      {
+	if m[*index].lexType == lexLB{
+		*index++
+		p.parseTerm(m, index)
+		p.parseTermsTail(m, index)
+		lexCheck(m[*index], lexRB)
+	}
+}
+// <terms-tail> ::= "," <term> <terms-tail> | ε
+func (p Parser) parseTermsTail(m []Lexem, index *int) {
+	for m[*index].lexType == lexCOMMA{
+		*index++
+		p.parseTerm(m, index)
+		//p.parseTermsTail(m,index)
+	}
+}
 
-func parseTRS(m []Lexem) bool {
-	return false
+// <s> ::= <vars> <rules>
+func (p Parser) parseTRS(m []Lexem) bool {
+	index := 0
+	/*varList := */p.parseVars(m, &index)
+	p.parseRules(m, &index/*, varList*/)
+	return true
 }

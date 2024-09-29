@@ -1,4 +1,4 @@
-package main
+package trsparser
 
 import (
 	"testing"
