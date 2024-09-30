@@ -2,6 +2,7 @@ package trsparser
 
 import (
 	"testing"
+	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 )
 
 const (
@@ -28,7 +29,7 @@ func TestParserWithPeano(t *testing.T){
 	if err != nil{
 		t.Error(err)
 	}
-	if p.lexem[p.index].lexType != lexSEPARATOR{
-		t.Errorf("Expected separator, but find %d lexem", p.lexem[p.index].lexType)
+	if p.lexem[p.index].LexemType != models.LexSEPARATOR{
+		t.Errorf("Expected separator, but find %d lexem", p.lexem[p.index].LexemType)
 	}
 }
