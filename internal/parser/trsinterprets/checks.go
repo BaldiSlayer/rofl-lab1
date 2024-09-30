@@ -43,6 +43,15 @@ func checkInterpretations(interprets []Interpretation, constructorArity map[stri
 		}
 	}
 
+	for expectedName := range constructorArity {
+		if _, ok := c.defined[expectedName]; !ok {
+			return &ParseError{
+				llmMessage: fmt.Sprintf("не хватает интерпретации для конструктора %s", expectedName),
+				message:    "no sufficient interpretation",
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -50,6 +59,8 @@ type interpretationChecker struct {
 	defined map[string]struct{}
 }
 
+
+// TODO: refactor
 func (c *interpretationChecker) checkInterpretation(interpret Interpretation,
 	constructorArity map[string]int) *ParseError {
 
@@ -61,7 +72,7 @@ func (c *interpretationChecker) checkInterpretation(interpret Interpretation,
 	}
 	c.defined[interpret.name] = struct{}{}
 
-	arity, ok := constructorArity[interpret.name]
+	expectedArity, ok := constructorArity[interpret.name]
 	if !ok {
 		return &ParseError{
 			llmMessage: fmt.Sprintf("конструктор %s отсутствует в правилах trs", interpret.name),
@@ -69,10 +80,10 @@ func (c *interpretationChecker) checkInterpretation(interpret Interpretation,
 		}
 	}
 
-	if arity != len(interpret.args) {
+	if expectedArity != len(interpret.args) {
 		return &ParseError{
 			llmMessage: fmt.Sprintf("неверная арность конструктора %s: "+
-				"ожидалась арность %d, получена арность %d", interpret.name, arity, len(interpret.args)),
+				"ожидалась арность %d, получена арность %d", interpret.name, expectedArity, len(interpret.args)),
 			message:    "wrong func interpretation arity",
 		}
 	}
@@ -98,7 +109,7 @@ func (c *interpretationChecker) checkInterpretation(interpret Interpretation,
 }
 
 func toMap(slice []string) map[string]struct{} {
-	res := make(map[string]struct{})
+	res := make(map[string]struct{}, len(slice))
 	for _, el := range slice {
 		res[el] = struct{}{}
 	}

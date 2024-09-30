@@ -31,7 +31,6 @@ func toInputChannel(lexems []models.Lexem) chan models.Lexem {
 }
 
 func TestSingleConstInterpretation(t *testing.T) {
-	// f = 5
 	input := toInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexEQ, Str: "="},
@@ -54,7 +53,6 @@ func TestSingleConstInterpretation(t *testing.T) {
 }
 
 func TestMultipleConstInterpretations(t *testing.T) {
-	// f = 5
 	input := toInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexEQ, Str: "="},
@@ -114,7 +112,6 @@ func TestNoConstructorName(t *testing.T) {
 }
 
 func TestSingleInterpretation(t *testing.T) {
-	// f(x) = 5
 	input := toInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
@@ -146,7 +143,6 @@ func TestSingleInterpretation(t *testing.T) {
 }
 
 func TestMultipleInterpretations(t *testing.T) {
-	// f(x) = 5
 	input := toInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
@@ -344,4 +340,23 @@ func TestDuplicateArgument(t *testing.T) {
 	var parseError *ParseError
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(t, "в интерпретации конструктора f повторно объявлена переменная x", parseError.LlmMessage())
+}
+
+func TestNoSufficientInterpretation(t *testing.T) {
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexEOL, Str: "\n"},
+	})
+	constructorArity := map[string]int{"f": 1, "g": 2}
+
+	_, err := NewParser(input, constructorArity).Parse()
+
+	var parseError *ParseError
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(t, "не хватает интерпретации для конструктора g", parseError.LlmMessage())
 }
