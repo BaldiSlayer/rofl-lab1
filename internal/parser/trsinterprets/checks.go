@@ -7,8 +7,8 @@ func checkMonomials(monomials []Monomial, args []string) *ParseError {
 		definedVars: toMap(args),
 	}
 
-	for _, el := range monomials {
-		err := c.checkMonomial(el)
+	for _, monomial := range monomials {
+		err := c.checkMonomial(monomial)
 		if err != nil {
 			return err
 		}
@@ -31,20 +31,48 @@ func (c *monomialChecker) checkMonomial(monomial Monomial) *ParseError {
 	return nil
 }
 
-func checkInterpretation(interpret Interpretation, constructorArity map[string]int) *ParseError {
+func checkInterpretations(interprets []Interpretation, constructorArity map[string]int) *ParseError {
+	c := interpretationChecker{
+		defined: map[string]struct{}{},
+	}
+
+	for _, interpretation := range interprets {
+		err := c.checkInterpretation(interpretation, constructorArity)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type interpretationChecker struct {
+	defined map[string]struct{}
+}
+
+func (c *interpretationChecker) checkInterpretation(interpret Interpretation, constructorArity map[string]int) *ParseError {
 	// TODO: check for duplicate args
+
+	if _, ok := c.defined[interpret.name]; ok {
+		return &ParseError{
+			llmMessage: fmt.Sprintf("интерпретация конструктора %s задана повторно", interpret.name),
+			message:    "duplicate interpretation",
+		}
+	}
+	c.defined[interpret.name] = struct{}{}
 
 	arity, ok := constructorArity[interpret.name]
 	if !ok {
 		return &ParseError{
-			llmMessage: "конструктор отсутствует в правилах trs",
+			llmMessage: fmt.Sprintf("конструктор %s отсутствует в правилах trs", interpret.name),
 			message:    "excess interpretation",
 		}
 	}
 
 	if arity != len(interpret.args) {
 		return &ParseError{
-			llmMessage: fmt.Sprintf("ожидался конструктор арности %d, получен арности %d", arity, len(interpret.args)),
+			llmMessage: fmt.Sprintf("неверная арность конструктора %s: "+
+				"ожидалась арность %d, получена арность %d", interpret.name, arity, len(interpret.args)),
 			message:    "wrong func interpretation arity",
 		}
 	}

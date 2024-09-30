@@ -275,8 +275,7 @@ func TestInterpretationArityMismatch(t *testing.T) {
 
 	var parseError *ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"ожидался конструктор арности 2, получен арности 1", parseError.LlmMessage())
+	assert.Equal(t, "неверная арность конструктора f: ожидалась арность 2, получена арность 1", parseError.LlmMessage())
 }
 
 func TestExcessInterpretation(t *testing.T) {
@@ -295,6 +294,33 @@ func TestExcessInterpretation(t *testing.T) {
 
 	var parseError *ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"конструктор отсутствует в правилах trs", parseError.LlmMessage())
+	assert.Equal(t, "конструктор f отсутствует в правилах trs", parseError.LlmMessage())
+}
+
+func TestDuplicateInterpretation(t *testing.T) {
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexEOL, Str: "\n"},
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexNUM, Str: "13"},
+		{LexemType: models.LexMUL, Str: "*"},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexEOL, Str: "\n"},
+	})
+	constructorArity := map[string]int{"f": 1}
+
+	_, err := NewParser(input, constructorArity).Parse()
+
+	var parseError *ParseError
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(t, "интерпретация конструктора f задана повторно", parseError.LlmMessage())
 }

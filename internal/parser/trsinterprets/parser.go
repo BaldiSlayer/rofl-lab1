@@ -28,6 +28,12 @@ func (p *Parser) Parse() ([]Interpretation, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	err = checkInterpretations(i, p.ConstructorArity)
+	if err != nil {
+		return nil, err
+	}
+
 	return i, nil
 }
 
@@ -91,19 +97,12 @@ func (p *Parser) interpretation() (Interpretation, *ParseError) {
 		})
 	}
 
-	parentError := ParseError{
-		llmMessage: fmt.Sprintf("неверно задана интерпретация конструктора %s", constructor.String()),
-		message:    "wrong interpretation definition",
-	}
-
 	interpret, err := p.interpretationBody(constructor.String())
 	if err != nil {
-		return Interpretation{}, err.wrap(&parentError)
-	}
-
-	err = checkInterpretation(interpret, p.ConstructorArity)
-	if err != nil {
-		return Interpretation{}, err.wrap(&parentError)
+		return Interpretation{}, err.wrap(&ParseError{
+			llmMessage: fmt.Sprintf("неверно задана интерпретация конструктора %s", constructor.String()),
+			message:    "wrong interpretation definition",
+		})
 	}
 
 	return interpret, nil
