@@ -84,5 +84,15 @@ func (controller *Controller) TRSCheck(w http.ResponseWriter, r *http.Request, _
 		return
 	}
 
-	fmt.Fprintf(w, parseResult)
+	_, err = fmt.Fprintf(w, parseResult)
+	if err != nil {
+		ErrorHandler(errorRow{
+			w:         w,
+			code:      http.StatusBadRequest,
+			err:       err,
+			errorText: "failed to write parse result",
+		})
+
+		return
+	}
 }

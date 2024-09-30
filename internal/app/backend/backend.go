@@ -10,6 +10,7 @@ import (
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/controllers"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/mclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/trsclient"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/vdatabase"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -57,14 +58,23 @@ func New(opts ...Option) *Backend {
 	for _, opt := range opts {
 		err := opt(backend)
 		if err != nil {
-			slog.Error("ошибка инициализации backend", "error", err)
+			slog.Error("failed to initialize backend", "error", err)
 			os.Exit(1)
 		}
 	}
 
+	vdb, err := vdatabase.NewCMem(backend.config.ModelURL, backend.config.DatabaseFile)
+	if err != nil {
+		slog.Error("failed to initialize vector database", "error", err)
+		os.Exit(1)
+	}
+
+	ollamaClient := mclient.NewOllamaApiClient(backend.config.ModelURL)
+
 	controller := &controllers.Controller{
-		TRSParserClient: &trsclient.MockTRSClient{},
-		ModelClient:     &mclient.MockModelCient{},
+		TRSParserClient: &trsclient.Mock{},
+		ModelClient:     ollamaClient,
+		VectorDatabase:  vdb,
 	}
 
 	router := initRoutes(controller)
