@@ -244,7 +244,7 @@ func (p *Parser) monomialOrConstant(definedVars map[string]struct{}) (*Monomial,
 		_, err = p.accept(
 			models.LexMUL,
 			"star sign",
-			fmt.Sprintf("ожидался знак * после коэффициента %v в определении монома", num),
+			fmt.Sprintf("ожидался знак * после коэффициента %d в определении монома", num),
 		)
 		if err != nil {
 			return nil, nil, err
