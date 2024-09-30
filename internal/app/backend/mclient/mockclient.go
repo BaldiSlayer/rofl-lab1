@@ -1,7 +1,11 @@
 package mclient
 
-type MockModelCient struct{}
+type Mock struct{}
 
-func (mc *MockModelCient) Ask(request string) (string, error) {
-	return request, nil
+func (mc *Mock) Ask(question string) (string, error) {
+	return question, nil
+}
+
+func (mc *Mock) AskWithContext(question string, answerContext []string) (string, error) {
+	return question, nil
 }

@@ -2,6 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/mclient"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/trsclient"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/vdatabase"
 	"log/slog"
 	"net/http"
 )
@@ -9,15 +12,11 @@ import (
 // Controller - тип, который объединяет все ручки
 // служит для удобного хранения данных, общих для всех ручек
 type Controller struct {
-	TRSParserClient interface {
-		// Parse выполняет парсинг TRS, которая была выделена с помощью модели
-		Parse(trs string) (string, error)
-	}
-
-	ModelClient interface {
-		// Ask отправляет запрос к модели
-		Ask(request string) (string, error)
-	}
+	TRSParserClient trsclient.TRSParserClient
+	// ModelClient - клиент к LLM
+	ModelClient mclient.ModelClient
+	// VectorDatabase - векторная база данных, используется для поиска ближайших по значению записей
+	VectorDatabase vdatabase.VectorDatabase
 }
 
 type errorRow struct {
@@ -36,7 +35,11 @@ func ErrorHandler(row errorRow) {
 	slog.Error(row.errorText, "error", row.err)
 
 	row.w.WriteHeader(row.code)
-	json.NewEncoder(row.w).Encode(map[string]string{
+
+	err := json.NewEncoder(row.w).Encode(map[string]string{
 		"error": row.errorText,
 	})
+	if err != nil {
+		slog.Error(row.errorText, "error", err)
+	}
 }

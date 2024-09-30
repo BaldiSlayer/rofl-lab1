@@ -7,6 +7,7 @@ require (
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.3.0
+	github.com/philippgille/chromem-go v0.7.0
 	github.com/stretchr/testify v1.9.0
 )
 

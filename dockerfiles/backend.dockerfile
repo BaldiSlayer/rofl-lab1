@@ -12,6 +12,7 @@ RUN go build -o /bin/backend /app/cmd/backend/backend.go
 
 FROM ubuntu:20.04
 
+COPY /database.jsonl /database.jsonl
 COPY --from=build /bin/backend /bin/backend
 
 CMD ["/bin/backend"]

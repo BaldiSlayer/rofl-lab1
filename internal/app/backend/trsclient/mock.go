@@ -1,7 +1,7 @@
 package trsclient
 
-type MockTRSClient struct{}
+type Mock struct{}
 
-func (mc *MockTRSClient) Parse(trs string) (string, error) {
+func (mc *Mock) Parse(trs string) (string, error) {
 	return trs, nil
 }
