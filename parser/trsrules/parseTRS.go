@@ -259,7 +259,7 @@ func (p *Parser) parseTerm() error {
 		return err
 	}
 	p.index++
-	if !isVariable(p.lexem[p.index-1]) {
+	if !p.isVariable(p.lexem[p.index-1]) {
 		p.parseArgs()
 	}
 	return nil
