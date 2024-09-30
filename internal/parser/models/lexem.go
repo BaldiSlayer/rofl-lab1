@@ -1,4 +1,4 @@
-package trs
+package models
 
 type Lexem struct {
 	LexemType
