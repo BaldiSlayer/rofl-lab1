@@ -91,13 +91,21 @@ func (p *Parser) interpretation() (Interpretation, *ParseError) {
 		})
 	}
 
+	parentError := ParseError{
+		llmMessage: fmt.Sprintf("неверно задана интерпретация конструктора %s", constructor.String()),
+		message:    "wrong interpretation definition",
+	}
+
 	interpret, err := p.interpretationBody(constructor.String())
 	if err != nil {
-		return Interpretation{}, err.wrap(&ParseError{
-			llmMessage: fmt.Sprintf("неверно задана интерпретация конструктора %s", constructor.String()),
-			message:    "wrong interpretation definition",
-		})
+		return Interpretation{}, err.wrap(&parentError)
 	}
+
+	err = checkInterpretation(interpret, p.ConstructorArity)
+	if err != nil {
+		return Interpretation{}, err.wrap(&parentError)
+	}
+
 	return interpret, nil
 }
 
@@ -149,8 +157,6 @@ func (p *Parser) toInt(lexem models.Lexem) (int, *ParseError) {
 func (p *Parser) funcInterpretation(name string) (Interpretation, *ParseError) {
 	p.stream.next()
 
-	// TODO: check if name occures in args
-	// TODO: check for duplicate args
 	args, err := p.letters()
 	if err != nil {
 		return Interpretation{}, err
@@ -159,7 +165,12 @@ func (p *Parser) funcInterpretation(name string) (Interpretation, *ParseError) {
 	p.accept(models.LexRB, ")", "ожидалось закрытие скобки после объявления переменных через запятую")
 	p.accept(models.LexEQ, "=", "ожидался знак равенства")
 
-	monomials, constants, err := p.funcInterpretationBody(toMap(args))
+	monomials, constants, err := p.funcInterpretationBody()
+	if err != nil {
+		return Interpretation{}, err
+	}
+
+	err = checkMonomials(monomials, args)
 	if err != nil {
 		return Interpretation{}, err
 	}
@@ -195,7 +206,7 @@ func (p *Parser) letters() ([]string, *ParseError) {
 	return variables, nil
 }
 
-func (p *Parser) funcInterpretationBody(args map[string]struct{}) ([]Monomial, []int, *ParseError) {
+func (p *Parser) funcInterpretationBody() ([]Monomial, []int, *ParseError) {
 	monomials := []Monomial{}
 	constants := []int{}
 
@@ -208,7 +219,7 @@ func (p *Parser) funcInterpretationBody(args map[string]struct{}) ([]Monomial, [
 		}
 	}
 
-	monomial, constant, err := p.monomialOrConstant(args)
+	monomial, constant, err := p.monomialOrConstant()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -217,7 +228,7 @@ func (p *Parser) funcInterpretationBody(args map[string]struct{}) ([]Monomial, [
 	for p.peek() == models.LexADD {
 		p.stream.next()
 
-		monomial, constant, err = p.monomialOrConstant(args)
+		monomial, constant, err = p.monomialOrConstant()
 		if err != nil {
 			return nil, nil, err
 		}
@@ -227,7 +238,7 @@ func (p *Parser) funcInterpretationBody(args map[string]struct{}) ([]Monomial, [
 	return monomials, constants, nil
 }
 
-func (p *Parser) monomialOrConstant(definedVars map[string]struct{}) (*Monomial, *int, *ParseError) {
+func (p *Parser) monomialOrConstant() (*Monomial, *int, *ParseError) {
 	coefficient := 1
 
 	if p.peek() == models.LexNUM {
@@ -253,7 +264,7 @@ func (p *Parser) monomialOrConstant(definedVars map[string]struct{}) (*Monomial,
 		coefficient = num
 	}
 
-	name, err := p.variable(definedVars)
+	name, err := p.variable()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -270,21 +281,13 @@ func (p *Parser) monomialOrConstant(definedVars map[string]struct{}) (*Monomial,
 	}, nil, nil
 }
 
-func (p *Parser) variable(definedVars map[string]struct{}) (string, *ParseError) {
+func (p *Parser) variable() (string, *ParseError) {
 	varLexem, err := p.accept(models.LexLETTER, "variable name", "ожидалось название переменной")
 	if err != nil {
 		return "", err
 	}
-	name := varLexem.String()
 
-	if _, ok := definedVars[name]; !ok {
-		return "", &ParseError{
-			llmMessage: fmt.Sprintf("не объявлен аргумент %s", name),
-			message:    "undefined arg",
-		}
-	}
-
-	return name, nil
+	return varLexem.String(), nil
 }
 
 func (p *Parser) power() (int, *ParseError) {
@@ -308,12 +311,4 @@ func (p *Parser) power() (int, *ParseError) {
 	}
 
 	return num, err
-}
-
-func toMap(slice []string) map[string]struct{} {
-	res := make(map[string]struct{})
-	for _, el := range slice {
-		res[el] = struct{}{}
-	}
-	return res
 }

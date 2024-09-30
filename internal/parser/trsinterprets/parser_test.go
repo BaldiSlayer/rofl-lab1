@@ -172,7 +172,7 @@ func TestMultipleInterpretations(t *testing.T) {
 		{LexemType: models.LexLETTER, Str: "x"},
 		{LexemType: models.LexEOL, Str: "\n"},
 	})
-	constructorArity := map[string]int{"f": 1, "g": 1}
+	constructorArity := map[string]int{"f": 1, "g": 2}
 
 	interpretations, err := NewParser(input, constructorArity).Parse()
 
@@ -260,15 +260,14 @@ func TestUndefinedVariable(t *testing.T) {
 }
 
 func TestInterpretationArityMismatch(t *testing.T) {
-	t.SkipNow()
-	// f(x) = 5
 	input := toInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
 		{LexemType: models.LexRB, Str: ")"},
 		{LexemType: models.LexEQ, Str: "="},
-		{LexemType: models.LexNUM, Str: "5"},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexEOL, Str: "\n"},
 	})
 	constructorArity := map[string]int{"f": 2}
 
@@ -276,5 +275,6 @@ func TestInterpretationArityMismatch(t *testing.T) {
 
 	var parseError *ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверная арность интерпретации конструктора f: ожидалось 2, получено 1", parseError.LlmMessage())
+	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
+		"ожидался конструктор арности 2, получен арности 1", parseError.LlmMessage())
 }
