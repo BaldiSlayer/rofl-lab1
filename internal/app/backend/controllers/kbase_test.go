@@ -1,15 +1,16 @@
 package controllers
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/mclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/trsclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/vdatabase"
 	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
 )
 
 func TestController_KnowledgeBase(t *testing.T) {

@@ -4,15 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
-
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/models"
-	"github.com/philippgille/chromem-go"
 	"io"
 	"log/slog"
 	"os"
 	"runtime"
 	"strconv"
+	"time"
+
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/models"
+	"github.com/philippgille/chromem-go"
 )
 
 const (

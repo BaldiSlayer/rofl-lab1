@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/models"
 	"io"
 	"net/http"
 	"strings"
 	"text/template"
+
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/models"
 )
 
 const (
