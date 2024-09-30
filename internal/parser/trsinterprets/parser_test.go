@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/BaldiSlayer/rofl-lab1/internal/trs"
+	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 )
 
 type lexem struct {
@@ -21,8 +21,8 @@ func (l lexem) Type() int {
 	return l.t
 }
 
-func toInputChannel(lexems []trs.Lexem) chan trs.Lexem {
-	channel := make(chan trs.Lexem, 100)
+func toInputChannel(lexems []models.Lexem) chan models.Lexem {
+	channel := make(chan models.Lexem, 100)
 	for _, el := range lexems {
 		channel <- el
 	}
@@ -32,10 +32,10 @@ func toInputChannel(lexems []trs.Lexem) chan trs.Lexem {
 
 func TestSingleConstInterpretation(t *testing.T) {
 	// f = 5
-	input := toInputChannel([]trs.Lexem{
-		{LexemType: trs.LexLETTER, Str: "f"},
-		{LexemType: trs.LexEQ, Str: "="},
-		{LexemType: trs.LexNUM, Str: "5"},
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexNUM, Str: "5"},
 	})
 	constructorArity := map[string]int{"f": 0}
 
@@ -54,14 +54,14 @@ func TestSingleConstInterpretation(t *testing.T) {
 
 func TestMultipleConstInterpretations(t *testing.T) {
 	// f = 5
-	input := toInputChannel([]trs.Lexem{
-		{LexemType: trs.LexLETTER, Str: "f"},
-		{LexemType: trs.LexEQ, Str: "="},
-		{LexemType: trs.LexNUM, Str: "5"},
-		{LexemType: trs.LexEOL, Str: "\\n"},
-		{LexemType: trs.LexLETTER, Str: "g"},
-		{LexemType: trs.LexEQ, Str: "="},
-		{LexemType: trs.LexNUM, Str: "100"},
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexNUM, Str: "5"},
+		{LexemType: models.LexEOL, Str: "\\n"},
+		{LexemType: models.LexLETTER, Str: "g"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexNUM, Str: "100"},
 	})
 	constructorArity := map[string]int{"f": 0, "g": 0}
 
@@ -85,7 +85,7 @@ func TestMultipleConstInterpretations(t *testing.T) {
 }
 
 func TestNoInterpretations(t *testing.T) {
-	input := toInputChannel([]trs.Lexem{})
+	input := toInputChannel([]models.Lexem{})
 
 	_, err := NewParser(input, map[string]int{}).Parse()
 
@@ -95,13 +95,13 @@ func TestNoInterpretations(t *testing.T) {
 }
 
 func TestNoConstructorName(t *testing.T) {
-	input := toInputChannel([]trs.Lexem{
-		{LexemType: trs.LexLETTER, Str: "f"},
-		{LexemType: trs.LexEQ, Str: "="},
-		{LexemType: trs.LexNUM, Str: "5"},
-		{LexemType: trs.LexEOL, Str: "\n"},
-		{LexemType: trs.LexEQ, Str: "="},
-		{LexemType: trs.LexNUM, Str: "5"},
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexNUM, Str: "5"},
+		{LexemType: models.LexEOL, Str: "\n"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexNUM, Str: "5"},
 	})
 
 	_, err := NewParser(input, map[string]int{"f": 0, "g": 0}).Parse()
@@ -113,15 +113,15 @@ func TestNoConstructorName(t *testing.T) {
 
 func TestSingleInterpretation(t *testing.T) {
 	// f(x) = 5
-	input := toInputChannel([]trs.Lexem{
-		{LexemType: trs.LexLETTER, Str: "f"},
-		{LexemType: trs.LexLB, Str: "("},
-		{LexemType: trs.LexLETTER, Str: "x"},
-		{LexemType: trs.LexRB, Str: ")"},
-		{LexemType: trs.LexEQ, Str: "="},
-		{LexemType: trs.LexLETTER, Str: "x"},
-		{LexemType: trs.LexADD, Str: "+"},
-		{LexemType: trs.LexNUM, Str: "5"},
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexADD, Str: "+"},
+		{LexemType: models.LexNUM, Str: "5"},
 	})
 	constructorArity := map[string]int{"f": 1}
 
@@ -145,29 +145,29 @@ func TestSingleInterpretation(t *testing.T) {
 
 func TestMultipleInterpretations(t *testing.T) {
 	// f(x) = 5
-	input := toInputChannel([]trs.Lexem{
-		{LexemType: trs.LexLETTER, Str: "f"},
-		{LexemType: trs.LexLB, Str: "("},
-		{LexemType: trs.LexLETTER, Str: "x"},
-		{LexemType: trs.LexRB, Str: ")"},
-		{LexemType: trs.LexEQ, Str: "="},
-		{LexemType: trs.LexLETTER, Str: "x"},
-		{LexemType: trs.LexEOL, Str: "\n"},
-		{LexemType: trs.LexLETTER, Str: "g"},
-		{LexemType: trs.LexLB, Str: "("},
-		{LexemType: trs.LexLETTER, Str: "x"},
-		{LexemType: trs.LexCOMMA, Str: ","},
-		{LexemType: trs.LexLETTER, Str: "y"},
-		{LexemType: trs.LexRB, Str: ")"},
-		{LexemType: trs.LexEQ, Str: "="},
-		{LexemType: trs.LexLETTER, Str: "y"},
-		{LexemType: trs.LexLCB, Str: "{"},
-		{LexemType: trs.LexNUM, Str: "5"},
-		{LexemType: trs.LexRCB, Str: "}"},
-		{LexemType: trs.LexADD, Str: "+"},
-		{LexemType: trs.LexNUM, Str: "13"},
-		{LexemType: trs.LexMUL, Str: "*"},
-		{LexemType: trs.LexLETTER, Str: "x"},
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexEOL, Str: "\n"},
+		{LexemType: models.LexLETTER, Str: "g"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexCOMMA, Str: ","},
+		{LexemType: models.LexLETTER, Str: "y"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexLETTER, Str: "y"},
+		{LexemType: models.LexLCB, Str: "{"},
+		{LexemType: models.LexNUM, Str: "5"},
+		{LexemType: models.LexRCB, Str: "}"},
+		{LexemType: models.LexADD, Str: "+"},
+		{LexemType: models.LexNUM, Str: "13"},
+		{LexemType: models.LexMUL, Str: "*"},
+		{LexemType: models.LexLETTER, Str: "x"},
 	})
 	constructorArity := map[string]int{"f": 1, "g": 1}
 
@@ -208,13 +208,13 @@ func TestMultipleInterpretations(t *testing.T) {
 func TestInterpretationArityMismatch(t *testing.T) {
 	t.SkipNow()
 	// f(x) = 5
-	input := toInputChannel([]trs.Lexem{
-		{LexemType: trs.LexLETTER, Str: "f"},
-		{LexemType: trs.LexLB, Str: "("},
-		{LexemType: trs.LexLETTER, Str: "x"},
-		{LexemType: trs.LexRB, Str: ")"},
-		{LexemType: trs.LexEQ, Str: "="},
-		{LexemType: trs.LexNUM, Str: "5"},
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexNUM, Str: "5"},
 	})
 	constructorArity := map[string]int{"f": 2}
 

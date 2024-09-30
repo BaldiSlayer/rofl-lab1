@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/BaldiSlayer/rofl-lab1/internal/trs"
+	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 )
 
 type Parser struct {
@@ -12,12 +12,12 @@ type Parser struct {
 	ConstructorArity map[string]int
 }
 
-func NewParser(input chan trs.Lexem, constructorArity map[string]int) *Parser {
+func NewParser(input chan models.Lexem, constructorArity map[string]int) *Parser {
 	return &Parser{
 		stream: stream{
 			channel: input,
 			ok:      false,
-			val:     trs.Lexem{},
+			val:     models.Lexem{},
 		},
 		ConstructorArity: constructorArity,
 	}
@@ -31,10 +31,10 @@ func (p *Parser) Parse() ([]Interpretation, error) {
 	return i, nil
 }
 
-func (p *Parser) accept(expectedType trs.LexemType, expectedMessage, expectedLlmMessage string) (trs.Lexem, *ParseError) {
+func (p *Parser) accept(expectedType models.LexemType, expectedMessage, expectedLlmMessage string) (models.Lexem, *ParseError) {
 	got := p.stream.next()
 	if got.Type() != expectedType {
-		return trs.Lexem{}, &ParseError{
+		return models.Lexem{}, &ParseError{
 			llmMessage: fmt.Sprintf("%s, получено %v", expectedLlmMessage, got.String()),
 			message:    fmt.Sprintf("expected %s, got %v", expectedMessage, got.String()),
 		}
@@ -42,20 +42,20 @@ func (p *Parser) accept(expectedType trs.LexemType, expectedMessage, expectedLlm
 	return got, nil
 }
 
-func (p *Parser) peek() trs.LexemType {
+func (p *Parser) peek() models.LexemType {
 	return p.stream.peek().Type()
 }
 
 func (p *Parser) interpretations() ([]Interpretation, *ParseError) {
 	res := []Interpretation{}
 	for {
-		if p.peek() == trs.LexEOF && len(res) == 0 {
+		if p.peek() == models.LexEOF && len(res) == 0 {
 			return nil, &ParseError{
 				llmMessage: "система должна содержать хотя бы одну интерпретацию",
 				message:    "at least one interpretation expected",
 			}
 		}
-		if p.peek() == trs.LexEOF {
+		if p.peek() == models.LexEOF {
 			return res, nil
 		}
 
@@ -64,7 +64,7 @@ func (p *Parser) interpretations() ([]Interpretation, *ParseError) {
 			return nil, err
 		}
 
-		p.accept(trs.LexEOL, "EOL", "ожидался перенос строки после определения интерпретации")
+		p.accept(models.LexEOL, "EOL", "ожидался перенос строки после определения интерпретации")
 
 		res = append(res, interpret)
 	}
@@ -72,7 +72,7 @@ func (p *Parser) interpretations() ([]Interpretation, *ParseError) {
 
 func (p *Parser) interpretation() (Interpretation, *ParseError) {
 	constructor, err := p.accept(
-		trs.LexLETTER,
+		models.LexLETTER,
 		"constructor name",
 		"ожидалось название конструктора",
 	)
@@ -95,7 +95,7 @@ func (p *Parser) interpretation() (Interpretation, *ParseError) {
 
 func (p *Parser) interpretationBody(name string) (Interpretation, *ParseError) {
 	switch p.peek() {
-	case trs.LexEQ:
+	case models.LexEQ:
 		value, err := p.constInterpretation()
 		return Interpretation{
 			name:      name,
@@ -103,7 +103,7 @@ func (p *Parser) interpretationBody(name string) (Interpretation, *ParseError) {
 			monomials: []Monomial{},
 			constants: []int{value},
 		}, err
-	case trs.LexLB:
+	case models.LexLB:
 		return p.funcInterpretation(name)
 	}
 
@@ -116,7 +116,7 @@ func (p *Parser) interpretationBody(name string) (Interpretation, *ParseError) {
 
 func (p *Parser) constInterpretation() (int, *ParseError) {
 	p.stream.next()
-	lexem, err := p.accept(trs.LexNUM, "number", "ожидалось натуральное число после знака = в интерпретации константы")
+	lexem, err := p.accept(models.LexNUM, "number", "ожидалось натуральное число после знака = в интерпретации константы")
 	if err != nil {
 		return 0, err
 	}
@@ -124,9 +124,9 @@ func (p *Parser) constInterpretation() (int, *ParseError) {
 	return num, err
 }
 
-func (p *Parser) toInt(lexem trs.Lexem) (int, *ParseError) {
+func (p *Parser) toInt(lexem models.Lexem) (int, *ParseError) {
 	num, err := strconv.Atoi(lexem.String())
-	if err != nil || lexem.Type() != trs.LexNUM {
+	if err != nil || lexem.Type() != models.LexNUM {
 		return 0, &ParseError{
 			llmMessage: "ожидалось натуральное число",
 			message:    "number",
@@ -145,8 +145,8 @@ func (p *Parser) funcInterpretation(name string) (Interpretation, *ParseError) {
 		return Interpretation{}, err
 	}
 
-	p.accept(trs.LexRB, ")", "ожидалось закрытие скобки после объявления переменных через запятую")
-	p.accept(trs.LexEQ, "=", "ожидался знак равенства")
+	p.accept(models.LexRB, ")", "ожидалось закрытие скобки после объявления переменных через запятую")
+	p.accept(models.LexEQ, "=", "ожидался знак равенства")
 
 	monomials, constants, err := p.funcInterpretationBody()
 	if err != nil {
@@ -162,7 +162,7 @@ func (p *Parser) funcInterpretation(name string) (Interpretation, *ParseError) {
 }
 
 func (p *Parser) letters() ([]string, *ParseError) {
-	lexem, err := p.accept(trs.LexLETTER, "letter", "ожидалась буква - название переменной")
+	lexem, err := p.accept(models.LexLETTER, "letter", "ожидалась буква - название переменной")
 	if err != nil {
 		return nil, err
 	}
@@ -170,10 +170,10 @@ func (p *Parser) letters() ([]string, *ParseError) {
 	variables := []string{}
 	variables = append(variables, lexem.String())
 
-	for p.peek() == trs.LexCOMMA {
+	for p.peek() == models.LexCOMMA {
 		p.stream.next()
 
-		lexem, err := p.accept(trs.LexLETTER, "letter", "ожидалась буква - название переменной")
+		lexem, err := p.accept(models.LexLETTER, "letter", "ожидалась буква - название переменной")
 		if err != nil {
 			return nil, err
 		}
@@ -203,7 +203,7 @@ func (p *Parser) funcInterpretationBody() ([]Monomial, []int, *ParseError) {
 	}
 	appendIfNotNil(monomial, constant)
 
-	for p.peek() == trs.LexADD {
+	for p.peek() == models.LexADD {
 		p.stream.next()
 
 		monomial, constant, err = p.monomialOrConstant()
@@ -219,14 +219,14 @@ func (p *Parser) funcInterpretationBody() ([]Monomial, []int, *ParseError) {
 func (p *Parser) monomialOrConstant() (*Monomial, *int, *ParseError) {
 	coefficient := 1
 
-	if p.peek() == trs.LexNUM {
+	if p.peek() == models.LexNUM {
 		numLexem := p.stream.next()
 		num, err := p.toInt(numLexem)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		if p.peek() != trs.LexMUL {
+		if p.peek() != models.LexMUL {
 			// NOTE: read constant
 			return nil, &num, nil
 		}
@@ -253,7 +253,7 @@ func (p *Parser) monomialOrConstant() (*Monomial, *int, *ParseError) {
 }
 
 func (p *Parser) variable() (string, *ParseError) {
-	varLexem, err := p.accept(trs.LexLETTER, "variable name", "ожидалось название переменной")
+	varLexem, err := p.accept(models.LexLETTER, "variable name", "ожидалось название переменной")
 	if err != nil {
 		return "", err
 	}
@@ -261,12 +261,12 @@ func (p *Parser) variable() (string, *ParseError) {
 }
 
 func (p *Parser) power() (int, *ParseError) {
-	if p.peek() != trs.LexLCB {
+	if p.peek() != models.LexLCB {
 		return 1, nil
 	}
 
 	p.stream.next()
-	numLexem, err := p.accept(trs.LexNUM, "number", "после { ожидалось значение степени - натуральное число")
+	numLexem, err := p.accept(models.LexNUM, "number", "после { ожидалось значение степени - натуральное число")
 	if err != nil {
 		return 0, err
 	}
@@ -275,7 +275,7 @@ func (p *Parser) power() (int, *ParseError) {
 		return 0, err
 	}
 
-	_, err = p.accept(trs.LexRCB, "}", "ожидалось закрытие фигурных скобок }")
+	_, err = p.accept(models.LexRCB, "}", "ожидалось закрытие фигурных скобок }")
 	if err != nil {
 		return 0, err
 	}
