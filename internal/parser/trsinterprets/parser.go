@@ -64,7 +64,13 @@ func (p *Parser) interpretations() ([]Interpretation, *ParseError) {
 			return nil, err
 		}
 
-		p.accept(models.LexEOL, "EOL", "ожидался перенос строки после определения интерпретации")
+		_, err = p.accept(models.LexEOL, "EOL", "ожидался перенос строки после определения интерпретации")
+		if err != nil {
+			return nil, err.wrap(&ParseError{
+				llmMessage: fmt.Sprintf("неверно задана интерпретация %s", interpret.name),
+				message:    "ill-formed interpretation",
+			})
+		}
 
 		res = append(res, interpret)
 	}

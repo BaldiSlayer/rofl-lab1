@@ -36,6 +36,7 @@ func TestSingleConstInterpretation(t *testing.T) {
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexEQ, Str: "="},
 		{LexemType: models.LexNUM, Str: "5"},
+		{LexemType: models.LexEOL, Str: "\n"},
 	})
 	constructorArity := map[string]int{"f": 0}
 
@@ -62,6 +63,7 @@ func TestMultipleConstInterpretations(t *testing.T) {
 		{LexemType: models.LexLETTER, Str: "g"},
 		{LexemType: models.LexEQ, Str: "="},
 		{LexemType: models.LexNUM, Str: "100"},
+		{LexemType: models.LexEOL, Str: "\n"},
 	})
 	constructorArity := map[string]int{"f": 0, "g": 0}
 
@@ -122,6 +124,7 @@ func TestSingleInterpretation(t *testing.T) {
 		{LexemType: models.LexLETTER, Str: "x"},
 		{LexemType: models.LexADD, Str: "+"},
 		{LexemType: models.LexNUM, Str: "5"},
+		{LexemType: models.LexEOL, Str: "\n"},
 	})
 	constructorArity := map[string]int{"f": 1}
 
@@ -167,6 +170,7 @@ func TestMultipleInterpretations(t *testing.T) {
 		{LexemType: models.LexNUM, Str: "13"},
 		{LexemType: models.LexMUL, Str: "*"},
 		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexEOL, Str: "\n"},
 	})
 	constructorArity := map[string]int{"f": 1, "g": 1}
 
@@ -202,6 +206,30 @@ func TestMultipleInterpretations(t *testing.T) {
 			constants: []int{},
 		},
 	}, interpretations)
+}
+
+func TestMissingStarSign(t *testing.T) {
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexCOMMA, Str: ","},
+		{LexemType: models.LexLETTER, Str: "y"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexNUM, Str: "5"},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexLCB, Str: "{"},
+		{LexemType: models.LexNUM, Str: "10"},
+		{LexemType: models.LexRCB, Str: "}"},
+		{LexemType: models.LexEOL, Str: "\n"},
+	})
+
+	_, err := NewParser(input, map[string]int{"f": 2}).Parse()
+
+	var parseError *ParseError
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(t, "неверно задана интерпретация f: ожидался перенос строки после определения интерпретации, получено x", parseError.LlmMessage())
 }
 
 func TestInterpretationArityMismatch(t *testing.T) {
