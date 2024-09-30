@@ -155,7 +155,7 @@ func (p *Parser) Lexer() error {
 <terms-tail> ::= "," <term> <terms-tail> | ε
 */
 
-func (p *Parser) isVariable(l Lexem) bool{
+func (p *Parser) isVariable(l Lexem) bool {
 	return true
 }
 
