@@ -4,10 +4,11 @@ import (
 	"testing"
 )
 
-func TestLexer(t *testing.T){
+func TestLexerWithPeano(t *testing.T){
 	text := "variables = x,y,z\n f(x,S(y)) = S(f(x,y)) \n\r f(x, T) = T-------------S(x) = x+1\nf(x,y)=    x+2*y"
 	//Peano grammar
-	a, err := Lexer(text)
+	p := Parser{text, [], 0}
+	err := p.Lexer()
 	
 	if err != nil {
     	t.Errorf("Should not produce an error")
