@@ -32,7 +32,7 @@ func (c *monomialChecker) checkMonomial(monomial Monomial) *ParseError {
 }
 
 func checkInterpretations(interprets []Interpretation, constructorArity map[string]int) *ParseError {
-	c := interpretationChecker{
+	c := interpretationsChecker{
 		defined: map[string]struct{}{},
 	}
 
@@ -55,14 +55,16 @@ func checkInterpretations(interprets []Interpretation, constructorArity map[stri
 	return nil
 }
 
-type interpretationChecker struct {
+type interpretationsChecker struct {
 	defined map[string]struct{}
 }
 
-func (c *interpretationChecker) checkInterpretation(interpret Interpretation,
+type interpretationChecker = func(Interpretation, map[string]int) *ParseError
+
+func (c *interpretationsChecker) checkInterpretation(interpret Interpretation,
 	constructorArity map[string]int) *ParseError {
 
-	checkers := []func(Interpretation, map[string]int) *ParseError{
+	checkers := []interpretationChecker{
 		c.checkDuplicateInterpretation,
 		c.checkExcessInterpretation,
 		c.checkInterpretationArity,
@@ -80,7 +82,7 @@ func (c *interpretationChecker) checkInterpretation(interpret Interpretation,
 
 }
 
-func (c *interpretationChecker) checkDuplicateInterpretation(interpret Interpretation, _ map[string]int) *ParseError {
+func (c *interpretationsChecker) checkDuplicateInterpretation(interpret Interpretation, _ map[string]int) *ParseError {
 	if _, ok := c.defined[interpret.name]; ok {
 		return &ParseError{
 			llmMessage: fmt.Sprintf("интерпретация конструктора %s задана повторно", interpret.name),
@@ -91,7 +93,7 @@ func (c *interpretationChecker) checkDuplicateInterpretation(interpret Interpret
 	return nil
 }
 
-func (c *interpretationChecker) checkExcessInterpretation(interpret Interpretation,
+func (c *interpretationsChecker) checkExcessInterpretation(interpret Interpretation,
 	constructorArity map[string]int) *ParseError {
 
 	_, ok := constructorArity[interpret.name]
@@ -105,7 +107,7 @@ func (c *interpretationChecker) checkExcessInterpretation(interpret Interpretati
 	return nil
 }
 
-func (c *interpretationChecker) checkInterpretationArity(interpret Interpretation,
+func (c *interpretationsChecker) checkInterpretationArity(interpret Interpretation,
 	constructorArity map[string]int) *ParseError {
 
 	expectedArity, _ := constructorArity[interpret.name]
@@ -119,7 +121,7 @@ func (c *interpretationChecker) checkInterpretationArity(interpret Interpretatio
 	return nil
 }
 
-func (c *interpretationChecker) checkDuplicateArgumentName(interpret Interpretation, _ map[string]int) *ParseError {
+func (c *interpretationsChecker) checkDuplicateArgumentName(interpret Interpretation, _ map[string]int) *ParseError {
 	args := map[string]struct{}{}
 	for _, arg := range interpret.args {
 		if _, ok := args[arg]; ok {
