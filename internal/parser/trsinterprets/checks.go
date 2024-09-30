@@ -34,8 +34,13 @@ func (c *monomialChecker) checkMonomial(monomial Monomial) *ParseError {
 func checkInterpretation(interpret Interpretation, constructorArity map[string]int) *ParseError {
 	// TODO: check for duplicate args
 
-	arity, _ := constructorArity[interpret.name]
-	// TODO: check existance of interpretation
+	arity, ok := constructorArity[interpret.name]
+	if !ok {
+		return &ParseError{
+			llmMessage: "конструктор отсутствует в правилах trs",
+			message:    "excess interpretation",
+		}
+	}
 
 	if arity != len(interpret.args) {
 		return &ParseError{

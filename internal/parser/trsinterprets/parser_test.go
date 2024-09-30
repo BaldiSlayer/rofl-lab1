@@ -278,3 +278,23 @@ func TestInterpretationArityMismatch(t *testing.T) {
 	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
 		"ожидался конструктор арности 2, получен арности 1", parseError.LlmMessage())
 }
+
+func TestExcessInterpretation(t *testing.T) {
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexEOL, Str: "\n"},
+	})
+	constructorArity := map[string]int{}
+
+	_, err := NewParser(input, constructorArity).Parse()
+
+	var parseError *ParseError
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
+		"конструктор отсутствует в правилах trs", parseError.LlmMessage())
+}
