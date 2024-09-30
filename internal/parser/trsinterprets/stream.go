@@ -4,8 +4,8 @@ import "github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 
 type stream struct {
 	channel chan models.Lexem
-	ok bool
-	val models.Lexem
+	ok      bool
+	val     models.Lexem
 }
 
 func (s *stream) peek() models.Lexem {

@@ -40,7 +40,7 @@ func TestParsesBasicTrs(t *testing.T) {
 			Power:       nil,
 			Variable:    "a",
 		}},
-		Name:      "f",
+		Name: "f",
 	}
 
 	trs, err := Parser{}.Parse(

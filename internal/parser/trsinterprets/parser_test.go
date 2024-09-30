@@ -130,8 +130,8 @@ func TestSingleInterpretation(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []Interpretation{
 		{
-			name:      "f",
-			args:      []string{"x"},
+			name: "f",
+			args: []string{"x"},
 			monomials: []Monomial{{
 				variable:    "x",
 				coefficient: 1,
@@ -141,7 +141,6 @@ func TestSingleInterpretation(t *testing.T) {
 		},
 	}, interpretations)
 }
-
 
 func TestMultipleInterpretations(t *testing.T) {
 	// f(x) = 5
@@ -176,8 +175,8 @@ func TestMultipleInterpretations(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []Interpretation{
 		{
-			name:      "f",
-			args:      []string{"x"},
+			name: "f",
+			args: []string{"x"},
 			monomials: []Monomial{{
 				variable:    "x",
 				coefficient: 1,
@@ -186,8 +185,8 @@ func TestMultipleInterpretations(t *testing.T) {
 			constants: []int{},
 		},
 		{
-			name:      "g",
-			args:      []string{"x", "y"},
+			name: "g",
+			args: []string{"x", "y"},
 			monomials: []Monomial{
 				{
 					variable:    "y",
@@ -224,4 +223,3 @@ func TestInterpretationArityMismatch(t *testing.T) {
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(t, "неверная арность интерпретации конструктора f: ожидалось 2, получено 1", parseError.LlmMessage())
 }
-
