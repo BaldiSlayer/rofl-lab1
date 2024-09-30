@@ -3,21 +3,21 @@ package interprets
 import "fmt"
 
 type Interpretation struct {
-	name string
-	args []string
+	name      string
+	args      []string
 	monomials []Monomial
 	constants []int
 }
 
 type Monomial struct {
-	variable string
+	variable    string
 	coefficient int
-	power int
+	power       int
 }
 
 type ParseError struct {
 	llmMessage string
-	message string
+	message    string
 }
 
 func (child *ParseError) wrap(parent *ParseError) *ParseError {

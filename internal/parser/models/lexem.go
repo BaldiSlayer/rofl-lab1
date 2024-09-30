@@ -1,4 +1,4 @@
-package trs
+package models
 
 type Lexem struct {
 	LexemType
@@ -16,7 +16,7 @@ func (l Lexem) Type() LexemType {
 func NewEofLexem() Lexem {
 	return Lexem{
 		LexemType: LexEOF,
-		Str: "EOF",
+		Str:       "EOF",
 	}
 }
 

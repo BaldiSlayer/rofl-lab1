@@ -1,9 +1,10 @@
 module github.com/BaldiSlayer/rofl-lab1
 
-go 1.20
+go 1.21
 
 require (
 	github.com/caarlos0/env/v11 v11.2.2
+	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.3.0
 	github.com/stretchr/testify v1.9.0

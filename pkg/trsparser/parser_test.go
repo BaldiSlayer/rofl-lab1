@@ -28,26 +28,22 @@ func TestParsesBasicTrs(t *testing.T) {
 			Args: nil,
 			Letter: Letter{
 				IsVariable: true,
-				Name:       "a",
+				Name:       "x",
 			},
 		},
 	}
 	inter := Interpretation{
 		Args:      []string{},
-		Constants: []int{},
-		Monomials: []Monomial{{
-			Coefficient: nil,
-			Power:       nil,
-			Variable:    "a",
-		}},
+		Constants: []int{5},
+		Monomials: []Monomial{},
 		Name:      "f",
 	}
 
 	trs, err := Parser{}.Parse(
-		`variables = a
-f = a
+		`variables = x
+f = x
 -----
-f = a
+f = 5
 `,
 	)
 
@@ -55,6 +51,6 @@ f = a
 	assert.Equal(t, Trs{
 		Interpretations: []Interpretation{inter},
 		Rules:           []Rule{rule},
-		Variables:       []string{"a"},
+		Variables:       []string{"x"},
 	}, *trs)
 }
