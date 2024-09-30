@@ -50,8 +50,8 @@ type interpretationChecker struct {
 	defined map[string]struct{}
 }
 
-func (c *interpretationChecker) checkInterpretation(interpret Interpretation, constructorArity map[string]int) *ParseError {
-	// TODO: check for duplicate args
+func (c *interpretationChecker) checkInterpretation(interpret Interpretation,
+	constructorArity map[string]int) *ParseError {
 
 	if _, ok := c.defined[interpret.name]; ok {
 		return &ParseError{
@@ -74,6 +74,23 @@ func (c *interpretationChecker) checkInterpretation(interpret Interpretation, co
 			llmMessage: fmt.Sprintf("неверная арность конструктора %s: "+
 				"ожидалась арность %d, получена арность %d", interpret.name, arity, len(interpret.args)),
 			message:    "wrong func interpretation arity",
+		}
+	}
+
+	{
+		args := map[string]struct{}{}
+		for _, arg := range interpret.args {
+			if _, ok := args[arg]; ok {
+				return &ParseError{
+					llmMessage: fmt.Sprintf(
+						"в интерпретации конструктора %s повторно объявлена переменная %s",
+						interpret.name,
+						arg,
+					),
+					message:    "duplicate argument name",
+				}
+			}
+			args[arg] = struct{}{}
 		}
 	}
 

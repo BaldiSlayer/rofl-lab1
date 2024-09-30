@@ -324,3 +324,24 @@ func TestDuplicateInterpretation(t *testing.T) {
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(t, "интерпретация конструктора f задана повторно", parseError.LlmMessage())
 }
+
+func TestDuplicateArgument(t *testing.T) {
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexCOMMA, Str: ","},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexEOL, Str: "\n"},
+	})
+	constructorArity := map[string]int{"f": 2}
+
+	_, err := NewParser(input, constructorArity).Parse()
+
+	var parseError *ParseError
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(t, "в интерпретации конструктора f повторно объявлена переменная x", parseError.LlmMessage())
+}
