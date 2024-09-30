@@ -62,7 +62,7 @@ type interpretationChecker struct {
 func (c *interpretationChecker) checkInterpretation(interpret Interpretation,
 	constructorArity map[string]int) *ParseError {
 
-	checkers := []func(Interpretation, map[string]int) *ParseError {
+	checkers := []func(Interpretation, map[string]int) *ParseError{
 		c.checkDuplicateInterpretation,
 		c.checkExcessInterpretation,
 		c.checkInterpretationArity,
