@@ -233,6 +233,32 @@ func TestMissingStarSign(t *testing.T) {
 		"ожидался знак * после коэффициента 5 в определении монома, получено x", parseError.LlmMessage())
 }
 
+func TestUndefinedVariable(t *testing.T) {
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexCOMMA, Str: ","},
+		{LexemType: models.LexLETTER, Str: "y"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexNUM, Str: "5"},
+		{LexemType: models.LexMUL, Str: "*"},
+		{LexemType: models.LexLETTER, Str: "z"},
+		{LexemType: models.LexLCB, Str: "{"},
+		{LexemType: models.LexNUM, Str: "2"},
+		{LexemType: models.LexRCB, Str: "}"},
+		{LexemType: models.LexEOL, Str: "\n"},
+	})
+
+	_, err := NewParser(input, map[string]int{"f": 2}).Parse()
+
+	var parseError *ParseError
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
+		"не объявлен аргумент z", parseError.LlmMessage())
+}
+
 func TestInterpretationArityMismatch(t *testing.T) {
 	t.SkipNow()
 	// f(x) = 5

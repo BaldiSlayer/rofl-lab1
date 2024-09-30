@@ -31,7 +31,9 @@ func (p *Parser) Parse() ([]Interpretation, error) {
 	return i, nil
 }
 
-func (p *Parser) accept(expectedType models.LexemType, expectedMessage, expectedLlmMessage string) (models.Lexem, *ParseError) {
+func (p *Parser) accept(expectedType models.LexemType,
+	expectedMessage, expectedLlmMessage string) (models.Lexem, *ParseError) {
+
 	got := p.stream.next()
 	if got.Type() != expectedType {
 		return models.Lexem{}, &ParseError{
@@ -122,7 +124,10 @@ func (p *Parser) interpretationBody(name string) (Interpretation, *ParseError) {
 
 func (p *Parser) constInterpretation() (int, *ParseError) {
 	p.stream.next()
-	lexem, err := p.accept(models.LexNUM, "number", "ожидалось натуральное число после знака = в интерпретации константы")
+	lexem, err := p.accept(models.LexNUM,
+		"number",
+		"ожидалось натуральное число после знака = в интерпретации константы",
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -154,7 +159,7 @@ func (p *Parser) funcInterpretation(name string) (Interpretation, *ParseError) {
 	p.accept(models.LexRB, ")", "ожидалось закрытие скобки после объявления переменных через запятую")
 	p.accept(models.LexEQ, "=", "ожидался знак равенства")
 
-	monomials, constants, err := p.funcInterpretationBody()
+	monomials, constants, err := p.funcInterpretationBody(toMap(args))
 	if err != nil {
 		return Interpretation{}, err
 	}
@@ -190,7 +195,7 @@ func (p *Parser) letters() ([]string, *ParseError) {
 	return variables, nil
 }
 
-func (p *Parser) funcInterpretationBody() ([]Monomial, []int, *ParseError) {
+func (p *Parser) funcInterpretationBody(args map[string]bool) ([]Monomial, []int, *ParseError) {
 	monomials := []Monomial{}
 	constants := []int{}
 
@@ -203,7 +208,7 @@ func (p *Parser) funcInterpretationBody() ([]Monomial, []int, *ParseError) {
 		}
 	}
 
-	monomial, constant, err := p.monomialOrConstant()
+	monomial, constant, err := p.monomialOrConstant(args)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -212,7 +217,7 @@ func (p *Parser) funcInterpretationBody() ([]Monomial, []int, *ParseError) {
 	for p.peek() == models.LexADD {
 		p.stream.next()
 
-		monomial, constant, err = p.monomialOrConstant()
+		monomial, constant, err = p.monomialOrConstant(args)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -222,7 +227,7 @@ func (p *Parser) funcInterpretationBody() ([]Monomial, []int, *ParseError) {
 	return monomials, constants, nil
 }
 
-func (p *Parser) monomialOrConstant() (*Monomial, *int, *ParseError) {
+func (p *Parser) monomialOrConstant(definedVars map[string]bool) (*Monomial, *int, *ParseError) {
 	coefficient := 1
 
 	if p.peek() == models.LexNUM {
@@ -236,7 +241,11 @@ func (p *Parser) monomialOrConstant() (*Monomial, *int, *ParseError) {
 			return nil, &num, nil
 		}
 
-		_, err = p.accept(models.LexMUL, "star sign", fmt.Sprintf("ожидался знак * после коэффициента %v в определении монома", num))
+		_, err = p.accept(
+			models.LexMUL,
+			"star sign",
+			fmt.Sprintf("ожидался знак * после коэффициента %v в определении монома", num),
+		)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -244,7 +253,7 @@ func (p *Parser) monomialOrConstant() (*Monomial, *int, *ParseError) {
 		coefficient = num
 	}
 
-	name, err := p.variable()
+	name, err := p.variable(definedVars)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -261,12 +270,21 @@ func (p *Parser) monomialOrConstant() (*Monomial, *int, *ParseError) {
 	}, nil, nil
 }
 
-func (p *Parser) variable() (string, *ParseError) {
+func (p *Parser) variable(definedVars map[string]bool) (string, *ParseError) {
 	varLexem, err := p.accept(models.LexLETTER, "variable name", "ожидалось название переменной")
 	if err != nil {
 		return "", err
 	}
-	return varLexem.String(), nil
+	name := varLexem.String()
+
+	if _, ok := definedVars[name]; !ok {
+		return "", &ParseError{
+			llmMessage: fmt.Sprintf("не объявлен аргумент %s", name),
+			message:    "undefined arg",
+		}
+	}
+
+	return name, nil
 }
 
 func (p *Parser) power() (int, *ParseError) {
@@ -290,4 +308,12 @@ func (p *Parser) power() (int, *ParseError) {
 	}
 
 	return num, err
+}
+
+func toMap(slice []string) map[string]bool {
+	res := make(map[string]bool)
+	for _, el := range slice {
+		res[el] = true
+	}
+	return res
 }
