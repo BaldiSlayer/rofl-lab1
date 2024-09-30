@@ -59,11 +59,28 @@ type interpretationChecker struct {
 	defined map[string]struct{}
 }
 
-
-// TODO: refactor
 func (c *interpretationChecker) checkInterpretation(interpret Interpretation,
 	constructorArity map[string]int) *ParseError {
 
+	checkers := []func(Interpretation, map[string]int) *ParseError {
+		c.checkDuplicateInterpretation,
+		c.checkExcessInterpretation,
+		c.checkInterpretationArity,
+		c.checkDuplicateArgumentName,
+	}
+
+	for _, checker := range checkers {
+		err := checker(interpret, constructorArity)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+
+}
+
+func (c *interpretationChecker) checkDuplicateInterpretation(interpret Interpretation, _ map[string]int) *ParseError {
 	if _, ok := c.defined[interpret.name]; ok {
 		return &ParseError{
 			llmMessage: fmt.Sprintf("интерпретация конструктора %s задана повторно", interpret.name),
@@ -71,8 +88,13 @@ func (c *interpretationChecker) checkInterpretation(interpret Interpretation,
 		}
 	}
 	c.defined[interpret.name] = struct{}{}
+	return nil
+}
 
-	expectedArity, ok := constructorArity[interpret.name]
+func (c *interpretationChecker) checkExcessInterpretation(interpret Interpretation,
+	constructorArity map[string]int) *ParseError {
+
+	_, ok := constructorArity[interpret.name]
 	if !ok {
 		return &ParseError{
 			llmMessage: fmt.Sprintf("конструктор %s отсутствует в правилах trs", interpret.name),
@@ -80,31 +102,38 @@ func (c *interpretationChecker) checkInterpretation(interpret Interpretation,
 		}
 	}
 
+	return nil
+}
+
+func (c *interpretationChecker) checkInterpretationArity(interpret Interpretation,
+	constructorArity map[string]int) *ParseError {
+
+	expectedArity, _ := constructorArity[interpret.name]
 	if expectedArity != len(interpret.args) {
 		return &ParseError{
 			llmMessage: fmt.Sprintf("неверная арность конструктора %s: "+
 				"ожидалась арность %d, получена арность %d", interpret.name, expectedArity, len(interpret.args)),
-			message:    "wrong func interpretation arity",
+			message: "wrong func interpretation arity",
 		}
 	}
+	return nil
+}
 
-	{
-		args := map[string]struct{}{}
-		for _, arg := range interpret.args {
-			if _, ok := args[arg]; ok {
-				return &ParseError{
-					llmMessage: fmt.Sprintf(
-						"в интерпретации конструктора %s повторно объявлена переменная %s",
-						interpret.name,
-						arg,
-					),
-					message:    "duplicate argument name",
-				}
+func (c *interpretationChecker) checkDuplicateArgumentName(interpret Interpretation, _ map[string]int) *ParseError {
+	args := map[string]struct{}{}
+	for _, arg := range interpret.args {
+		if _, ok := args[arg]; ok {
+			return &ParseError{
+				llmMessage: fmt.Sprintf(
+					"в интерпретации конструктора %s повторно объявлена переменная %s",
+					interpret.name,
+					arg,
+				),
+				message: "duplicate argument name",
 			}
-			args[arg] = struct{}{}
 		}
+		args[arg] = struct{}{}
 	}
-
 	return nil
 }
 
