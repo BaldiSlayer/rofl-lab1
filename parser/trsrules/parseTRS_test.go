@@ -2,7 +2,6 @@ package trsparser
 
 import (
 	"testing"
-	"./parseTRS"
 )
 
 func TestLexer(t *testing.T){
