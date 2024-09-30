@@ -1,6 +1,6 @@
 package trsparser
 
-type Parser struct {}
+type Parser struct{}
 
 func (p Parser) Parse(input string) (*Trs, error) {
 	if input == "" {
@@ -18,17 +18,17 @@ func (p Parser) Parse(input string) (*Trs, error) {
 	}
 	rule := Rule{
 		Lhs: Subexpression{
-			Args:   nil,
+			Args: nil,
 			Letter: Letter{
 				IsVariable: false,
 				Name:       "f",
 			},
 		},
 		Rhs: Subexpression{
-			Args:   nil,
+			Args: nil,
 			Letter: Letter{
 				IsVariable: true,
-				Name:       "a",
+				Name:       "x",
 			},
 		},
 	}
@@ -36,6 +36,6 @@ func (p Parser) Parse(input string) (*Trs, error) {
 	return &Trs{
 		Interpretations: []Interpretation{inter},
 		Rules:           []Rule{rule},
-		Variables:       []string{"a"},
+		Variables:       []string{"x"},
 	}, nil
 }
