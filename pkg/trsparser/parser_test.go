@@ -36,7 +36,7 @@ func TestParsesBasicTrs(t *testing.T) {
 		Args:      []string{},
 		Constants: []int{5},
 		Monomials: []Monomial{},
-		Name: "f",
+		Name:      "f",
 	}
 
 	trs, err := Parser{}.Parse(
