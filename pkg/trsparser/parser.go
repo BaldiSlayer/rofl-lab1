@@ -28,7 +28,7 @@ func (p Parser) Parse(input string) (*Trs, error) {
 			Args: nil,
 			Letter: Letter{
 				IsVariable: true,
-				Name:       "a",
+				Name:       "x",
 			},
 		},
 	}
@@ -36,6 +36,6 @@ func (p Parser) Parse(input string) (*Trs, error) {
 	return &Trs{
 		Interpretations: []Interpretation{inter},
 		Rules:           []Rule{rule},
-		Variables:       []string{"a"},
+		Variables:       []string{"x"},
 	}, nil
 }
