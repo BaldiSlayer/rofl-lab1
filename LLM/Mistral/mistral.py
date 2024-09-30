@@ -15,7 +15,7 @@ def initialize_client():
         return None
 
 
-def get_chat_response(prompt, context=None, model = "open-mistral-7b"):
+def get_chat_response(prompt, context=None, model="open-mistral-7b"):
     """
     Получает ответ от LLM на основе предоставленного промпта и контекста.
 
@@ -32,7 +32,6 @@ def get_chat_response(prompt, context=None, model = "open-mistral-7b"):
         messages.append({"role": "system", "content": context})
 
     messages.append({"role": "user", "content": prompt})
-
 
     chat_response = client.chat.complete(
         model=model,

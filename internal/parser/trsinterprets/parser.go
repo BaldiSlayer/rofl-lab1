@@ -1,4 +1,4 @@
-package interprets
+package trsinterprets
 
 import (
 	"fmt"
@@ -28,10 +28,18 @@ func (p *Parser) Parse() ([]Interpretation, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	err = checkInterpretations(i, p.ConstructorArity)
+	if err != nil {
+		return nil, err
+	}
+
 	return i, nil
 }
 
-func (p *Parser) accept(expectedType models.LexemType, expectedMessage, expectedLlmMessage string) (models.Lexem, *ParseError) {
+func (p *Parser) accept(expectedType models.LexemType,
+	expectedMessage, expectedLlmMessage string) (models.Lexem, *ParseError) {
+
 	got := p.stream.next()
 	if got.Type() != expectedType {
 		return models.Lexem{}, &ParseError{
@@ -64,7 +72,13 @@ func (p *Parser) interpretations() ([]Interpretation, *ParseError) {
 			return nil, err
 		}
 
-		p.accept(models.LexEOL, "EOL", "ожидался перенос строки после определения интерпретации")
+		_, err = p.accept(models.LexEOL, "EOL", "ожидался перенос строки после определения интерпретации")
+		if err != nil {
+			return nil, err.wrap(&ParseError{
+				llmMessage: fmt.Sprintf("неверно задана интерпретация %s", interpret.name),
+				message:    "ill-formed interpretation",
+			})
+		}
 
 		res = append(res, interpret)
 	}
@@ -90,6 +104,7 @@ func (p *Parser) interpretation() (Interpretation, *ParseError) {
 			message:    "wrong interpretation definition",
 		})
 	}
+
 	return interpret, nil
 }
 
@@ -116,7 +131,10 @@ func (p *Parser) interpretationBody(name string) (Interpretation, *ParseError) {
 
 func (p *Parser) constInterpretation() (int, *ParseError) {
 	p.stream.next()
-	lexem, err := p.accept(models.LexNUM, "number", "ожидалось натуральное число после знака = в интерпретации константы")
+	lexem, err := p.accept(models.LexNUM,
+		"number",
+		"ожидалось натуральное число после знака = в интерпретации константы",
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -138,8 +156,6 @@ func (p *Parser) toInt(lexem models.Lexem) (int, *ParseError) {
 func (p *Parser) funcInterpretation(name string) (Interpretation, *ParseError) {
 	p.stream.next()
 
-	// TODO: check if name occures in args
-	// TODO: check for duplicate args
 	args, err := p.letters()
 	if err != nil {
 		return Interpretation{}, err
@@ -149,6 +165,11 @@ func (p *Parser) funcInterpretation(name string) (Interpretation, *ParseError) {
 	p.accept(models.LexEQ, "=", "ожидался знак равенства")
 
 	monomials, constants, err := p.funcInterpretationBody()
+	if err != nil {
+		return Interpretation{}, err
+	}
+
+	err = checkMonomials(monomials, args)
 	if err != nil {
 		return Interpretation{}, err
 	}
@@ -226,12 +247,19 @@ func (p *Parser) monomialOrConstant() (*Monomial, *int, *ParseError) {
 			return nil, nil, err
 		}
 
-		if p.peek() != models.LexMUL {
-			// NOTE: read constant
+		if p.peek() == models.LexEOL || p.peek() == models.LexADD {
 			return nil, &num, nil
 		}
 
-		p.stream.next()
+		_, err = p.accept(
+			models.LexMUL,
+			"star sign",
+			fmt.Sprintf("ожидался знак * после коэффициента %d в определении монома", num),
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		coefficient = num
 	}
 
@@ -257,6 +285,7 @@ func (p *Parser) variable() (string, *ParseError) {
 	if err != nil {
 		return "", err
 	}
+
 	return varLexem.String(), nil
 }
 
