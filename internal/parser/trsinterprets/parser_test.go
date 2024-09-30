@@ -229,7 +229,8 @@ func TestMissingStarSign(t *testing.T) {
 
 	var parseError *ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверно задана интерпретация f: ожидался перенос строки после определения интерпретации, получено x", parseError.LlmMessage())
+	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
+		"ожидался знак * после коэффициента 5 в определении монома, получено x", parseError.LlmMessage())
 }
 
 func TestInterpretationArityMismatch(t *testing.T) {

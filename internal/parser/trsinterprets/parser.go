@@ -232,12 +232,15 @@ func (p *Parser) monomialOrConstant() (*Monomial, *int, *ParseError) {
 			return nil, nil, err
 		}
 
-		if p.peek() != models.LexMUL {
-			// NOTE: read constant
+		if p.peek() == models.LexEOL || p.peek() == models.LexADD {
 			return nil, &num, nil
 		}
 
-		p.stream.next()
+		_, err = p.accept(models.LexMUL, "star sign", fmt.Sprintf("ожидался знак * после коэффициента %v в определении монома", num))
+		if err != nil {
+			return nil, nil, err
+		}
+
 		coefficient = num
 	}
 
