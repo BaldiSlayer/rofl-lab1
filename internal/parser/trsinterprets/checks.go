@@ -1,4 +1,4 @@
-package interprets
+package trsinterprets
 
 import "fmt"
 
