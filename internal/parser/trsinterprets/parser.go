@@ -195,7 +195,7 @@ func (p *Parser) letters() ([]string, *ParseError) {
 	return variables, nil
 }
 
-func (p *Parser) funcInterpretationBody(args map[string]bool) ([]Monomial, []int, *ParseError) {
+func (p *Parser) funcInterpretationBody(args map[string]struct{}) ([]Monomial, []int, *ParseError) {
 	monomials := []Monomial{}
 	constants := []int{}
 
@@ -227,7 +227,7 @@ func (p *Parser) funcInterpretationBody(args map[string]bool) ([]Monomial, []int
 	return monomials, constants, nil
 }
 
-func (p *Parser) monomialOrConstant(definedVars map[string]bool) (*Monomial, *int, *ParseError) {
+func (p *Parser) monomialOrConstant(definedVars map[string]struct{}) (*Monomial, *int, *ParseError) {
 	coefficient := 1
 
 	if p.peek() == models.LexNUM {
@@ -270,7 +270,7 @@ func (p *Parser) monomialOrConstant(definedVars map[string]bool) (*Monomial, *in
 	}, nil, nil
 }
 
-func (p *Parser) variable(definedVars map[string]bool) (string, *ParseError) {
+func (p *Parser) variable(definedVars map[string]struct{}) (string, *ParseError) {
 	varLexem, err := p.accept(models.LexLETTER, "variable name", "ожидалось название переменной")
 	if err != nil {
 		return "", err
@@ -310,10 +310,10 @@ func (p *Parser) power() (int, *ParseError) {
 	return num, err
 }
 
-func toMap(slice []string) map[string]bool {
-	res := make(map[string]bool)
+func toMap(slice []string) map[string]struct{} {
+	res := make(map[string]struct{})
 	for _, el := range slice {
-		res[el] = true
+		res[el] = struct{}{}
 	}
 	return res
 }
