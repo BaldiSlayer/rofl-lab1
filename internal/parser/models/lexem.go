@@ -3,7 +3,7 @@ package models
 type Lexem struct {
 	LexemType
 	index int
-	Str string
+	Str   string
 }
 
 func (l Lexem) String() string {
