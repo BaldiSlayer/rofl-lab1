@@ -8,12 +8,11 @@
 
 По сути гайд такой:
 1) Ставим `Docker` (надеюсь все с этим справятся)
-2) Переходим в директорию `LLM`
-2) Создаем файл `config.py` в папке `app/utils/Mistral` и не добавляем его в `git`
+2) Создаем файл `config.py` в папке `LLM/app/utils/Mistral` и не добавляем его в `git`
 3) Добавляем туда `api_key = "значение api ключа"`
 4) С помощью `docker compose` поднимаем `LLM` командой в духе:
 ```bash
-docker compose up --build -d
+docker compose -f docker-compose.yml up --build -d
 ```
 
 3) Отправляем промпты на `API` модельки, можно делать это с помощью [доки](http://localhost:8100/docs
@@ -23,5 +22,5 @@ docker compose up --build -d
 
 P.S. Убиваем контейнер так: =)
 ```bash
-docker compose down
+docker compose -f docker-compose.yml down
 ```
