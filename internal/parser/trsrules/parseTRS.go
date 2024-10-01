@@ -36,14 +36,32 @@ grammatic
 <terms-tail> ::= "," <term> <terms-tail> | ε
 */
 
+type TRS struct {
+	variables []models.Lexem
+}
+
 type Parser struct {
 	text  string
 	lexem []models.Lexem
 	index int //index of syntax analyzing
+
+	model TRS
 }
 
 func (p *Parser) appendLex(index int, lexType models.LexemType, str string) {
-	p.lexem = append(p.lexem, models.Lexem{/*index: index,*/ LexemType: lexType, Str: str})
+	p.lexem = append(p.lexem, models.Lexem{
+		/*index: index,*/
+		LexemType: lexType,
+		Str:       str,
+	})
+}
+
+func isLetter(c rune) bool {
+	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
+}
+
+func isDigit(c rune) bool {
+	return c >= '0' && c <= '9'
 }
 
 func (p *Parser) Lexer() error {
@@ -85,11 +103,11 @@ func (p *Parser) Lexer() error {
 				if i < len(runes)-1 && (runes[i] == '\n' && runes[i+1] == '\r' || runes[i] == '\r' && runes[i+1] == '\n') {
 					i++
 				}
-			} else if runes[i] >= 'a' && runes[i] <= 'z' || runes[i] >= 'A' && runes[i] <= 'Z' { // если встретилась буква
+			} else if isLetter(runes[i]) { // если встретилась буква
 				if runes[i] == 'v' && i+len(lexVariables) < len(runes) { // проверяем на "variables"
 					t := true
 					j := 0
-					for ; j < 9; j++ {
+					for ; j < len(lexVariables); j++ {
 						if lexVariables[j] != runes[i+j] {
 							t = false
 							break
@@ -97,18 +115,19 @@ func (p *Parser) Lexer() error {
 					}
 					if t { // если найдено слово, добавляем и пропускаем
 						p.appendLex(i, models.LexVAR, "variables")
-						i += 8
+						i += len(lexVariables) - 1
 					} else { // иначе добавляем букву 'v' и идем дальше посимвольно
 						p.appendLex(i, models.LexLETTER, string(runes[i]))
 					}
 				} else { // если найденная буква не v, то добавляем букву
 					p.appendLex(i, models.LexLETTER, string(runes[i]))
 				}
-			} else if runes[i] >= '0' && runes[i] <= '9' {
-				p.appendLex(i, models.LexNUM, string(runes[i]))
-				for i < len(runes) && (runes[i] >= '0' && runes[i] <= '9') {
+			} else if isDigit(runes[i]) {
+				start_index := i
+				for i+1 < len(runes) && isDigit(runes[i+1]) {
 					i++
 				}
+				p.appendLex(i, models.LexNUM, string(runes[start_index:i]))
 			} else {
 				return fmt.Errorf("unknown symbol at pos %d:%c", i, runes[i])
 			}
@@ -134,13 +153,30 @@ func (p *Parser) Lexer() error {
 <terms-tail> ::= "," <term> <terms-tail> | ε
 */
 
+func (p *Parser) addVariable(l models.Lexem) {
+	p.model.variables = append(p.model.variables, l)
+}
+
 func (p *Parser) isVariable(l models.Lexem) bool {
-	return true
+	for _, e := range p.model.variables {
+		if e.Str == l.Str {
+			return true
+		}
+	}
+	return false
 }
 
 func lexCheck(l models.Lexem, Ltype models.LexemType) error {
 	if l.LexemType != Ltype {
-		return fmt.Errorf("on index %d expected %d, found %s", 0/*l.index*/, Ltype, l.Str)// todo: сделать подстановку str Ltype
+		switch l.LexemType {
+		case models.LexLB:
+			fallthrough
+		case models.LexRB:
+			return fmt.Errorf("неправильная скобочная структура")
+		default:
+			return fmt.Errorf("on index %d expected %d, found %s", 0 /*l.index*/, Ltype, l.Str) // todo: сделать подстановку str Ltype
+		}
+
 	}
 	return nil
 }
@@ -158,7 +194,7 @@ func (p *Parser) parseVars() error {
 	}
 	p.index++
 	err = p.parseLetters()
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	err = lexCheck(p.lexem[p.index], models.LexEOL)
@@ -175,12 +211,10 @@ func (p *Parser) parseLetters() error {
 	if err != nil {
 		return err
 	}
+	p.addVariable(p.lexem[p.index])
 	p.index++
 	err = p.parseLettersTail()
-	if err != nil{
-		return err
-	}
-	return nil
+	return err
 }
 
 // <letters-tail> ::= "," <letter> <letters-tail> | ε
@@ -193,6 +227,7 @@ func (p *Parser) parseLettersTail() error {
 		if err != nil {
 			return err
 		}
+		p.addVariable(p.lexem[p.index])
 		p.index++
 		//p.parseLettersTail()
 	}
@@ -202,7 +237,7 @@ func (p *Parser) parseLettersTail() error {
 // <rules> ::= <rule> <eol> <rules-tail>
 func (p *Parser) parseRules() error {
 	err := p.parseRule()
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	err = lexCheck(p.lexem[p.index], models.LexEOL)
@@ -211,17 +246,14 @@ func (p *Parser) parseRules() error {
 	}
 	p.index++
 	err = p.parseRulesTail()
-	if err != nil{
-		return err
-	}
-	return nil
+	return err
 }
 
 // <rules-tail> ::= <rule> <eol> <rules-tail> | ε
 func (p *Parser) parseRulesTail() error {
 	for p.lexem[p.index].LexemType == models.LexLETTER {
 		err := p.parseRule()
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		err = lexCheck(p.lexem[p.index], models.LexEOL)
@@ -237,7 +269,7 @@ func (p *Parser) parseRulesTail() error {
 // <rule> ::= <term> "=" <term>
 func (p *Parser) parseRule() error {
 	err := p.parseTerm()
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	err = lexCheck(p.lexem[p.index], models.LexEQ)
@@ -246,10 +278,7 @@ func (p *Parser) parseRule() error {
 	}
 	p.index++
 	err = p.parseTerm()
-	if err != nil{
-		return err
-	}
-	return nil
+	return err
 }
 
 // <term> ::= var | constructor <args>
@@ -261,7 +290,7 @@ func (p *Parser) parseTerm() error {
 	p.index++
 	if !p.isVariable(p.lexem[p.index-1]) {
 		err = p.parseArgs()
-		if err != nil{
+		if err != nil {
 			return err
 		}
 	}
@@ -273,11 +302,11 @@ func (p *Parser) parseArgs() error {
 	if p.lexem[p.index].LexemType == models.LexLB {
 		p.index++
 		err := p.parseTerm()
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		err = p.parseTermsTail()
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		err = lexCheck(p.lexem[p.index], models.LexRB)
@@ -294,7 +323,7 @@ func (p *Parser) parseTermsTail() error {
 	for p.lexem[p.index].LexemType == models.LexCOMMA {
 		p.index++
 		err := p.parseTerm()
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		//p.parseTermsTail(m,index)
@@ -305,13 +334,11 @@ func (p *Parser) parseTermsTail() error {
 // <s> ::= <vars> <rules>
 func (p *Parser) parseTRS() error {
 	p.index = 0
-	/*varList := */ err := p.parseVars()
+	p.model = TRS{}
+	err := p.parseVars()
 	if err != nil {
 		return err
 	}
-	err = p.parseRules( /*varList*/ )
-	if err != nil {
-		return err
-	}
-	return nil
+	err = p.parseRules()
+	return err
 }
