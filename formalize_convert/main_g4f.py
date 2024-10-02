@@ -6,7 +6,7 @@ class TRSFramework:
 
     def generate_response(self, prompt: str, context: str) -> str:
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4",
             messages=[{"role": "system", "content": context},
                       {"role": "user", "content": prompt}]
         )
@@ -37,7 +37,6 @@ class TRSFramework:
         return self.generate_response(user_query, context)
     
     def convert(self, user_query):
-        # Здесь можно использовать свой собственный prompt для конвертации
         prompt = f"Преобразуй следующий запрос: {user_query}"
         return self.generate_response(prompt)
     
