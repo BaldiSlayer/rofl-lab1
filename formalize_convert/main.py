@@ -45,6 +45,7 @@ class TRSFramework:
             f"c = 5\n"
             f"\n"
             f"Ответь только TRS и интерпретацией в указанном формате."
+            f"Вот запрос пользователя {user_query}"
         )
         
         return self.generate_response(prompt)
