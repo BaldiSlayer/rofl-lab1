@@ -1,6 +1,6 @@
 import openai
 
-openai.api_key = "find_key_yourslef"
+openai.api_key = ""
 
 response = openai.ChatCompletion.create(
   model="gpt-3.5-turbo",
@@ -10,5 +10,3 @@ response = openai.ChatCompletion.create(
 )
 
 print(response.choices[0].message['content'].strip())
-
-# VPN needed

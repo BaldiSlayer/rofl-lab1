@@ -25,3 +25,6 @@ def generate_response(prompt: str) -> str:
 
 
 print(generate_response("Как дела?"))
+
+
+# git pull https://github.com/BaldiSlayer/rofl-lab1.git formalize_convert
