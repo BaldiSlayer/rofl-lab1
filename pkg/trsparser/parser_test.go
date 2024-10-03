@@ -74,7 +74,7 @@ func TestParsesComplexTrs(t *testing.T) {
 	}
 	expectedInterpretations := []Interpretation{
 		{
-			Args:      []string{"x", "y"},
+			Args: []string{"x", "y"},
 			Monomials: []Monomial{
 				NewProductMonomial(
 					[]Factor{{
