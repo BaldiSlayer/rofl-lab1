@@ -1,17 +1,16 @@
 package trsparser
 
-
 import (
-	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/lexer"
+	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 	"testing"
 )
 
 const (
-	peano string = "variables = x,y,z\n f(x,S(y)) = S(f(x,y)) \n\r f(x, T) = T\n-------------S(x) = x+1\nf(x,y)=    x+2*y"
-	wrongVar string = "variables = x,y,z\n f(x, y) = f(x, z)\n-------f(x,y)     = xy"
-	varError string = "variables = x, y,\n f(x,y) = f(x,y)\n--------f(x,y) = x+y"
-	wrongConstructor = "variables = x,y,z\n f(x,y) = f(x)\n----------f(x,y) = x"
+	peano            string = "variables = x,y,z\n f(x,S(y)) = S(f(x,y)) \n\r f(x, T) = T\n-------------S(x) = x+1\nf(x,y)=    x+2*y"
+	wrongVar         string = "variables = x,y,z\n f(x, y) = f(x, z)\n-------f(x,y)     = xy"
+	varError         string = "variables = x, y,\n f(x,y) = f(x,y)\n--------f(x,y) = x+y"
+	wrongConstructor        = "variables = x,y,z\n f(x,y) = f(x)\n----------f(x,y) = x"
 )
 
 func TestParserWithPeano(t *testing.T) {
@@ -20,7 +19,7 @@ func TestParserWithPeano(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	
+
 	_, lex_tail, err1 := ParseRules(l.Lexem)
 	if err1 != nil {
 		t.Error(err1)
@@ -29,4 +28,3 @@ func TestParserWithPeano(t *testing.T) {
 		t.Errorf("Expected separator, but find %d lexem", lex_tail[0].LexemType)
 	}
 }
-
