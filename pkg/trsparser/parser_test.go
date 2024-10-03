@@ -12,7 +12,11 @@ func TestErrorOnEmptyInput(t *testing.T) {
 	_, err := Parser{}.Parse("")
 
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "система должна содержать хотя бы одно правило переписывания и его интерпретацию", parseError.LlmMessage)
+	assert.Equal(
+		t,
+		"система должна содержать хотя бы одно правило переписывания и его интерпретацию",
+		parseError.LlmMessage,
+	)
 }
 
 func TestParsesBasicTrs(t *testing.T) {

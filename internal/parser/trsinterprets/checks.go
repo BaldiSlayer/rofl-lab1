@@ -22,17 +22,17 @@ type monomialChecker struct {
 }
 
 func (c *monomialChecker) checkMonomial(monomial Monomial) *ParseError {
-	if monomial.factors == nil {
+	if monomial.Factors == nil {
 		return nil
 	}
-	if len(*monomial.factors) == 0 {
+	if len(*monomial.Factors) == 0 {
 		return &ParseError{
 			llmMessage: "моном должен быть не пуст",
 			message:    "empty monomial",
 		}
 	}
 
-	for _, factor := range *monomial.factors {
+	for _, factor := range *monomial.Factors {
 		err := c.checkFactor(factor)
 		if err != nil {
 			return err
@@ -43,9 +43,9 @@ func (c *monomialChecker) checkMonomial(monomial Monomial) *ParseError {
 }
 
 func (c *monomialChecker) checkFactor(factor Factor) *ParseError {
-	if _, ok := c.definedVars[factor.variable]; !ok {
+	if _, ok := c.definedVars[factor.Variable]; !ok {
 		return &ParseError{
-			llmMessage: fmt.Sprintf("не объявлен аргумент %s", factor.variable),
+			llmMessage: fmt.Sprintf("не объявлен аргумент %s", factor.Variable),
 			message:    "undefined arg",
 		}
 	}
@@ -104,23 +104,23 @@ func (c *interpretationsChecker) checkInterpretation(interpret Interpretation,
 }
 
 func (c *interpretationsChecker) checkDuplicateInterpretation(interpret Interpretation, _ map[string]int) *ParseError {
-	if _, ok := c.defined[interpret.name]; ok {
+	if _, ok := c.defined[interpret.Name]; ok {
 		return &ParseError{
-			llmMessage: fmt.Sprintf("интерпретация конструктора %s задана повторно", interpret.name),
+			llmMessage: fmt.Sprintf("интерпретация конструктора %s задана повторно", interpret.Name),
 			message:    "duplicate interpretation",
 		}
 	}
-	c.defined[interpret.name] = struct{}{}
+	c.defined[interpret.Name] = struct{}{}
 	return nil
 }
 
 func (c *interpretationsChecker) checkExcessInterpretation(interpret Interpretation,
 	constructorArity map[string]int) *ParseError {
 
-	_, ok := constructorArity[interpret.name]
+	_, ok := constructorArity[interpret.Name]
 	if !ok {
 		return &ParseError{
-			llmMessage: fmt.Sprintf("конструктор %s отсутствует в правилах trs", interpret.name),
+			llmMessage: fmt.Sprintf("конструктор %s отсутствует в правилах trs", interpret.Name),
 			message:    "excess interpretation",
 		}
 	}
@@ -131,11 +131,11 @@ func (c *interpretationsChecker) checkExcessInterpretation(interpret Interpretat
 func (c *interpretationsChecker) checkInterpretationArity(interpret Interpretation,
 	constructorArity map[string]int) *ParseError {
 
-	expectedArity, _ := constructorArity[interpret.name]
-	if expectedArity != len(interpret.args) {
+	expectedArity, _ := constructorArity[interpret.Name]
+	if expectedArity != len(interpret.Args) {
 		return &ParseError{
 			llmMessage: fmt.Sprintf("неверная арность конструктора %s: "+
-				"ожидалась арность %d, получена арность %d", interpret.name, expectedArity, len(interpret.args)),
+				"ожидалась арность %d, получена арность %d", interpret.Name, expectedArity, len(interpret.Args)),
 			message: "wrong func interpretation arity",
 		}
 	}
@@ -144,12 +144,12 @@ func (c *interpretationsChecker) checkInterpretationArity(interpret Interpretati
 
 func (c *interpretationsChecker) checkDuplicateArgumentName(interpret Interpretation, _ map[string]int) *ParseError {
 	args := map[string]struct{}{}
-	for _, arg := range interpret.args {
+	for _, arg := range interpret.Args {
 		if _, ok := args[arg]; ok {
 			return &ParseError{
 				llmMessage: fmt.Sprintf(
 					"в интерпретации конструктора %s повторно объявлена переменная %s",
-					interpret.name,
+					interpret.Name,
 					arg,
 				),
 				message: "duplicate argument name",

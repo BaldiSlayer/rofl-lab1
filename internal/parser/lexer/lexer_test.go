@@ -11,8 +11,8 @@ const (
 
 func TestLexerWithPeano(t *testing.T) {
 	//Peano grammar
-	p := Lexer{text: peano}
-	err := p.process()
+	p := Lexer{Text: peano}
+	err := p.Process()
 
 	if err != nil {
 		t.Errorf("Should not produce an error")
