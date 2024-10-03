@@ -474,7 +474,7 @@ func TestIllFormedMonomial(t *testing.T) {
 
 	var parseError *ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверно задана интерпретация конструктора f: " +
-		"в определении монома ожидалось название переменной или значение коэффициента, " +
+	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
+		"в определении монома ожидалось название переменной или значение коэффициента, "+
 		"получено *", parseError.LlmMessage())
 }
