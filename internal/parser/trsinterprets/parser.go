@@ -75,7 +75,7 @@ func (p *Parser) interpretations() ([]Interpretation, *ParseError) {
 		_, err = p.accept(models.LexEOL, "EOL", "ожидался перенос строки после определения интерпретации")
 		if err != nil {
 			return nil, err.wrap(&ParseError{
-				llmMessage: fmt.Sprintf("неверно задана интерпретация %s", interpret.name),
+				llmMessage: fmt.Sprintf("неверно задана интерпретация %s", interpret.Name),
 				message:    "ill-formed interpretation",
 			})
 		}
@@ -113,11 +113,11 @@ func (p *Parser) interpretationBody(name string) (Interpretation, *ParseError) {
 	case models.LexEQ:
 		value, err := p.constInterpretation()
 		return Interpretation{
-			name: name,
-			args: []string{},
-			monomials: []Monomial{{
-				constant: &value,
-				factors:  nil,
+			Name: name,
+			Args: []string{},
+			Monomials: []Monomial{{
+				Constant: &value,
+				Factors:  nil,
 			}},
 		}, err
 	case models.LexLB:
@@ -134,7 +134,7 @@ func (p *Parser) interpretationBody(name string) (Interpretation, *ParseError) {
 func (p *Parser) constInterpretation() (int, *ParseError) {
 	p.stream.next()
 	lexem, err := p.accept(models.LexNUM,
-		"number",
+		"expected number in const interpretation",
 		"ожидалось натуральное число после знака = в интерпретации константы",
 	)
 	if err != nil {
@@ -145,11 +145,17 @@ func (p *Parser) constInterpretation() (int, *ParseError) {
 }
 
 func (p *Parser) toInt(lexem models.Lexem) (int, *ParseError) {
-	num, err := strconv.Atoi(lexem.String())
-	if err != nil || lexem.Type() != models.LexNUM {
+	if lexem.Type() != models.LexNUM {
 		return 0, &ParseError{
 			llmMessage: "ожидалось натуральное число",
-			message:    "number",
+			message:    "number expected",
+		}
+	}
+	num, err := strconv.Atoi(lexem.String())
+	if err != nil {
+		return 0, &ParseError{
+			llmMessage: "ошибка в лексере: невозможно сконвертировать лексему числа в число",
+			message:    fmt.Sprintf("can't convert number lexem: |%s|", lexem.String()),
 		}
 	}
 	return num, nil
@@ -177,9 +183,9 @@ func (p *Parser) funcInterpretation(name string) (Interpretation, *ParseError) {
 	}
 
 	return Interpretation{
-		name:      name,
-		args:      args,
-		monomials: monomials,
+		Name:      name,
+		Args:      args,
+		Monomials: monomials,
 	}, nil
 }
 
@@ -242,7 +248,7 @@ func (p *Parser) monomial() (Monomial, *ParseError) {
 			return Monomial{}, err
 		}
 
-		*monomial.factors = append(*monomial.factors, factor)
+		*monomial.Factors = append(*monomial.Factors, factor)
 	}
 
 	return monomial, nil
@@ -280,9 +286,9 @@ func (p *Parser) factorOrConstant() (Monomial, *ParseError) {
 	}
 
 	return NewProductMonomial([]Factor{{
-		variable:    name,
-		coefficient: coefficient,
-		power:       power,
+		Variable:    name,
+		Coefficient: coefficient,
+		Power:       power,
 	}}), nil
 }
 
@@ -314,14 +320,14 @@ func (p *Parser) factor() (Factor, *ParseError) {
 	}
 
 	return Factor{
-		variable:    name,
-		coefficient: coefficient,
-		power:       power,
+		Variable:    name,
+		Coefficient: coefficient,
+		Power:       power,
 	}, nil
 }
 
 func (p *Parser) number() (int, *ParseError) {
-	numLexem, err := p.accept(models.LexNUM, "number", "ожидалось число")
+	numLexem, err := p.accept(models.LexNUM, "expected number in monomial", "ожидалось число в мономе")
 	if err != nil {
 		return 0, err
 	}
@@ -357,7 +363,11 @@ func (p *Parser) power() (int, *ParseError) {
 	}
 
 	p.stream.next()
-	numLexem, err := p.accept(models.LexNUM, "number", "после { ожидалось значение степени - натуральное число")
+	numLexem, err := p.accept(
+		models.LexNUM,
+		"number expected in power definition",
+		"после { ожидалось значение степени - натуральное число",
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -372,4 +382,13 @@ func (p *Parser) power() (int, *ParseError) {
 	}
 
 	return num, err
+}
+
+func ToInputChannel(lexems []models.Lexem) chan models.Lexem {
+	channel := make(chan models.Lexem, 100)
+	for _, el := range lexems {
+		channel <- el
+	}
+	close(channel)
+	return channel
 }

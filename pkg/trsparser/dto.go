@@ -17,3 +17,7 @@ func NewProductMonomial(factors []Factor) Monomial {
 	})
 	return monomial
 }
+
+func NewSubexpression(sexpr Subexpression) interface{} {
+	return sexpr
+}

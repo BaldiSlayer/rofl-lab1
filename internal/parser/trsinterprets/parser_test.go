@@ -22,17 +22,8 @@ func (l lexem) Type() int {
 	return l.t
 }
 
-func toInputChannel(lexems []models.Lexem) chan models.Lexem {
-	channel := make(chan models.Lexem, 100)
-	for _, el := range lexems {
-		channel <- el
-	}
-	close(channel)
-	return channel
-}
-
 func TestSingleConstInterpretation(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexEQ, Str: "="},
 		{LexemType: models.LexNUM, Str: "5"},
@@ -45,15 +36,15 @@ func TestSingleConstInterpretation(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []Interpretation{
 		{
-			name:      "f",
-			args:      []string{},
-			monomials: []Monomial{NewConstantMonomial(5)},
+			Name:      "f",
+			Args:      []string{},
+			Monomials: []Monomial{NewConstantMonomial(5)},
 		},
 	}, interpretations)
 }
 
 func TestMultipleConstInterpretations(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexEQ, Str: "="},
 		{LexemType: models.LexNUM, Str: "5"},
@@ -70,20 +61,20 @@ func TestMultipleConstInterpretations(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []Interpretation{
 		{
-			name:      "f",
-			args:      []string{},
-			monomials: []Monomial{NewConstantMonomial(5)},
+			Name:      "f",
+			Args:      []string{},
+			Monomials: []Monomial{NewConstantMonomial(5)},
 		},
 		{
-			name:      "g",
-			args:      []string{},
-			monomials: []Monomial{NewConstantMonomial(100)},
+			Name:      "g",
+			Args:      []string{},
+			Monomials: []Monomial{NewConstantMonomial(100)},
 		},
 	}, interpretations)
 }
 
 func TestNoInterpretations(t *testing.T) {
-	input := toInputChannel([]models.Lexem{})
+	input := ToInputChannel([]models.Lexem{})
 
 	_, err := NewParser(input, map[string]int{}).Parse()
 
@@ -93,7 +84,7 @@ func TestNoInterpretations(t *testing.T) {
 }
 
 func TestNoConstructorName(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexEQ, Str: "="},
 		{LexemType: models.LexNUM, Str: "5"},
@@ -110,7 +101,7 @@ func TestNoConstructorName(t *testing.T) {
 }
 
 func TestSingleInterpretation(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
@@ -128,13 +119,13 @@ func TestSingleInterpretation(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []Interpretation{
 		{
-			name: "f",
-			args: []string{"x"},
-			monomials: []Monomial{
+			Name: "f",
+			Args: []string{"x"},
+			Monomials: []Monomial{
 				NewProductMonomial([]Factor{{
-					variable:    "x",
-					coefficient: 1,
-					power:       1,
+					Variable:    "x",
+					Coefficient: 1,
+					Power:       1,
 				}}),
 				NewConstantMonomial(5),
 			},
@@ -143,7 +134,7 @@ func TestSingleInterpretation(t *testing.T) {
 }
 
 func TestMultipleInterpretations(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
@@ -175,29 +166,29 @@ func TestMultipleInterpretations(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []Interpretation{
 		{
-			name: "f",
-			args: []string{"x"},
-			monomials: []Monomial{
+			Name: "f",
+			Args: []string{"x"},
+			Monomials: []Monomial{
 				NewProductMonomial([]Factor{{
-					variable:    "x",
-					coefficient: 1,
-					power:       1,
+					Variable:    "x",
+					Coefficient: 1,
+					Power:       1,
 				}}),
 			},
 		},
 		{
-			name: "g",
-			args: []string{"x", "y"},
-			monomials: []Monomial{
+			Name: "g",
+			Args: []string{"x", "y"},
+			Monomials: []Monomial{
 				NewProductMonomial([]Factor{{
-					variable:    "y",
-					coefficient: 1,
-					power:       5,
+					Variable:    "y",
+					Coefficient: 1,
+					Power:       5,
 				}}),
 				NewProductMonomial([]Factor{{
-					variable:    "x",
-					coefficient: 13,
-					power:       1,
+					Variable:    "x",
+					Coefficient: 13,
+					Power:       1,
 				}}),
 			},
 		},
@@ -205,7 +196,7 @@ func TestMultipleInterpretations(t *testing.T) {
 }
 
 func TestMissingStarSign(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
@@ -230,7 +221,7 @@ func TestMissingStarSign(t *testing.T) {
 }
 
 func TestUndefinedVariable(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
@@ -256,7 +247,7 @@ func TestUndefinedVariable(t *testing.T) {
 }
 
 func TestInterpretationArityMismatch(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
@@ -275,7 +266,7 @@ func TestInterpretationArityMismatch(t *testing.T) {
 }
 
 func TestExcessInterpretation(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
@@ -294,7 +285,7 @@ func TestExcessInterpretation(t *testing.T) {
 }
 
 func TestDuplicateInterpretation(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
@@ -322,7 +313,7 @@ func TestDuplicateInterpretation(t *testing.T) {
 }
 
 func TestDuplicateArgument(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
@@ -343,7 +334,7 @@ func TestDuplicateArgument(t *testing.T) {
 }
 
 func TestNoSufficientInterpretation(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
@@ -362,7 +353,7 @@ func TestNoSufficientInterpretation(t *testing.T) {
 }
 
 func TestUnusedArgument(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
@@ -379,7 +370,7 @@ func TestUnusedArgument(t *testing.T) {
 }
 
 func TestMultipleVariablesInMonomial(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},
@@ -389,6 +380,11 @@ func TestMultipleVariablesInMonomial(t *testing.T) {
 		{LexemType: models.LexEQ, Str: "="},
 		{LexemType: models.LexLETTER, Str: "x"},
 		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexLCB, Str: "{"},
+		{LexemType: models.LexNUM, Str: "2"},
+		{LexemType: models.LexRCB, Str: "}"},
+		{LexemType: models.LexNUM, Str: "5"},
+		{LexemType: models.LexMUL, Str: "*"},
 		{LexemType: models.LexLETTER, Str: "x"},
 		{LexemType: models.LexLETTER, Str: "y"},
 		{LexemType: models.LexADD, Str: "+"},
@@ -409,46 +405,46 @@ func TestMultipleVariablesInMonomial(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []Interpretation{
 		{
-			name: "f",
-			args: []string{"x", "y"},
-			monomials: []Monomial{
+			Name: "f",
+			Args: []string{"x", "y"},
+			Monomials: []Monomial{
 				NewProductMonomial([]Factor{
 					{
-						variable:    "x",
-						coefficient: 1,
-						power:       1,
+						Variable:    "x",
+						Coefficient: 1,
+						Power:       1,
 					},
 					{
-						variable:    "x",
-						coefficient: 1,
-						power:       1,
+						Variable:    "x",
+						Coefficient: 1,
+						Power:       2,
 					},
 					{
-						variable:    "x",
-						coefficient: 1,
-						power:       1,
+						Variable:    "x",
+						Coefficient: 5,
+						Power:       1,
 					},
 					{
-						variable:    "y",
-						coefficient: 1,
-						power:       1,
+						Variable:    "y",
+						Coefficient: 1,
+						Power:       1,
 					},
 				}),
 				NewProductMonomial([]Factor{
 					{
-						variable:    "x",
-						coefficient: 1,
-						power:       2,
+						Variable:    "x",
+						Coefficient: 1,
+						Power:       2,
 					},
 					{
-						variable:    "x",
-						coefficient: 5,
-						power:       1,
+						Variable:    "x",
+						Coefficient: 5,
+						Power:       1,
 					},
 					{
-						variable:    "y",
-						coefficient: 1,
-						power:       1,
+						Variable:    "y",
+						Coefficient: 1,
+						Power:       1,
 					},
 				}),
 			},
@@ -457,7 +453,7 @@ func TestMultipleVariablesInMonomial(t *testing.T) {
 }
 
 func TestIllFormedMonomial(t *testing.T) {
-	input := toInputChannel([]models.Lexem{
+	input := ToInputChannel([]models.Lexem{
 		{LexemType: models.LexLETTER, Str: "f"},
 		{LexemType: models.LexLB, Str: "("},
 		{LexemType: models.LexLETTER, Str: "x"},

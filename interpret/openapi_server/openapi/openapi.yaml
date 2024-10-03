@@ -179,7 +179,6 @@ components:
           $ref: '#/components/schemas/Letter'
         args:
           items: {}
-          minItems: 1
           title: args
           type: array
       required:

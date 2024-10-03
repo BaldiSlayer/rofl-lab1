@@ -38,10 +38,10 @@ grammatic
 */
 
 type TRS struct {
-	variables []models.Lexem
-	rules     []Rule
+	Variables []models.Lexem
+	Rules     []Rule
 
-	constructors map[string]int
+	Constructors map[string]int
 }
 
 type Rule struct {
@@ -82,17 +82,17 @@ type Parser struct {
 */
 
 func (p *Parser) addRule() *Rule {
-	i := len(p.model.rules)
-	p.model.rules = append(p.model.rules, Rule{})
-	return &p.model.rules[i]
+	i := len(p.model.Rules)
+	p.model.Rules = append(p.model.Rules, Rule{})
+	return &p.model.Rules[i]
 }
 
 func (p *Parser) addVariable(l models.Lexem) {
-	p.model.variables = append(p.model.variables, l)
+	p.model.Variables = append(p.model.Variables, l)
 }
 
 func (p *Parser) isVariable(l models.Lexem) bool {
-	for _, e := range p.model.variables {
+	for _, e := range p.model.Variables {
 		if e.Str == l.Str {
 			return true
 		}
@@ -311,9 +311,9 @@ func getVariablesFromExpr(var_set *map[string]bool, a Subexpression) {
 
 func (p *Parser) getConstructorsFromExpr(a Subexpression) error {
 	if a.Args != nil {
-		count, ok := p.model.constructors[a.Letter.Str]
+		count, ok := p.model.Constructors[a.Letter.Str]
 		if !ok {
-			p.model.constructors[a.Letter.Str] = len(*a.Args)
+			p.model.Constructors[a.Letter.Str] = len(*a.Args)
 		} else {
 			if count != len(*a.Args) {
 				return fmt.Errorf("несовпадение в количестве элементов конструктора %s: ожидалось %d, найдено %d", a.Letter.Str, count, len(*a.Args))
@@ -330,7 +330,7 @@ func isSetIn(a, b *map[string]bool) bool {
 	if len(*a) < len(*b) {
 		return false
 	}
-	for element, _ := range *b {
+	for element := range *b {
 		if !((*a)[element]) {
 			return false
 		}
@@ -340,7 +340,7 @@ func isSetIn(a, b *map[string]bool) bool {
 }
 
 func (p *Parser) checkRules() error {
-	for i, rule := range p.model.rules { // проверка корректности переменных
+	for i, rule := range p.model.Rules { // проверка корректности переменных
 		left_var := make(map[string]bool)
 		getVariablesFromExpr(&left_var, rule.Lhs)
 		right_var := make(map[string]bool)
@@ -350,9 +350,9 @@ func (p *Parser) checkRules() error {
 		}
 	}
 
-	p.model.constructors = make(map[string]int)
+	p.model.Constructors = make(map[string]int)
 
-	for i, rule := range p.model.rules {
+	for i, rule := range p.model.Rules {
 		err := p.getConstructorsFromExpr(rule.Lhs)
 		if err != nil {
 			return errors.Join(fmt.Errorf("в левой части правила %d ", i), err)
@@ -366,7 +366,7 @@ func (p *Parser) checkRules() error {
 	return nil
 }
 
-func parseRules(arr []models.Lexem) (*TRS, []models.Lexem, error) {
+func ParseRules(arr []models.Lexem) (*TRS, []models.Lexem, error) {
 	p := Parser{lexem: arr}
 
 	err := p.parseTRS()

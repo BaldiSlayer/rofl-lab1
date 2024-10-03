@@ -6,12 +6,12 @@ import (
 )
 
 type Lexer struct {
-	text  string
-	lexem []models.Lexem
+	Text  string
+	Lexem []models.Lexem
 }
 
 func (p *Lexer) appendLex(index int, lexType models.LexemType, str string) {
-	p.lexem = append(p.lexem, models.Lexem{
+	p.Lexem = append(p.Lexem, models.Lexem{
 		//index: index,
 		LexemType: lexType,
 		Str:       str,
@@ -26,9 +26,9 @@ func isDigit(c rune) bool {
 	return c >= '0' && c <= '9'
 }
 
-func (p *Lexer) process() error {
-	runes := []rune(p.text)
-	p.lexem = make([]models.Lexem, 0, len(runes))
+func (p *Lexer) Process() error {
+	runes := []rune(p.Text)
+	p.Lexem = make([]models.Lexem, 0, len(runes))
 
 	lexVariables := []rune("variables")
 
