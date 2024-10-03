@@ -1,6 +1,7 @@
 package trsparser
 
 import (
+	"errors"
 	"fmt"
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 )
@@ -39,6 +40,8 @@ grammatic
 type TRS struct {
 	variables []models.Lexem
 	rules     []Rule
+
+	constructors map[string]int
 }
 
 type Rule struct {
@@ -306,6 +309,23 @@ func getVariablesFromExpr(var_set *map[string]bool, a Subexpression) {
 	}
 }
 
+func (p *Parser) getConstructorsFromExpr(a Subexpression) error {
+	if a.Args != nil {
+		count, ok := p.model.constructors[a.Letter.Str]
+		if !ok {
+			p.model.constructors[a.Letter.Str] = len(*a.Args)
+		} else {
+			if count != len(*a.Args) {
+				return fmt.Errorf("несовпадение в количестве элементов конструктора %s: ожидалось %d, найдено %d", a.Letter.Str, count, len(*a.Args))
+			}
+		}
+		for _, e := range *a.Args {
+			p.getConstructorsFromExpr(e)
+		}
+	}
+	return nil
+}
+
 func isSetIn(a, b *map[string]bool) bool {
 	if len(*a) > len(*b) {
 		return false
@@ -320,7 +340,7 @@ func isSetIn(a, b *map[string]bool) bool {
 }
 
 func (p *Parser) checkRules() error {
-	for i, rule := range p.model.rules {
+	for i, rule := range p.model.rules { // проверка корректности переменных
 		left_var := make(map[string]bool)
 		getVariablesFromExpr(&left_var, rule.Lhs)
 		right_var := make(map[string]bool)
@@ -329,6 +349,20 @@ func (p *Parser) checkRules() error {
 			return fmt.Errorf("в правиле %d неправильно использованы переменные", i+1)
 		}
 	}
+
+	p.model.constructors = make(map[string]int)
+
+	for i, rule := range p.model.rules {
+		err := p.getConstructorsFromExpr(rule.Lhs)
+		if err != nil {
+			return errors.Join(fmt.Errorf("в левой части правила %d ", i), err)
+		}
+		err = p.getConstructorsFromExpr(rule.Rhs)
+		if err != nil {
+			return errors.Join(fmt.Errorf("в правой части правила %d ", i), err)
+		}
+	}
+
 	return nil
 }
 

@@ -67,15 +67,15 @@ func (p *Lexer) process() error {
 				}
 			} else if isLetter(runes[i]) { // если встретилась буква
 				if runes[i] == 'v' && i+len(lexVariables) < len(runes) { // проверяем на "variables"
-					t := true
+					wordVariablesFound := true
 					j := 0
 					for ; j < len(lexVariables); j++ {
 						if lexVariables[j] != runes[i+j] {
-							t = false
+							wordVariablesFound = false
 							break
 						}
 					}
-					if t { // если найдено слово, добавляем и пропускаем
+					if wordVariablesFound { // если найдено слово, добавляем и пропускаем
 						p.appendLex(i, models.LexVAR, "variables")
 						i += len(lexVariables) - 1
 					} else { // иначе добавляем букву 'v' и идем дальше посимвольно
