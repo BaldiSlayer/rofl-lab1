@@ -38,102 +38,27 @@ grammatic
 
 type TRS struct {
 	variables []models.Lexem
+	rules     []Rule
+}
+
+type Rule struct {
+	Lhs Subexpression
+	Rhs Subexpression
+}
+
+// Subexpression defines model for Subexpression.
+type Subexpression struct {
+	Args *[]Subexpression
+
+	// Letter represents variable or constructor
+	Letter models.Lexem
 }
 
 type Parser struct {
-	text  string
 	lexem []models.Lexem
 	index int //index of syntax analyzing
 
 	model TRS
-}
-
-func (p *Parser) appendLex(index int, lexType models.LexemType, str string) {
-	p.lexem = append(p.lexem, models.Lexem{
-		/*index: index,*/
-		LexemType: lexType,
-		Str:       str,
-	})
-}
-
-func isLetter(c rune) bool {
-	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
-}
-
-func isDigit(c rune) bool {
-	return c >= '0' && c <= '9'
-}
-
-func (p *Parser) Lexer() error {
-	runes := []rune(p.text)
-	p.lexem = make([]models.Lexem, 0, len(runes))
-
-	lexVariables := []rune("variables")
-
-	for i := 0; i < len(runes); i++ {
-		switch runes[i] {
-		case ' ': // пробел и таб пропустить
-			continue
-		case '\t':
-			continue
-		case '-':
-			p.appendLex(i, models.LexSEPARATOR, "-")
-			for i < len(runes) && runes[i] == '-' {
-				i++
-			}
-		case '=':
-			p.appendLex(i, models.LexEQ, "=")
-		case ',':
-			p.appendLex(i, models.LexCOMMA, ",")
-		case '+':
-			p.appendLex(i, models.LexADD, "+")
-		case '*':
-			p.appendLex(i, models.LexMUL, "*")
-		case '{':
-			p.appendLex(i, models.LexLCB, "{")
-		case '}':
-			p.appendLex(i, models.LexRCB, "}")
-		case '(':
-			p.appendLex(i, models.LexLB, "(")
-		case ')':
-			p.appendLex(i, models.LexRB, ")")
-		default:
-			if runes[i] == '\n' || runes[i] == '\r' { // если перевод строки(причем могут быть 2), добавить лексему перевод строки
-				p.appendLex(i, models.LexEOL, "\n")
-				if i < len(runes)-1 && (runes[i] == '\n' && runes[i+1] == '\r' || runes[i] == '\r' && runes[i+1] == '\n') {
-					i++
-				}
-			} else if isLetter(runes[i]) { // если встретилась буква
-				if runes[i] == 'v' && i+len(lexVariables) < len(runes) { // проверяем на "variables"
-					t := true
-					j := 0
-					for ; j < len(lexVariables); j++ {
-						if lexVariables[j] != runes[i+j] {
-							t = false
-							break
-						}
-					}
-					if t { // если найдено слово, добавляем и пропускаем
-						p.appendLex(i, models.LexVAR, "variables")
-						i += len(lexVariables) - 1
-					} else { // иначе добавляем букву 'v' и идем дальше посимвольно
-						p.appendLex(i, models.LexLETTER, string(runes[i]))
-					}
-				} else { // если найденная буква не v, то добавляем букву
-					p.appendLex(i, models.LexLETTER, string(runes[i]))
-				}
-			} else if isDigit(runes[i]) {
-				start_index := i
-				for i+1 < len(runes) && isDigit(runes[i+1]) {
-					i++
-				}
-				p.appendLex(i, models.LexNUM, string(runes[start_index:i]))
-			} else {
-				return fmt.Errorf("unknown symbol at pos %d:%c", i, runes[i])
-			}
-		}
-	}
-	return nil
 }
 
 /*********************************************************************************/
@@ -152,6 +77,12 @@ func (p *Parser) Lexer() error {
 <args> ::= ε | "(" <term> <terms-tail> ")"
 <terms-tail> ::= "," <term> <terms-tail> | ε
 */
+
+func (p *Parser) addRule() *Rule {
+	i := len(p.model.rules)
+	p.model.rules = append(p.model.rules, Rule{})
+	return &p.model.rules[i]
+}
 
 func (p *Parser) addVariable(l models.Lexem) {
 	p.model.variables = append(p.model.variables, l)
@@ -268,64 +199,82 @@ func (p *Parser) parseRulesTail() error {
 
 // <rule> ::= <term> "=" <term>
 func (p *Parser) parseRule() error {
-	err := p.parseTerm()
+	r := p.addRule() // return *Rule
+
+	subexp, err := p.parseTerm()
 	if err != nil {
 		return err
 	}
+	r.Lhs = *subexp
+
 	err = lexCheck(p.lexem[p.index], models.LexEQ)
 	if err != nil {
 		return err
 	}
 	p.index++
-	err = p.parseTerm()
-	return err
-}
-
-// <term> ::= var | constructor <args>
-func (p *Parser) parseTerm() error {
-	err := lexCheck(p.lexem[p.index], models.LexLETTER)
+	subexp, err = p.parseTerm()
 	if err != nil {
 		return err
 	}
-	p.index++
-	if !p.isVariable(p.lexem[p.index-1]) {
-		err = p.parseArgs()
-		if err != nil {
-			return err
-		}
-	}
+	r.Rhs = *subexp
 	return nil
+}
+
+// <term> ::= var | constructor <args>
+func (p *Parser) parseTerm() (*Subexpression, error) {
+	err := lexCheck(p.lexem[p.index], models.LexLETTER)
+	if err != nil {
+		return nil, err
+	}
+
+	letter := p.lexem[p.index]
+
+	p.index++
+	if !p.isVariable(p.lexem[p.index-1]) { //constructor
+		subexpr_arr, err1 := p.parseArgs()
+		if err1 != nil {
+			return nil, err1
+		}
+		return &Subexpression{Args: subexpr_arr, Letter: letter}, nil
+	} else { // variable
+		return &Subexpression{Args: nil, Letter: letter}, nil
+	}
 }
 
 // <args> ::= ε | "(" <term> <terms-tail> ")"
-func (p *Parser) parseArgs() error {
+func (p *Parser) parseArgs() (*[]Subexpression, error) {
+	subexpr_arr := make([]Subexpression, 0)
 	if p.lexem[p.index].LexemType == models.LexLB {
 		p.index++
-		err := p.parseTerm()
+		subexpr, err := p.parseTerm()
 		if err != nil {
-			return err
+			return nil, err
 		}
-		err = p.parseTermsTail()
+
+		subexpr_arr = append(subexpr_arr, *subexpr)
+
+		err = p.parseTermsTail(&subexpr_arr)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		err = lexCheck(p.lexem[p.index], models.LexRB)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		p.index++
 	}
-	return nil
+	return &subexpr_arr, nil
 }
 
 // <terms-tail> ::= "," <term> <terms-tail> | ε
-func (p *Parser) parseTermsTail() error {
+func (p *Parser) parseTermsTail(arr *[]Subexpression) error {
 	for p.lexem[p.index].LexemType == models.LexCOMMA {
 		p.index++
-		err := p.parseTerm()
+		se, err := p.parseTerm()
 		if err != nil {
 			return err
 		}
+		*arr = append(*arr, *se)
 		//p.parseTermsTail(m,index)
 	}
 	return nil
@@ -340,5 +289,55 @@ func (p *Parser) parseTRS() error {
 		return err
 	}
 	err = p.parseRules()
-	return err
+	if err != nil {
+		return err
+	}
+
+	return p.checkRules()
+}
+
+func getVariablesFromExpr(var_set *map[string]bool, a Subexpression) {
+	if a.Args == nil {
+		(*var_set)[a.Letter.Str] = true
+	} else {
+		for _, e := range *a.Args {
+			getVariablesFromExpr(var_set, e)
+		}
+	}
+}
+
+func isSetIn(a, b *map[string]bool) bool {
+	if len(*a) > len(*b) {
+		return false
+	}
+	for element, _ := range *a {
+		if !((*b)[element]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (p *Parser) checkRules() error {
+	for i, rule := range p.model.rules {
+		left_var := make(map[string]bool)
+		getVariablesFromExpr(&left_var, rule.Lhs)
+		right_var := make(map[string]bool)
+		getVariablesFromExpr(&right_var, rule.Rhs)
+		if !isSetIn(&left_var, &right_var) {
+			return fmt.Errorf("в правиле %d неправильно использованы переменные", i+1)
+		}
+	}
+	return nil
+}
+
+func parseRules(arr []models.Lexem) (*TRS, []models.Lexem, error) {
+	p := Parser{lexem: arr}
+
+	err := p.parseTRS()
+	if err != nil {
+		return nil, arr, err
+	}
+	return &p.model, p.lexem[p.index:], nil
 }
