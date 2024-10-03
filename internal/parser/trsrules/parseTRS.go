@@ -327,11 +327,11 @@ func (p *Parser) getConstructorsFromExpr(a Subexpression) error {
 }
 
 func isSetIn(a, b *map[string]bool) bool {
-	if len(*a) > len(*b) {
+	if len(*a) < len(*b) {
 		return false
 	}
-	for element, _ := range *a {
-		if !((*b)[element]) {
+	for element, _ := range *b {
+		if !((*a)[element]) {
 			return false
 		}
 	}
