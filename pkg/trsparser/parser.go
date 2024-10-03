@@ -1,6 +1,7 @@
 package trsparser
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/lexer"
@@ -107,10 +108,6 @@ func toSubexpressionDTO(subexpr rulesparser.Subexpression, variables map[string]
 	args := []interface{}{}
 	if subexpr.Args != nil {
 		for _, el := range *subexpr.Args {
-			// arg, err := NewSubexpressionArg(toSubexpressionDTO(el, variables))
-			// if err != nil {
-			// 	panic(err)
-			// }
 			arg := toSubexpressionDTO(el, variables)
 			args = append(args, arg)
 		}
@@ -164,8 +161,10 @@ func toFactorsDTO(factors []trsinterprets.Factor) []Factor {
 			factor.Coefficient = &el.Coefficient
 		}
 		if el.Power != 1 {
+			slog.Info(fmt.Sprintf("FIXME: power is %d",el.Power))
 			factor.Power = &el.Power
 		}
+		fmt.Println(factor.Power)
 		res = append(res, factor)
 	}
 	return res

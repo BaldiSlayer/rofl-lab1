@@ -88,7 +88,5 @@ class Subexpression(Model):
         :param args: The args of this Subexpression.
         :type args: List[object]
         """
-        if args is not None and len(args) < 1:
-            raise ValueError("Invalid value for `args`, number of items must be greater than or equal to `1`")  # noqa: E501
 
         self._args = args

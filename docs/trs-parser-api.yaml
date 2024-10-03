@@ -60,7 +60,6 @@ components:
           $ref: '#/components/schemas/Letter'
         args:
           type: array
-          minItems: 1
           items:
             schema:
               type: object
