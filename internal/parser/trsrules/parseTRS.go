@@ -61,7 +61,7 @@ type Parser struct {
 	lexem []models.Lexem
 	index int //index of syntax analyzing
 
-	model TRS
+	Model TRS
 }
 
 /*********************************************************************************/
