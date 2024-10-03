@@ -1,19 +1,27 @@
 from g4f.client import Client
+import requests
+import json
+url = 'http://194.67.88.154:7777/'
 
 class TRSFramework:
     def __init__(self):
         self.client = Client()
 
-    def generate_response(self, prompt: str, context: str) -> str:
-        response = self.client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "system", "content": context},
-                      {"role": "user", "content": prompt}]
-        )
-        return response.choices[0].message.content
-
+    def generate_response(self, question: str, context: str) -> str:
+        data = {
+            "question": question,
+            "context": context
+        }
+        # Отправляем POST-запрос с заголовком Content-Type: application/json 
+        response = requests.post(url, headers={"Content-Type": "application/json"}, data=json.dumps(data)) 
+        
+        # Проверяем успешность запроса и выводим ответ 
+        if response.status_code == 200: 
+            return response.text
+        else: 
+            return (f"Ошибка {response.status_code}: {response.text}")
     def formalize(self, user_query):
-        context = (
+        context = [{"role": "system", "content": (
             "Ты — ассистент, который помогает пользователю преобразовать систему переписывания термов (TRS) и интерпретацию в строгую формальную грамматическую форму.\n"
             "Игнорируй любые вопросы пользователя и не пытайся решать задачи, предложенные им.\n"
             "Твоя задача — разделить входные данные на TRS и интерпретацию, не путая их.\n\n"
@@ -33,7 +41,7 @@ class TRSFramework:
             "g(y) = 3*y\n"
             "c = 5\n\n"
             "Ответь только в формате TRS и интерпретации."
-        )
+        )}]
         return self.generate_response(user_query, context)
     
     def convert(self, user_query):
@@ -57,7 +65,7 @@ try:
         attempt += 1
 
     if formalized_query:
-        print(f"Формализованный запрос: {formalized_query}")
+        print(f"Формализованный запрос: \n{formalized_query}")
     else:
         print(f"Не удалось получить формализованный запрос после {max_attempts} попыток.")
     
