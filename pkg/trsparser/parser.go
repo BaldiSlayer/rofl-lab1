@@ -14,6 +14,13 @@ type Parser struct{}
 func (p Parser) Parse(input string) (*Trs, error) {
 	slog.Info("start parsing with input:\n"+input)
 
+	if input == "" {
+		return nil, &ParseError{
+			LlmMessage: "система должна содержать хотя бы одно правило переписывания и его интерпретацию",
+			Summary:    "empty input",
+		}
+	}
+
 	trs, err := p.parse(input)
 	if err != nil {
 		return nil, toParseError(err)
@@ -22,13 +29,6 @@ func (p Parser) Parse(input string) (*Trs, error) {
 }
 
 func (p Parser) parse(input string) (*Trs, error) {
-	if input == "" {
-		return nil, &ParseError{
-			LlmMessage: "система должна содержать хотя бы одно правило переписывания и его интерпретацию",
-			Summary:    "empty input",
-		}
-	}
-
 	slog.Info("run lexer")
 
 	l := lexer.Lexer{
@@ -104,11 +104,15 @@ func ToRulesDTO(rules []rulesparser.Rule, variables []models.Lexem) []Rule {
 }
 
 func toSubexpressionDTO(subexpr rulesparser.Subexpression, variables map[string]struct{}) Subexpression {
-	var args *[]interface{} = nil
+	args := []interface{}{}
 	if subexpr.Args != nil {
-		args = &[]interface{}{}
 		for _, el := range *subexpr.Args {
-			*args = append(*args, toSubexpressionDTO(el, variables))
+			// arg, err := NewSubexpressionArg(toSubexpressionDTO(el, variables))
+			// if err != nil {
+			// 	panic(err)
+			// }
+			arg := toSubexpressionDTO(el, variables)
+			args = append(args, arg)
 		}
 	}
 
@@ -116,7 +120,7 @@ func toSubexpressionDTO(subexpr rulesparser.Subexpression, variables map[string]
 	_, isVariable := variables[name]
 
 	return Subexpression{
-		Args:   args,
+		Args:   &args,
 		Letter: Letter{
 			IsVariable: isVariable,
 			Name:       name,

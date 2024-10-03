@@ -1,6 +1,8 @@
 package trsparser
 
 import (
+	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,14 +24,14 @@ func TestErrorOnEmptyInput(t *testing.T) {
 func TestParsesBasicTrs(t *testing.T) {
 	expectedRule := Rule{
 		Lhs: Subexpression{
-			Args: nil,
+			Args: &[]interface{}{},
 			Letter: Letter{
 				IsVariable: false,
 				Name:       "f",
 			},
 		},
 		Rhs: Subexpression{
-			Args: nil,
+			Args: &[]interface{}{},
 			Letter: Letter{
 				IsVariable: true,
 				Name:       "x",
@@ -50,6 +52,9 @@ f = 5
 `,
 	)
 
+	b, _ := json.Marshal(*trs)
+	os.Stdout.Write(b)
+
 	assert.NoError(t, err)
 	assert.Equal(t, Trs{
 		Interpretations: []Interpretation{expectedInterpretation},
@@ -59,7 +64,6 @@ f = 5
 }
 
 func TestParsesComplexTrs(t *testing.T) {
-	t.SkipNow()
 	expectedRule := Rule{
 		Lhs: Subexpression{
 			Args: nil,
@@ -99,13 +103,17 @@ func TestParsesComplexTrs(t *testing.T) {
 
 	trs, err := Parser{}.Parse(
 		`variables = x, y
-f(x, g(y)) = g(f(x))
-f(y) = g(y)
+f(x, g(y)) = g(f(x, h))
+f(y, x) = g(y)
 -----
 f(x, y) = 5*x{2} + 10 + y{120}
 g(x) = xx{2}5*x
+h = 123
 `,
 	)
+
+	// b, _ := json.Marshal(*trs)
+	// os.Stdout.Write(b)
 
 	assert.NoError(t, err)
 	assert.Equal(t, Trs{
