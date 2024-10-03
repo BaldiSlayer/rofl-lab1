@@ -3,10 +3,13 @@ openapi_server/__main__.py
 openapi_server/encoder.py
 openapi_server/models/__init__.py
 openapi_server/models/base_model.py
+openapi_server/models/constant_monomial.py
+openapi_server/models/factor.py
 openapi_server/models/interpret_result.py
 openapi_server/models/interpretation.py
 openapi_server/models/letter.py
 openapi_server/models/monomial.py
+openapi_server/models/product_monomial.py
 openapi_server/models/rule.py
 openapi_server/models/subexpression.py
 openapi_server/models/trs.py

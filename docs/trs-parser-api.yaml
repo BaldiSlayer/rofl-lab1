@@ -96,12 +96,30 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Monomial'
-        constants:
-          type: array
-          items:
-            type: integer
-            minimum: 1
     Monomial:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ProductMonomial'
+        - $ref: '#/components/schemas/ConstantMonomial'
+    ConstantMonomial:
+      type: object
+      required:
+        - constant
+      properties:
+        constant:
+          type: integer
+          minimum: 1
+    ProductMonomial:
+      type: object
+      required:
+        - factors
+      properties:
+        factors:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Factor'
+    Factor:
       type: object
       required:
         - variable

@@ -77,30 +77,40 @@ components:
           - null
           - null
           monomials:
-          - variable: variable
-            coefficient: 1
-            power: 1
-          - variable: variable
-            coefficient: 1
-            power: 1
+          - factors:
+            - variable: variable
+              coefficient: 1
+              power: 1
+            - variable: variable
+              coefficient: 1
+              power: 1
+          - factors:
+            - variable: variable
+              coefficient: 1
+              power: 1
+            - variable: variable
+              coefficient: 1
+              power: 1
           name: name
-          constants:
-          - 1
-          - 1
         - args:
           - null
           - null
           monomials:
-          - variable: variable
-            coefficient: 1
-            power: 1
-          - variable: variable
-            coefficient: 1
-            power: 1
+          - factors:
+            - variable: variable
+              coefficient: 1
+              power: 1
+            - variable: variable
+              coefficient: 1
+              power: 1
+          - factors:
+            - variable: variable
+              coefficient: 1
+              power: 1
+            - variable: variable
+              coefficient: 1
+              power: 1
           name: name
-          constants:
-          - 1
-          - 1
       properties:
         variables:
           items:
@@ -200,16 +210,21 @@ components:
         - null
         - null
         monomials:
-        - variable: variable
-          coefficient: 1
-          power: 1
-        - variable: variable
-          coefficient: 1
-          power: 1
+        - factors:
+          - variable: variable
+            coefficient: 1
+            power: 1
+          - variable: variable
+            coefficient: 1
+            power: 1
+        - factors:
+          - variable: variable
+            coefficient: 1
+            power: 1
+          - variable: variable
+            coefficient: 1
+            power: 1
         name: name
-        constants:
-        - 1
-        - 1
       properties:
         name:
           minLength: 1
@@ -225,12 +240,6 @@ components:
             $ref: '#/components/schemas/Monomial'
           title: monomials
           type: array
-        constants:
-          items:
-            minimum: 1
-            type: integer
-          title: constants
-          type: array
       required:
       - args
       - constants
@@ -239,6 +248,32 @@ components:
       title: Interpretation
       type: object
     Monomial:
+      oneOf:
+      - $ref: '#/components/schemas/ProductMonomial'
+      - $ref: '#/components/schemas/ConstantMonomial'
+      title: Monomial
+      type: object
+    ProductMonomial:
+      example:
+        factors:
+        - variable: variable
+          coefficient: 1
+          power: 1
+        - variable: variable
+          coefficient: 1
+          power: 1
+      properties:
+        factors:
+          items:
+            $ref: '#/components/schemas/Factor'
+          minItems: 1
+          title: factors
+          type: array
+      required:
+      - factors
+      title: ProductMonomial
+      type: object
+    Factor:
       example:
         variable: variable
         coefficient: 1
@@ -258,5 +293,15 @@ components:
           type: integer
       required:
       - variable
-      title: Monomial
+      title: Factor
+      type: object
+    ConstantMonomial:
+      properties:
+        constant:
+          minimum: 1
+          title: constant
+          type: integer
+      required:
+      - constant
+      title: ConstantMonomial
       type: object
