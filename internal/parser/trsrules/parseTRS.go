@@ -330,7 +330,7 @@ func isSetIn(a, b *map[string]bool) bool {
 	if len(*a) < len(*b) {
 		return false
 	}
-	for element, _ := range *b {
+	for element := range *b {
 		if !((*a)[element]) {
 			return false
 		}

@@ -25,7 +25,7 @@ func TestParsesBasicTrs(t *testing.T) {
 	expectedRule := Rule{
 		Lhs: Subexpression{
 			Args: &[]interface{}{NewSubexpression(Subexpression{
-				Args:   &[]interface{}{},
+				Args: &[]interface{}{},
 				Letter: Letter{
 					IsVariable: true,
 					Name:       "x",
@@ -254,7 +254,6 @@ h = 123
 }
 `, string(got))
 }
-
 
 func TestParsesOtherTrs(t *testing.T) {
 	trs, err := Parser{}.Parse(

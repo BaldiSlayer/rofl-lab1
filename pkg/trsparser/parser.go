@@ -12,7 +12,7 @@ import (
 type Parser struct{}
 
 func (p Parser) Parse(input string) (*Trs, error) {
-	slog.Info("start parsing with input:\n"+input)
+	slog.Info("start parsing with input:\n" + input)
 
 	if input == "" {
 		return nil, &ParseError{
@@ -116,7 +116,7 @@ func toSubexpressionDTO(subexpr rulesparser.Subexpression, variables map[string]
 	_, isVariable := variables[name]
 
 	return Subexpression{
-		Args:   &args,
+		Args: &args,
 		Letter: Letter{
 			IsVariable: isVariable,
 			Name:       name,
