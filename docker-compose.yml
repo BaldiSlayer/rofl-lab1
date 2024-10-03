@@ -1,0 +1,8 @@
+version: '3'
+services:
+  api:
+    build:
+      dockerfile: dockerfiles/llm.dockerfile
+    ports:
+      - "8100:8100"
+    container_name: LLM

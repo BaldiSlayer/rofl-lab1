@@ -7,7 +7,9 @@ import (
 )
 
 type BackendConfig struct {
-	Port string `env:"PORT" envDefault:"9000"`
+	Port         string `env:"PORT" envDefault:"9000"`
+	ModelURL     string `env:"MODEL_URL" envDefault:"http://ollama:11434"`
+	DatabaseFile string `env:"DB_FILE" envDefault:"database.jsonl"`
 }
 
 func LoadBackendConfig() (*BackendConfig, error) {

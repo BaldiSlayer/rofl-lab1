@@ -89,23 +89,23 @@ def process_questions(questions_list, use_saved=False, filename="vectorized_data
     return results
 
 
-# Пример использования
-questions = [
-    {"question": "Что такое ТФЯ?", "answer": "теория формальных языков"},
-    {"question": "Что такое НЛП?", "answer": "обработка естественного языка"},
-    {"question": "На какие языки перевод?", "answer": "перевод на русский язык и на английский языки"},
-]
-
-# Первый запуск: создание и сохранение векторизованных данных
-results = process_questions(questions, use_saved=False)
-
-for result in results:
-    print(result)
-    print("-" * 50)
-
-# Второй запуск: использование сохраненных векторизованных данных
-results = process_questions(questions, use_saved=True)
-
-for result in results:
-    print(result)
-    print("-" * 50)
+# # Пример использования
+# questions = [
+#     {"question": "Что такое ТФЯ?", "answer": "теория формальных языков"},
+#     {"question": "Что такое НЛП?", "answer": "обработка естественного языка"},
+#     {"question": "На какие языки перевод?", "answer": "перевод на русский язык и на английский языки"},
+# ]
+#
+# # Первый запуск: создание и сохранение векторизованных данных
+# results = process_questions(questions, use_saved=False)
+#
+# for result in results:
+#     print(result)
+#     print("-" * 50)
+#
+# # Второй запуск: использование сохраненных векторизованных данных
+# results = process_questions(questions, use_saved=True)
+#
+# for result in results:
+#     print(result)
+#     print("-" * 50)

@@ -1,4 +1,4 @@
-package interprets
+package trsinterprets
 
 import "github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 

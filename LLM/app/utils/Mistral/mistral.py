@@ -1,14 +1,23 @@
 from mistralai import Mistral
 import os
-from getAPIkey import make_api_key
 
+from ...utils.Mistral.config import api_key
+
+
+# from getAPIkey import make_api_key
+
+def make_api_key():
+    """
+    place your API key in environment
+    """
+    os.environ["MISTRAL_API_KEY"] = api_key
 
 def initialize_client():
     """Инициализирует клиента Mistral с API-ключом."""
     make_api_key()
     api_key = os.environ.get("MISTRAL_API_KEY")
     if api_key:
-        print("API key найден:", api_key)
+        print("API key найден")
         return Mistral(api_key=api_key)
     else:
         print("API key не найден.")
@@ -41,7 +50,7 @@ def get_chat_response(prompt, context=None, model = "open-mistral-7b"):
     return chat_response.choices[0].message.content
 
 
-prompt = "напиши предыдущее сообщение"
-context = "это предыдущее сообщение: ахахахахах"
-response = get_chat_response(prompt, context)
-print(response)
+# prompt = "напиши предыдущее сообщение"
+# context = "это предыдущее сообщение: ахахахахах"
+# response = get_chat_response(prompt, context)
+# print(response)

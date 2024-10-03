@@ -1,0 +1,306 @@
+openapi: 3.0.0
+info:
+  title: Interpret part API
+  version: 0.1.0
+servers:
+- description: Local server
+  url: http://localhost:8080/
+paths:
+  /trs/interpret:
+    post:
+      operationId: trs_interpret
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Trs'
+        description: Trs
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterpretResult'
+          description: OK
+      summary: Check decidability of trs
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+components:
+  schemas:
+    InterpretResult:
+      example:
+        answer: answer
+      properties:
+        answer:
+          title: answer
+          type: string
+      required:
+      - answer
+      title: InterpretResult
+      type: object
+    Trs:
+      example:
+        variables:
+        - null
+        - null
+        rules:
+        - lhs:
+            args:
+            - ""
+            - ""
+            letter:
+              name: name
+              isVariable: true
+          rhs:
+            args:
+            - ""
+            - ""
+            letter:
+              name: name
+              isVariable: true
+        - lhs:
+            args:
+            - ""
+            - ""
+            letter:
+              name: name
+              isVariable: true
+          rhs:
+            args:
+            - ""
+            - ""
+            letter:
+              name: name
+              isVariable: true
+        interpretations:
+        - args:
+          - null
+          - null
+          monomials:
+          - factors:
+            - variable: variable
+              coefficient: 1
+              power: 1
+            - variable: variable
+              coefficient: 1
+              power: 1
+          - factors:
+            - variable: variable
+              coefficient: 1
+              power: 1
+            - variable: variable
+              coefficient: 1
+              power: 1
+          name: name
+        - args:
+          - null
+          - null
+          monomials:
+          - factors:
+            - variable: variable
+              coefficient: 1
+              power: 1
+            - variable: variable
+              coefficient: 1
+              power: 1
+          - factors:
+            - variable: variable
+              coefficient: 1
+              power: 1
+            - variable: variable
+              coefficient: 1
+              power: 1
+          name: name
+      properties:
+        variables:
+          items:
+            $ref: '#/components/schemas/NonEmptyString'
+          minItems: 1
+          title: variables
+          type: array
+        rules:
+          items:
+            $ref: '#/components/schemas/Rule'
+          minItems: 1
+          title: rules
+          type: array
+        interpretations:
+          items:
+            $ref: '#/components/schemas/Interpretation'
+          minItems: 1
+          title: interpretations
+          type: array
+      required:
+      - interpretations
+      - rules
+      - variables
+      title: Trs
+      type: object
+    NonEmptyString:
+      minLength: 1
+      title: NonEmptyString
+      type: string
+    Rule:
+      example:
+        lhs:
+          args:
+          - ""
+          - ""
+          letter:
+            name: name
+            isVariable: true
+        rhs:
+          args:
+          - ""
+          - ""
+          letter:
+            name: name
+            isVariable: true
+      properties:
+        lhs:
+          $ref: '#/components/schemas/Subexpression'
+        rhs:
+          $ref: '#/components/schemas/Subexpression'
+      required:
+      - lhs
+      - rhs
+      title: Rule
+      type: object
+    Subexpression:
+      example:
+        args:
+        - ""
+        - ""
+        letter:
+          name: name
+          isVariable: true
+      properties:
+        letter:
+          $ref: '#/components/schemas/Letter'
+        args:
+          items: {}
+          minItems: 1
+          title: args
+          type: array
+      required:
+      - letter
+      title: Subexpression
+      type: object
+    Letter:
+      description: represents variable or constructor
+      example:
+        name: name
+        isVariable: true
+      properties:
+        name:
+          minLength: 1
+          title: NonEmptyString
+          type: string
+        isVariable:
+          title: isVariable
+          type: boolean
+      required:
+      - isVariable
+      - name
+      title: Letter
+      type: object
+    Interpretation:
+      example:
+        args:
+        - null
+        - null
+        monomials:
+        - factors:
+          - variable: variable
+            coefficient: 1
+            power: 1
+          - variable: variable
+            coefficient: 1
+            power: 1
+        - factors:
+          - variable: variable
+            coefficient: 1
+            power: 1
+          - variable: variable
+            coefficient: 1
+            power: 1
+        name: name
+      properties:
+        name:
+          minLength: 1
+          title: NonEmptyString
+          type: string
+        args:
+          items:
+            $ref: '#/components/schemas/NonEmptyString'
+          title: args
+          type: array
+        monomials:
+          items:
+            $ref: '#/components/schemas/Monomial'
+          title: monomials
+          type: array
+      required:
+      - args
+      - monomials
+      - name
+      title: Interpretation
+      type: object
+    Monomial:
+      oneOf:
+      - $ref: '#/components/schemas/ProductMonomial'
+      - $ref: '#/components/schemas/ConstantMonomial'
+      title: Monomial
+      type: object
+    ProductMonomial:
+      example:
+        factors:
+        - variable: variable
+          coefficient: 1
+          power: 1
+        - variable: variable
+          coefficient: 1
+          power: 1
+      properties:
+        factors:
+          items:
+            $ref: '#/components/schemas/Factor'
+          minItems: 1
+          title: factors
+          type: array
+      required:
+      - factors
+      title: ProductMonomial
+      type: object
+    Factor:
+      example:
+        variable: variable
+        coefficient: 1
+        power: 1
+      properties:
+        variable:
+          minLength: 1
+          title: NonEmptyString
+          type: string
+        coefficient:
+          minimum: 1
+          title: coefficient
+          type: integer
+        power:
+          minimum: 1
+          title: power
+          type: integer
+      required:
+      - variable
+      title: Factor
+      type: object
+    ConstantMonomial:
+      properties:
+        constant:
+          minimum: 1
+          title: constant
+          type: integer
+      required:
+      - constant
+      title: ConstantMonomial
+      type: object
