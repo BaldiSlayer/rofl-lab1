@@ -22,7 +22,15 @@
 # Then explicitly reverse the ignore rule for a single file:
 #!docs/README.md
 
-*
-!requirements.txt
+.gitignore
+.dockerignore
+.openapi-generator-ignore
+.travis.yml
+Dockerfile
+README.md
+git_push.sh
+setup.py
+test-requirements.txt
+tox.ini
 openapi_server/controllers/
 openapi_server/test/
