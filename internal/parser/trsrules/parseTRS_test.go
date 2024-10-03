@@ -1,9 +1,9 @@
 package trsparser
 
-/*
+
 import (
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
-	"../lexer"
+	"github.com/BaldiSlayer/rofl-lab1/internal/parser/lexer"
 	"testing"
 )
 
@@ -15,17 +15,18 @@ const (
 )
 
 func TestParserWithPeano(t *testing.T) {
-	p := Parser{text: peano}
-	err := p.Lexer()
+	l := lexer.Lexer{Text: peano}
+	err := l.Process()
 	if err != nil {
 		t.Error(err)
 	}
-	err = p.parseTRS()
-	if err != nil {
-		t.Error(err)
+	
+	_, lex_tail, err1 := ParseRules(l.Lexem)
+	if err1 != nil {
+		t.Error(err1)
 	}
-	if p.lexem[p.index].LexemType != models.LexSEPARATOR {
-		t.Errorf("Expected separator, but find %d lexem", p.lexem[p.index].LexemType)
+	if lex_tail[0].LexemType != models.LexSEPARATOR {
+		t.Errorf("Expected separator, but find %d lexem", lex_tail[0].LexemType)
 	}
 }
-*/
+

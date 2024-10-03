@@ -38,10 +38,10 @@ grammatic
 */
 
 type TRS struct {
-	variables []models.Lexem
-	rules     []Rule
+	Variables []models.Lexem
+	Rules     []Rule
 
-	constructors map[string]int
+	Constructors map[string]int
 }
 
 type Rule struct {
@@ -61,7 +61,7 @@ type Parser struct {
 	lexem []models.Lexem
 	index int //index of syntax analyzing
 
-	model TRS
+	Model TRS
 }
 
 /*********************************************************************************/
@@ -366,7 +366,7 @@ func (p *Parser) checkRules() error {
 	return nil
 }
 
-func parseRules(arr []models.Lexem) (*TRS, []models.Lexem, error) {
+func ParseRules(arr []models.Lexem) (*TRS, []models.Lexem, error) {
 	p := Parser{lexem: arr}
 
 	err := p.parseTRS()
