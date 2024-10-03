@@ -242,7 +242,6 @@ components:
           type: array
       required:
       - args
-      - constants
       - monomials
       - name
       title: Interpretation

@@ -84,7 +84,6 @@ components:
         - name
         - args
         - monomials
-        - constants
       properties:
         name:
           $ref: '#/components/schemas/NonEmptyString'
