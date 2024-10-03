@@ -6,7 +6,7 @@ class TRSFramework:
 
     def generate_response(self, prompt: str, context: str) -> str:
         response = self.client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[{"role": "system", "content": context},
                       {"role": "user", "content": prompt}]
         )
