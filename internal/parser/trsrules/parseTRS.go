@@ -24,13 +24,13 @@ import (
 
 grammatic
 
-<s> ::= <vars> <rules>
+<s> ::= <vars> <Rules>
 <eol> ::= \n | \r | \r\n
 <vars> ::= "variables" "=" <letters> <eol>
 <letters> ::= <letter> <letters-tail>
 <letters-tail> ::= "," <letter> <letters-tail> | ε
-<rules> ::= <rule> <eol> <rules-tail>
-<rules-tail> ::= <rule> <eol> <rules-tail> | ε
+<Rules> ::= <rule> <eol> <Rules-tail>
+<Rules-tail> ::= <rule> <eol> <Rules-tail> | ε
 <rule> ::= <term> "=" <term>
 <term> ::= var | constructor <args>
 <args> ::= ε | "(" <term> <terms-tail> ")"
@@ -49,7 +49,7 @@ type Rule struct {
 	Rhs Subexpression
 }
 
-// Subexpression defines model for Subexpression.
+// Subexpression defines Model for Subexpression.
 type Subexpression struct {
 	Args *[]Subexpression
 
@@ -67,14 +67,14 @@ type Parser struct {
 /*********************************************************************************/
 
 /*
-<s> ::= <vars> <rules>
+<s> ::= <vars> <Rules>
 
 <vars> ::= "variables" "=" <letters> <eol>
 <letters> ::= <letter> <letters-tail>
 <letters-tail> ::= "," <letter> <letters-tail> | ε
 
-<rules> ::= <rule> <eol> <rules-tail>
-<rules-tail> ::= <rule> <eol> <rules-tail> | ε
+<Rules> ::= <rule> <eol> <Rules-tail>
+<Rules-tail> ::= <rule> <eol> <Rules-tail> | ε
 <rule> ::= <term> "=" <term>
 <term> ::= var | constructor <args>
 <args> ::= ε | "(" <term> <terms-tail> ")"
@@ -82,17 +82,17 @@ type Parser struct {
 */
 
 func (p *Parser) addRule() *Rule {
-	i := len(p.model.rules)
-	p.model.rules = append(p.model.rules, Rule{})
-	return &p.model.rules[i]
+	i := len(p.Model.Rules)
+	p.Model.Rules = append(p.Model.Rules, Rule{})
+	return &p.Model.Rules[i]
 }
 
 func (p *Parser) addVariable(l models.Lexem) {
-	p.model.variables = append(p.model.variables, l)
+	p.Model.Variables = append(p.Model.Variables, l)
 }
 
 func (p *Parser) isVariable(l models.Lexem) bool {
-	for _, e := range p.model.variables {
+	for _, e := range p.Model.Variables {
 		if e.Str == l.Str {
 			return true
 		}
@@ -168,7 +168,7 @@ func (p *Parser) parseLettersTail() error {
 	return nil
 }
 
-// <rules> ::= <rule> <eol> <rules-tail>
+// <Rules> ::= <rule> <eol> <Rules-tail>
 func (p *Parser) parseRules() error {
 	err := p.parseRule()
 	if err != nil {
@@ -183,7 +183,7 @@ func (p *Parser) parseRules() error {
 	return err
 }
 
-// <rules-tail> ::= <rule> <eol> <rules-tail> | ε
+// <Rules-tail> ::= <rule> <eol> <Rules-tail> | ε
 func (p *Parser) parseRulesTail() error {
 	for p.lexem[p.index].LexemType == models.LexLETTER {
 		err := p.parseRule()
@@ -283,10 +283,10 @@ func (p *Parser) parseTermsTail(arr *[]Subexpression) error {
 	return nil
 }
 
-// <s> ::= <vars> <rules>
+// <s> ::= <vars> <Rules>
 func (p *Parser) parseTRS() error {
 	p.index = 0
-	p.model = TRS{}
+	p.Model = TRS{}
 	err := p.parseVars()
 	if err != nil {
 		return err
@@ -311,9 +311,9 @@ func getVariablesFromExpr(var_set *map[string]bool, a Subexpression) {
 
 func (p *Parser) getConstructorsFromExpr(a Subexpression) error {
 	if a.Args != nil {
-		count, ok := p.model.constructors[a.Letter.Str]
+		count, ok := p.Model.Constructors[a.Letter.Str]
 		if !ok {
-			p.model.constructors[a.Letter.Str] = len(*a.Args)
+			p.Model.Constructors[a.Letter.Str] = len(*a.Args)
 		} else {
 			if count != len(*a.Args) {
 				return fmt.Errorf("несовпадение в количестве элементов конструктора %s: ожидалось %d, найдено %d", a.Letter.Str, count, len(*a.Args))
@@ -340,7 +340,7 @@ func isSetIn(a, b *map[string]bool) bool {
 }
 
 func (p *Parser) checkRules() error {
-	for i, rule := range p.model.rules { // проверка корректности переменных
+	for i, rule := range p.Model.Rules { // проверка корректности переменных
 		left_var := make(map[string]bool)
 		getVariablesFromExpr(&left_var, rule.Lhs)
 		right_var := make(map[string]bool)
@@ -350,9 +350,9 @@ func (p *Parser) checkRules() error {
 		}
 	}
 
-	p.model.constructors = make(map[string]int)
+	p.Model.Constructors = make(map[string]int)
 
-	for i, rule := range p.model.rules {
+	for i, rule := range p.Model.Rules {
 		err := p.getConstructorsFromExpr(rule.Lhs)
 		if err != nil {
 			return errors.Join(fmt.Errorf("в левой части правила %d ", i), err)
@@ -373,5 +373,5 @@ func ParseRules(arr []models.Lexem) (*TRS, []models.Lexem, error) {
 	if err != nil {
 		return nil, arr, err
 	}
-	return &p.model, p.lexem[p.index:], nil
+	return &p.Model, p.lexem[p.index:], nil
 }
