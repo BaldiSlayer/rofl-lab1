@@ -6,10 +6,29 @@ type Interpretation struct {
 	name      string
 	args      []string
 	monomials []Monomial
-	constants []int
 }
 
+// NOTE: one of {constant, factors}
 type Monomial struct {
+	constant *int
+	factors *[]Factor
+}
+
+func NewConstantMonomial(v int) Monomial {
+	return Monomial{
+		constant: &v,
+		factors:  nil,
+	}
+}
+
+func NewProductMonomial(factors []Factor) Monomial {
+	return Monomial{
+		constant: nil,
+		factors:  &factors,
+	}
+}
+
+type Factor struct {
 	variable    string
 	coefficient int
 	power       int
