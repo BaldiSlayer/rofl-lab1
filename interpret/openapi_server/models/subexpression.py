@@ -21,11 +21,11 @@ class Subexpression(Model):
         :param letter: The letter of this Subexpression.  # noqa: E501
         :type letter: Letter
         :param args: The args of this Subexpression.  # noqa: E501
-        :type args: List[Subexpression]
+        :type args: List[object]
         """
         self.openapi_types = {
             'letter': Letter,
-            'args': List[Subexpression]
+            'args': List[object]
         }
 
         self.attribute_map = {
@@ -71,22 +71,22 @@ class Subexpression(Model):
         self._letter = letter
 
     @property
-    def args(self) -> List[Subexpression]:
+    def args(self) -> List[object]:
         """Gets the args of this Subexpression.
 
 
         :return: The args of this Subexpression.
-        :rtype: List[Subexpression]
+        :rtype: List[object]
         """
         return self._args
 
     @args.setter
-    def args(self, args: List[Subexpression]):
+    def args(self, args: List[object]):
         """Sets the args of this Subexpression.
 
 
         :param args: The args of this Subexpression.
-        :type args: List[Subexpression]
+        :type args: List[object]
         """
         if args is not None and len(args) < 1:
             raise ValueError("Invalid value for `args`, number of items must be greater than or equal to `1`")  # noqa: E501

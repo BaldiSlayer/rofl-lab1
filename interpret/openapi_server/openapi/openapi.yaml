@@ -45,29 +45,29 @@ components:
         rules:
         - lhs:
             args:
-            - null
-            - null
+            - ""
+            - ""
             letter:
               name: name
               isVariable: true
           rhs:
             args:
-            - null
-            - null
+            - ""
+            - ""
             letter:
               name: name
               isVariable: true
         - lhs:
             args:
-            - null
-            - null
+            - ""
+            - ""
             letter:
               name: name
               isVariable: true
           rhs:
             args:
-            - null
-            - null
+            - ""
+            - ""
             letter:
               name: name
               isVariable: true
@@ -133,15 +133,15 @@ components:
       example:
         lhs:
           args:
-          - null
-          - null
+          - ""
+          - ""
           letter:
             name: name
             isVariable: true
         rhs:
           args:
-          - null
-          - null
+          - ""
+          - ""
           letter:
             name: name
             isVariable: true
@@ -158,8 +158,8 @@ components:
     Subexpression:
       example:
         args:
-        - null
-        - null
+        - ""
+        - ""
         letter:
           name: name
           isVariable: true
@@ -167,8 +167,7 @@ components:
         letter:
           $ref: '#/components/schemas/Letter'
         args:
-          items:
-            $ref: '#/components/schemas/Subexpression'
+          items: {}
           minItems: 1
           title: args
           type: array

@@ -62,7 +62,11 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/Subexpression'
+            schema:
+              type: object
+              description: Subexpression object
+              additionalProperties: true
+
     Letter:
       type: object
       description: represents variable or constructor
