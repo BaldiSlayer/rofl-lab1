@@ -3,7 +3,8 @@ info:
   title: Interpret part API
   version: 0.1.0
 servers:
-- url: /
+- description: Local server
+  url: http://localhost:8080/
 paths:
   /trs/interpret:
     post:
