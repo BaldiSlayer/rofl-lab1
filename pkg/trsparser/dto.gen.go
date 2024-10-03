@@ -41,7 +41,7 @@ type Rule struct {
 
 // Subexpression defines model for Subexpression.
 type Subexpression struct {
-	Args *[]Subexpression `json:"args,omitempty"`
+	Args *[]interface{} `json:"args,omitempty"`
 
 	// Letter represents variable or constructor
 	Letter Letter `json:"letter"`
