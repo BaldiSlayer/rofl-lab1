@@ -2,6 +2,7 @@ package trsparser
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -249,6 +250,179 @@ h = 123
    "variables" : [
       "x",
       "y"
+   ]
+}
+`, string(got))
+}
+
+
+func TestParsesOtherTrs(t *testing.T) {
+	trs, err := Parser{}.Parse(
+		`variables = x,y,z
+f(x,S(y)) = S(f(x,y))
+f(x, T) = T
+-------------
+S(x) = x+1
+f(x,y)=    x+2*y
+T = 0
+`,
+	)
+	got, _ := json.Marshal(*trs)
+
+	assert.NoError(t, err)
+	assert.JSONEq(t, `{
+   "interpretations" : [
+      {
+         "args" : [
+            "x"
+         ],
+         "monomials" : [
+            {
+               "factors" : [
+                  {
+                     "variable" : "x"
+                  }
+               ]
+            },
+            {
+               "constant" : 1
+            }
+         ],
+         "name" : "S"
+      },
+      {
+         "args" : [
+            "x",
+            "y"
+         ],
+         "monomials" : [
+            {
+               "factors" : [
+                  {
+                     "variable" : "x"
+                  }
+               ]
+            },
+            {
+               "factors" : [
+                  {
+                     "coefficient" : 2,
+                     "variable" : "y"
+                  }
+               ]
+            }
+         ],
+         "name" : "f"
+      },
+      {
+         "args" : [],
+         "monomials" : [
+            {
+               "constant" : 0
+            }
+         ],
+         "name" : "T"
+      }
+   ],
+   "rules" : [
+      {
+         "lhs" : {
+            "args" : [
+               {
+                  "args" : [],
+                  "letter" : {
+                     "isVariable" : true,
+                     "name" : "x"
+                  }
+               },
+               {
+                  "args" : [
+                     {
+                        "args" : [],
+                        "letter" : {
+                           "isVariable" : true,
+                           "name" : "y"
+                        }
+                     }
+                  ],
+                  "letter" : {
+                     "isVariable" : false,
+                     "name" : "S"
+                  }
+               }
+            ],
+            "letter" : {
+               "isVariable" : false,
+               "name" : "f"
+            }
+         },
+         "rhs" : {
+            "args" : [
+               {
+                  "args" : [
+                     {
+                        "args" : [],
+                        "letter" : {
+                           "isVariable" : true,
+                           "name" : "x"
+                        }
+                     },
+                     {
+                        "args" : [],
+                        "letter" : {
+                           "isVariable" : true,
+                           "name" : "y"
+                        }
+                     }
+                  ],
+                  "letter" : {
+                     "isVariable" : false,
+                     "name" : "f"
+                  }
+               }
+            ],
+            "letter" : {
+               "isVariable" : false,
+               "name" : "S"
+            }
+         }
+      },
+      {
+         "lhs" : {
+            "args" : [
+               {
+                  "args" : [],
+                  "letter" : {
+                     "isVariable" : true,
+                     "name" : "x"
+                  }
+               },
+               {
+                  "args" : [],
+                  "letter" : {
+                     "isVariable" : false,
+                     "name" : "T"
+                  }
+               }
+            ],
+            "letter" : {
+               "isVariable" : false,
+               "name" : "f"
+            }
+         },
+         "rhs" : {
+            "args" : [],
+            "letter" : {
+               "isVariable" : false,
+               "name" : "T"
+            }
+         }
+      }
+   ],
+   "variables" : [
+      "x",
+      "y",
+      "z"
    ]
 }
 `, string(got))
