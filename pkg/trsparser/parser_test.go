@@ -2,7 +2,6 @@ package trsparser
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -72,13 +71,12 @@ func TestParsesComplexTrs(t *testing.T) {
 f(x, g(y)) = g(f(x, h))
 f(y, x) = g(y)
 -----
-f(x, y) = 5*x{2} + 10 + y{120}
+f(x, y) = 6*x{322} + 10 + y{120}
 g(x) = xx{2}5*x
 h = 123
 `,
 	)
 	got, _ := json.Marshal(*trs)
-	os.Stdout.Write(got)
 
 	assert.NoError(t, err)
 	assert.JSONEq(t, `{
@@ -92,8 +90,8 @@ h = 123
             {
                "factors" : [
                   {
-                     "coefficient" : 5,
-                     "power" : 2,
+                     "coefficient" : 6,
+                     "power" : 322,
                      "variable" : "x"
                   }
                ]

@@ -383,6 +383,8 @@ func TestMultipleVariablesInMonomial(t *testing.T) {
 		{LexemType: models.LexLCB, Str: "{"},
 		{LexemType: models.LexNUM, Str: "2"},
 		{LexemType: models.LexRCB, Str: "}"},
+		{LexemType: models.LexNUM, Str: "5"},
+		{LexemType: models.LexMUL, Str: "*"},
 		{LexemType: models.LexLETTER, Str: "x"},
 		{LexemType: models.LexLETTER, Str: "y"},
 		{LexemType: models.LexADD, Str: "+"},
@@ -419,7 +421,7 @@ func TestMultipleVariablesInMonomial(t *testing.T) {
 					},
 					{
 						Variable:    "x",
-						Coefficient: 1,
+						Coefficient: 5,
 						Power:       1,
 					},
 					{

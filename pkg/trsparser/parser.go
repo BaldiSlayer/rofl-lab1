@@ -1,7 +1,6 @@
 package trsparser
 
 import (
-	"fmt"
 	"log/slog"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/lexer"
@@ -151,7 +150,8 @@ func toMonomialsDTO(monomials []trsinterprets.Monomial) []Monomial {
 
 func toFactorsDTO(factors []trsinterprets.Factor) []Factor {
 	res := []Factor{}
-	for _, el := range factors {
+	for _, tmp := range factors {
+		el := tmp
 		factor := Factor{
 			Coefficient: nil,
 			Power:       nil,
@@ -161,10 +161,8 @@ func toFactorsDTO(factors []trsinterprets.Factor) []Factor {
 			factor.Coefficient = &el.Coefficient
 		}
 		if el.Power != 1 {
-			slog.Info(fmt.Sprintf("FIXME: power is %d",el.Power))
 			factor.Power = &el.Power
 		}
-		fmt.Println(factor.Power)
 		res = append(res, factor)
 	}
 	return res
