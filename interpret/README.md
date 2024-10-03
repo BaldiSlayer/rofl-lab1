@@ -29,3 +29,198 @@ Your OpenAPI definition lives here:
 ```
 http://localhost:8080/openapi.json
 ```
+
+### POST /trs/interpret
+
+Trs:
+
+```
+f(x, g(y)) = x
+----------
+f(x, y) = 5*xy + 1
+g(x) = x{2}
+```
+
+``` json
+{
+  "interpretations": [
+    {
+      "args": [
+        "x",
+        "y"
+      ],
+      "monomials": [
+        {
+          "factors": [
+            {
+              "coefficient": 5,
+              "variable": "x"
+            },
+            {
+              "variable": "y"
+            }
+          ]
+        },
+        {
+          "constant": 1
+        }
+      ],
+      "name": "f"
+    },
+    {
+      "args": [
+        "x"
+      ],
+      "monomials": [
+        {
+          "factors": [
+            {
+              "power": 2,
+              "variable": "x"
+            }
+          ]
+        }
+      ],
+      "name": "g"
+    }
+  ],
+  "rules": [
+    {
+      "lhs": {
+        "args": [
+          {
+            "letter": {
+              "isVariable": true,
+              "name": "x"
+            }
+          },
+          {
+            "letter": {
+              "isVariable": false,
+              "name": "g"
+            },
+            "args": [
+              {
+                "letter": {
+                  "isVariable": true,
+                  "name": "y"
+                }
+              }
+            ]
+          }
+        ],
+        "letter": {
+          "isVariable": false,
+          "name": "f"
+        }
+      },
+      "rhs": {
+        "letter": {
+          "isVariable": true,
+          "name": "x"
+        }
+      }
+    }
+  ],
+  "variables": [
+    "x",
+    "y"
+  ]
+}
+```
+
+Request:
+
+``` sh
+curl --data '{
+  "interpretations": [
+    {
+      "args": [
+        "x",
+        "y"
+      ],
+      "monomials": [
+        {
+          "factors": [
+            {
+              "coefficient": 5,
+              "variable": "x"
+            },
+            {
+              "variable": "y"
+            }
+          ]
+        },
+        {
+          "constant": 1
+        }
+      ],
+      "name": "f"
+    },
+    {
+      "args": [
+        "x"
+      ],
+      "monomials": [
+        {
+          "factors": [
+            {
+              "power": 2,
+              "variable": "x"
+            }
+          ]
+        }
+      ],
+      "name": "g"
+    }
+  ],
+  "rules": [
+    {
+      "lhs": {
+        "args": [
+          {
+            "letter": {
+              "isVariable": true,
+              "name": "x"
+            }
+          },
+          {
+            "letter": {
+              "isVariable": false,
+              "name": "g"
+            },
+            "args": [
+              {
+                "letter": {
+                  "isVariable": true,
+                  "name": "y"
+                }
+              }
+            ]
+          }
+        ],
+        "letter": {
+          "isVariable": false,
+          "name": "f"
+        }
+      },
+      "rhs": {
+        "letter": {
+          "isVariable": true,
+          "name": "x"
+        }
+      }
+    }
+  ],
+  "variables": [
+    "x",
+    "y"
+  ]
+}' --header 'Content-Type: application/json' -v http://localhost:8080/trs/interpret
+```
+
+Output:
+
+``` sh
+trs variables are ['x', 'y']
+```

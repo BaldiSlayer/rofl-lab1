@@ -12,8 +12,7 @@ func (p Parser) Parse(input string) (*Trs, error) {
 
 	inter := Interpretation{
 		Args:      []string{},
-		Constants: []int{5},
-		Monomials: []Monomial{},
+		Monomials: []Monomial{NewConstantMonomial(5)},
 		Name:      "f",
 	}
 	rule := Rule{

@@ -15,7 +15,7 @@ class Interpretation(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, name=None, args=None, monomials=None, constants=None):  # noqa: E501
+    def __init__(self, name=None, args=None, monomials=None):  # noqa: E501
         """Interpretation - a model defined in OpenAPI
 
         :param name: The name of this Interpretation.  # noqa: E501
@@ -24,27 +24,22 @@ class Interpretation(Model):
         :type args: List[str]
         :param monomials: The monomials of this Interpretation.  # noqa: E501
         :type monomials: List[Monomial]
-        :param constants: The constants of this Interpretation.  # noqa: E501
-        :type constants: List[int]
         """
         self.openapi_types = {
             'name': str,
             'args': List[str],
-            'monomials': List[Monomial],
-            'constants': List[int]
+            'monomials': List[Monomial]
         }
 
         self.attribute_map = {
             'name': 'name',
             'args': 'args',
-            'monomials': 'monomials',
-            'constants': 'constants'
+            'monomials': 'monomials'
         }
 
         self._name = name
         self._args = args
         self._monomials = monomials
-        self._constants = constants
 
     @classmethod
     def from_dict(cls, dikt) -> 'Interpretation':
@@ -127,26 +122,3 @@ class Interpretation(Model):
             raise ValueError("Invalid value for `monomials`, must not be `None`")  # noqa: E501
 
         self._monomials = monomials
-
-    @property
-    def constants(self) -> List[int]:
-        """Gets the constants of this Interpretation.
-
-
-        :return: The constants of this Interpretation.
-        :rtype: List[int]
-        """
-        return self._constants
-
-    @constants.setter
-    def constants(self, constants: List[int]):
-        """Sets the constants of this Interpretation.
-
-
-        :param constants: The constants of this Interpretation.
-        :type constants: List[int]
-        """
-        if constants is None:
-            raise ValueError("Invalid value for `constants`, must not be `None`")  # noqa: E501
-
-        self._constants = constants

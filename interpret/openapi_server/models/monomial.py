@@ -3,7 +3,14 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from openapi_server.models.base_model import Model
+from openapi_server.models.constant_monomial import ConstantMonomial
+from openapi_server.models.factor import Factor
+from openapi_server.models.product_monomial import ProductMonomial
 from openapi_server import util
+
+from openapi_server.models.constant_monomial import ConstantMonomial  # noqa: E501
+from openapi_server.models.factor import Factor  # noqa: E501
+from openapi_server.models.product_monomial import ProductMonomial  # noqa: E501
 
 
 class Monomial(Model):
@@ -12,31 +19,26 @@ class Monomial(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, variable=None, coefficient=None, power=None):  # noqa: E501
+    def __init__(self, factors=None, constant=None):  # noqa: E501
         """Monomial - a model defined in OpenAPI
 
-        :param variable: The variable of this Monomial.  # noqa: E501
-        :type variable: str
-        :param coefficient: The coefficient of this Monomial.  # noqa: E501
-        :type coefficient: int
-        :param power: The power of this Monomial.  # noqa: E501
-        :type power: int
+        :param factors: The factors of this Monomial.  # noqa: E501
+        :type factors: List[Factor]
+        :param constant: The constant of this Monomial.  # noqa: E501
+        :type constant: int
         """
         self.openapi_types = {
-            'variable': str,
-            'coefficient': int,
-            'power': int
+            'factors': List[Factor],
+            'constant': int
         }
 
         self.attribute_map = {
-            'variable': 'variable',
-            'coefficient': 'coefficient',
-            'power': 'power'
+            'factors': 'factors',
+            'constant': 'constant'
         }
 
-        self._variable = variable
-        self._coefficient = coefficient
-        self._power = power
+        self._factors = factors
+        self._constant = constant
 
     @classmethod
     def from_dict(cls, dikt) -> 'Monomial':
@@ -50,72 +52,51 @@ class Monomial(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def variable(self) -> str:
-        """Gets the variable of this Monomial.
+    def factors(self) -> List[Factor]:
+        """Gets the factors of this Monomial.
 
 
-        :return: The variable of this Monomial.
-        :rtype: str
+        :return: The factors of this Monomial.
+        :rtype: List[Factor]
         """
-        return self._variable
+        return self._factors
 
-    @variable.setter
-    def variable(self, variable: str):
-        """Sets the variable of this Monomial.
+    @factors.setter
+    def factors(self, factors: List[Factor]):
+        """Sets the factors of this Monomial.
 
 
-        :param variable: The variable of this Monomial.
-        :type variable: str
+        :param factors: The factors of this Monomial.
+        :type factors: List[Factor]
         """
-        if variable is None:
-            raise ValueError("Invalid value for `variable`, must not be `None`")  # noqa: E501
-        if variable is not None and len(variable) < 1:
-            raise ValueError("Invalid value for `variable`, length must be greater than or equal to `1`")  # noqa: E501
+        if factors is None:
+            raise ValueError("Invalid value for `factors`, must not be `None`")  # noqa: E501
+        if factors is not None and len(factors) < 1:
+            raise ValueError("Invalid value for `factors`, number of items must be greater than or equal to `1`")  # noqa: E501
 
-        self._variable = variable
+        self._factors = factors
 
     @property
-    def coefficient(self) -> int:
-        """Gets the coefficient of this Monomial.
+    def constant(self) -> int:
+        """Gets the constant of this Monomial.
 
 
-        :return: The coefficient of this Monomial.
+        :return: The constant of this Monomial.
         :rtype: int
         """
-        return self._coefficient
+        return self._constant
 
-    @coefficient.setter
-    def coefficient(self, coefficient: int):
-        """Sets the coefficient of this Monomial.
+    @constant.setter
+    def constant(self, constant: int):
+        """Sets the constant of this Monomial.
 
 
-        :param coefficient: The coefficient of this Monomial.
-        :type coefficient: int
+        :param constant: The constant of this Monomial.
+        :type constant: int
         """
-        if coefficient is not None and coefficient < 1:  # noqa: E501
-            raise ValueError("Invalid value for `coefficient`, must be a value greater than or equal to `1`")  # noqa: E501
+        if constant is None:
+            raise ValueError("Invalid value for `constant`, must not be `None`")  # noqa: E501
+        if constant is not None and constant < 1:  # noqa: E501
+            raise ValueError("Invalid value for `constant`, must be a value greater than or equal to `1`")  # noqa: E501
 
-        self._coefficient = coefficient
-
-    @property
-    def power(self) -> int:
-        """Gets the power of this Monomial.
-
-
-        :return: The power of this Monomial.
-        :rtype: int
-        """
-        return self._power
-
-    @power.setter
-    def power(self, power: int):
-        """Sets the power of this Monomial.
-
-
-        :param power: The power of this Monomial.
-        :type power: int
-        """
-        if power is not None and power < 1:  # noqa: E501
-            raise ValueError("Invalid value for `power`, must be a value greater than or equal to `1`")  # noqa: E501
-
-        self._power = power
+        self._constant = constant

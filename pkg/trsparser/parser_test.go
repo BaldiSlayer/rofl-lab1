@@ -34,8 +34,7 @@ func TestParsesBasicTrs(t *testing.T) {
 	}
 	expectedInterpretation := Interpretation{
 		Args:      []string{},
-		Constants: []int{5},
-		Monomials: []Monomial{},
+		Monomials: []Monomial{NewConstantMonomial(5)},
 		Name:      "f",
 	}
 
@@ -75,20 +74,20 @@ func TestParsesComplexTrs(t *testing.T) {
 	}
 	expectedInterpretations := []Interpretation{
 		{
-			Args:      []string{"x", "y"},
-			Constants: []int{10},
+			Args: []string{"x", "y"},
 			Monomials: []Monomial{
-				{
-					Coefficient: newInt(5),
-					Power:       newInt(2),
-					Variable:    "x",
-				},
+				NewProductMonomial(
+					[]Factor{{
+						Coefficient: newInt(5),
+						Power:       newInt(2),
+						Variable:    "x",
+					}},
+				),
 			},
 			Name: "f",
 		},
 		{
 			Args:      []string{},
-			Constants: []int{5},
 			Monomials: []Monomial{},
 			Name:      "f",
 		},
