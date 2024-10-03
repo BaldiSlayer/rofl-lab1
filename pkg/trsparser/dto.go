@@ -20,6 +20,7 @@ func NewProductMonomial(factors []Factor) Monomial {
 	return monomial
 }
 
+// TODO: remove
 func NewSubexpressionArg(sexpr Subexpression) (interface{}, error) {
 	b, err := json.Marshal(sexpr)
 	return b, err
