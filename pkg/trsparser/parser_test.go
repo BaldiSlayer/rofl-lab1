@@ -16,7 +16,7 @@ func TestErrorOnEmptyInput(t *testing.T) {
 }
 
 func TestParsesBasicTrs(t *testing.T) {
-	rule := Rule{
+	expectedRule := Rule{
 		Lhs: Subexpression{
 			Args: nil,
 			Letter: Letter{
@@ -32,7 +32,7 @@ func TestParsesBasicTrs(t *testing.T) {
 			},
 		},
 	}
-	inter := Interpretation{
+	expectedInterpretation := Interpretation{
 		Args:      []string{},
 		Constants: []int{5},
 		Monomials: []Monomial{},
@@ -49,8 +49,69 @@ f = 5
 
 	assert.NoError(t, err)
 	assert.Equal(t, Trs{
-		Interpretations: []Interpretation{inter},
-		Rules:           []Rule{rule},
+		Interpretations: []Interpretation{expectedInterpretation},
+		Rules:           []Rule{expectedRule},
 		Variables:       []string{"x"},
 	}, *trs)
+}
+
+func TestParsesComplexTrs(t *testing.T) {
+	t.SkipNow()
+	expectedRule := Rule{
+		Lhs: Subexpression{
+			Args: nil,
+			Letter: Letter{
+				IsVariable: false,
+				Name:       "f",
+			},
+		},
+		Rhs: Subexpression{
+			Args: nil,
+			Letter: Letter{
+				IsVariable: true,
+				Name:       "x",
+			},
+		},
+	}
+	expectedInterpretations := []Interpretation{
+		{
+			Args:      []string{"x", "y"},
+			Constants: []int{10},
+			Monomials: []Monomial{
+				{
+					Coefficient: newInt(5),
+					Power:       newInt(2),
+					Variable:    "x",
+				},
+			},
+			Name: "f",
+		},
+		{
+			Args:      []string{},
+			Constants: []int{5},
+			Monomials: []Monomial{},
+			Name:      "f",
+		},
+	}
+
+	trs, err := Parser{}.Parse(
+		`variables = x, y
+f(x, g(y)) = g(f(x))
+f(y) = g(y)
+-----
+f(x, y) = 5*x{2} + 10 + y{120}
+g(x) = xx{2}5*x
+`,
+	)
+
+	assert.NoError(t, err)
+	assert.Equal(t, Trs{
+		Interpretations: expectedInterpretations,
+		Rules:           []Rule{expectedRule},
+		Variables:       []string{"x"},
+	}, *trs)
+}
+
+func newInt(v int) *int {
+	return &v
 }

@@ -47,8 +47,7 @@ func TestSingleConstInterpretation(t *testing.T) {
 		{
 			name:      "f",
 			args:      []string{},
-			monomials: []Monomial{},
-			constants: []int{5},
+			monomials: []Monomial{NewConstantMonomial(5)},
 		},
 	}, interpretations)
 }
@@ -73,14 +72,12 @@ func TestMultipleConstInterpretations(t *testing.T) {
 		{
 			name:      "f",
 			args:      []string{},
-			monomials: []Monomial{},
-			constants: []int{5},
+			monomials: []Monomial{NewConstantMonomial(5)},
 		},
 		{
 			name:      "g",
 			args:      []string{},
-			monomials: []Monomial{},
-			constants: []int{100},
+			monomials: []Monomial{NewConstantMonomial(100)},
 		},
 	}, interpretations)
 }
@@ -133,12 +130,14 @@ func TestSingleInterpretation(t *testing.T) {
 		{
 			name: "f",
 			args: []string{"x"},
-			monomials: []Monomial{{
-				variable:    "x",
-				coefficient: 1,
-				power:       1,
-			}},
-			constants: []int{5},
+			monomials: []Monomial{
+				NewProductMonomial([]Factor{{
+					variable:    "x",
+					coefficient: 1,
+					power:       1,
+				}}),
+				NewConstantMonomial(5),
+			},
 		},
 	}, interpretations)
 }
@@ -178,29 +177,29 @@ func TestMultipleInterpretations(t *testing.T) {
 		{
 			name: "f",
 			args: []string{"x"},
-			monomials: []Monomial{{
-				variable:    "x",
-				coefficient: 1,
-				power:       1,
-			}},
-			constants: []int{},
+			monomials: []Monomial{
+				NewProductMonomial([]Factor{{
+					variable:    "x",
+					coefficient: 1,
+					power:       1,
+				}}),
+			},
 		},
 		{
 			name: "g",
 			args: []string{"x", "y"},
 			monomials: []Monomial{
-				{
+				NewProductMonomial([]Factor{{
 					variable:    "y",
 					coefficient: 1,
 					power:       5,
-				},
-				{
+				}}),
+				NewProductMonomial([]Factor{{
 					variable:    "x",
 					coefficient: 13,
 					power:       1,
-				},
+				}}),
 			},
-			constants: []int{},
 		},
 	}, interpretations)
 }
@@ -377,4 +376,105 @@ func TestUnusedArgument(t *testing.T) {
 	_, err := NewParser(input, constructorArity).Parse()
 
 	require.NoError(t, err)
+}
+
+func TestMultipleVariablesInMonomial(t *testing.T) {
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexCOMMA, Str: ","},
+		{LexemType: models.LexLETTER, Str: "y"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexLETTER, Str: "y"},
+		{LexemType: models.LexADD, Str: "+"},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexLCB, Str: "{"},
+		{LexemType: models.LexNUM, Str: "2"},
+		{LexemType: models.LexRCB, Str: "}"},
+		{LexemType: models.LexNUM, Str: "5"},
+		{LexemType: models.LexMUL, Str: "*"},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexLETTER, Str: "y"},
+		{LexemType: models.LexEOL, Str: "\n"},
+	})
+	constructorArity := map[string]int{"f": 2}
+
+	interpretations, err := NewParser(input, constructorArity).Parse()
+
+	assert.NoError(t, err)
+	assert.Equal(t, []Interpretation{
+		{
+			name: "f",
+			args: []string{"x", "y"},
+			monomials: []Monomial{
+				NewProductMonomial([]Factor{
+					{
+						variable:    "x",
+						coefficient: 1,
+						power:       1,
+					},
+					{
+						variable:    "x",
+						coefficient: 1,
+						power:       1,
+					},
+					{
+						variable:    "x",
+						coefficient: 1,
+						power:       1,
+					},
+					{
+						variable:    "y",
+						coefficient: 1,
+						power:       1,
+					},
+				}),
+				NewProductMonomial([]Factor{
+					{
+						variable:    "x",
+						coefficient: 1,
+						power:       2,
+					},
+					{
+						variable:    "x",
+						coefficient: 5,
+						power:       1,
+					},
+					{
+						variable:    "y",
+						coefficient: 1,
+						power:       1,
+					},
+				}),
+			},
+		},
+	}, interpretations)
+}
+
+func TestIllFormedMonomial(t *testing.T) {
+	input := toInputChannel([]models.Lexem{
+		{LexemType: models.LexLETTER, Str: "f"},
+		{LexemType: models.LexLB, Str: "("},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexRB, Str: ")"},
+		{LexemType: models.LexEQ, Str: "="},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexMUL, Str: "*"},
+		{LexemType: models.LexLETTER, Str: "x"},
+		{LexemType: models.LexEOL, Str: "\n"},
+	})
+	constructorArity := map[string]int{"f": 1}
+
+	_, err := NewParser(input, constructorArity).Parse()
+
+	var parseError *ParseError
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
+		"в определении монома ожидалось название переменной или значение коэффициента, "+
+		"получено *", parseError.LlmMessage())
 }

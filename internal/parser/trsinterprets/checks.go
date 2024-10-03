@@ -22,9 +22,30 @@ type monomialChecker struct {
 }
 
 func (c *monomialChecker) checkMonomial(monomial Monomial) *ParseError {
-	if _, ok := c.definedVars[monomial.variable]; !ok {
+	if monomial.factors == nil {
+		return nil
+	}
+	if len(*monomial.factors) == 0 {
 		return &ParseError{
-			llmMessage: fmt.Sprintf("не объявлен аргумент %s", monomial.variable),
+			llmMessage: "моном должен быть не пуст",
+			message:    "empty monomial",
+		}
+	}
+
+	for _, factor := range *monomial.factors {
+		err := c.checkFactor(factor)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *monomialChecker) checkFactor(factor Factor) *ParseError {
+	if _, ok := c.definedVars[factor.variable]; !ok {
+		return &ParseError{
+			llmMessage: fmt.Sprintf("не объявлен аргумент %s", factor.variable),
 			message:    "undefined arg",
 		}
 	}
