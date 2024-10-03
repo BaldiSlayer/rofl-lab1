@@ -113,8 +113,8 @@ func (p *Parser) interpretationBody(name string) (Interpretation, *ParseError) {
 	case models.LexEQ:
 		value, err := p.constInterpretation()
 		return Interpretation{
-			name:      name,
-			args:      []string{},
+			name: name,
+			args: []string{},
 			monomials: []Monomial{{
 				constant: &value,
 				factors:  nil,
@@ -222,7 +222,7 @@ func (p *Parser) funcInterpretationBody() ([]Monomial, *ParseError) {
 		if err != nil {
 			return nil, err
 		}
-	monomials = append(monomials, monomial)
+		monomials = append(monomials, monomial)
 	}
 
 	return monomials, nil
@@ -287,7 +287,7 @@ func (p *Parser) factorOrConstant() (Monomial, *ParseError) {
 
 	return Monomial{
 		constant: nil,
-		factors:  &[]Factor{
+		factors: &[]Factor{
 			{
 				variable:    name,
 				coefficient: coefficient,

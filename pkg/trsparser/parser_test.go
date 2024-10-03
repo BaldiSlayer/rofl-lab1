@@ -84,7 +84,7 @@ func TestParsesComplexTrs(t *testing.T) {
 					Variable:    "x",
 				},
 			},
-			Name:      "f",
+			Name: "f",
 		},
 		{
 			Args:      []string{},

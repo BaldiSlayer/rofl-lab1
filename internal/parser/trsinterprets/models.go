@@ -11,7 +11,7 @@ type Interpretation struct {
 // NOTE: one of {constant, factors}
 type Monomial struct {
 	constant *int
-	factors *[]Factor
+	factors  *[]Factor
 }
 
 func NewConstantMonomial(v int) Monomial {
