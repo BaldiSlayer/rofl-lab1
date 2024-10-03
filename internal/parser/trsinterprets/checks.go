@@ -26,9 +26,23 @@ func (c *monomialChecker) checkMonomial(monomial Monomial) *ParseError {
 		return nil
 	}
 	if len(*monomial.factors) == 0 {
-		panic("FIXME")
+		return &ParseError{
+			llmMessage: "моном должен быть не пуст",
+			message:    "empty monomial",
+		}
 	}
-	factor := (*monomial.factors)[0]
+
+	for _, factor := range *monomial.factors {
+		err := c.checkFactor(factor)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *monomialChecker) checkFactor(factor Factor) *ParseError {
 	if _, ok := c.definedVars[factor.variable]; !ok {
 		return &ParseError{
 			llmMessage: fmt.Sprintf("не объявлен аргумент %s", factor.variable),

@@ -213,6 +213,7 @@ func (p *Parser) funcInterpretationBody() ([]Monomial, *ParseError) {
 	if err != nil {
 		return nil, err
 	}
+
 	monomials = append(monomials, monomial)
 
 	for p.peek() == models.LexADD {
@@ -222,6 +223,7 @@ func (p *Parser) funcInterpretationBody() ([]Monomial, *ParseError) {
 		if err != nil {
 			return nil, err
 		}
+
 		monomials = append(monomials, monomial)
 	}
 
@@ -239,8 +241,8 @@ func (p *Parser) monomial() (Monomial, *ParseError) {
 		if err != nil {
 			return Monomial{}, err
 		}
-		*monomial.factors = append(*monomial.factors, factor)
 
+		*monomial.factors = append(*monomial.factors, factor)
 	}
 
 	return monomial, nil
@@ -250,24 +252,16 @@ func (p *Parser) factorOrConstant() (Monomial, *ParseError) {
 	coefficient := 1
 
 	if p.peek() == models.LexNUM {
-		numLexem := p.stream.next()
-		num, err := p.toInt(numLexem)
+		num, err := p.number()
 		if err != nil {
 			return Monomial{}, err
 		}
 
 		if p.peek() == models.LexEOL || p.peek() == models.LexADD {
-			return Monomial{
-				constant: &num,
-				factors:  nil,
-			}, nil
+			return NewConstantMonomial(num), nil
 		}
 
-		_, err = p.accept(
-			models.LexMUL,
-			"star sign",
-			fmt.Sprintf("ожидался знак * после коэффициента %d в определении монома", num),
-		)
+		err = p.starSign(num)
 		if err != nil {
 			return Monomial{}, err
 		}
@@ -285,36 +279,28 @@ func (p *Parser) factorOrConstant() (Monomial, *ParseError) {
 		return Monomial{}, err
 	}
 
-	return Monomial{
-		constant: nil,
-		factors: &[]Factor{
-			{
-				variable:    name,
-				coefficient: coefficient,
-				power:       power,
-			},
-		},
-	}, nil
+	return NewProductMonomial([]Factor{{
+		variable:    name,
+		coefficient: coefficient,
+		power:       power,
+	}}), nil
 }
 
 func (p *Parser) factor() (Factor, *ParseError) {
 	coefficient := 1
 
 	if p.peek() == models.LexNUM {
-		// TODO: p.coefficient
-		numLexem := p.stream.next()
-		num, _ := p.toInt(numLexem) // FIXME: check for error
-		coefficient = num
-
-		// TODO: p.starSign()
-		_, err := p.accept(
-			models.LexMUL,
-			"star sign",
-			fmt.Sprintf("ожидался знак * после коэффициента %d в определении монома", num),
-		)
+		num, err := p.number()
 		if err != nil {
 			return Factor{}, err
 		}
+
+		err = p.starSign(num)
+		if err != nil {
+			return Factor{}, err
+		}
+
+		coefficient = num
 	}
 
 	name, err := p.variable()
@@ -334,8 +320,30 @@ func (p *Parser) factor() (Factor, *ParseError) {
 	}, nil
 }
 
+func (p *Parser) number() (int, *ParseError) {
+	numLexem, err := p.accept(models.LexNUM, "number", "ожидалось число")
+	if err != nil {
+		return 0, err
+	}
+
+	return p.toInt(numLexem)
+}
+
+func (p *Parser) starSign(coefficient int) *ParseError {
+	_, err := p.accept(
+		models.LexMUL,
+		"star sign",
+		fmt.Sprintf("ожидался знак * после коэффициента %d в определении монома", coefficient),
+	)
+	return err
+}
+
 func (p *Parser) variable() (string, *ParseError) {
-	varLexem, err := p.accept(models.LexLETTER, "variable name", "ожидалось название переменной")
+	varLexem, err := p.accept(
+		models.LexLETTER,
+		"variable name",
+		"в определении монома ожидалось название переменной или значение коэффициента",
+	)
 	if err != nil {
 		return "", err
 	}
