@@ -89,7 +89,7 @@ func (p *Lexer) process() error {
 				for i+1 < len(runes) && isDigit(runes[i+1]) {
 					i++
 				}
-				p.appendLex(i, models.LexNUM, string(runes[start_index:i]))
+				p.appendLex(i, models.LexNUM, string(runes[start_index:i+1]))
 			} else {
 				return fmt.Errorf("Неизвестный символ на позиции %d:%c", i, runes[i])
 			}
