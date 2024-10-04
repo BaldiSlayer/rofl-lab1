@@ -32,5 +32,6 @@ func main() {
 	err = encoder.Encode(trs)
 	if err != nil {
 		slog.Error("error encoding trs", "err", err)
+		os.Exit(1)
 	}
 }
