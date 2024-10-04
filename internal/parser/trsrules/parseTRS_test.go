@@ -28,3 +28,52 @@ func TestParserWithPeano(t *testing.T) {
 		t.Errorf("Expected separator, but find %d lexem", lex_tail[0].LexemType)
 	}
 }
+func TestParserWithWrongVar(t *testing.T) {
+	l := lexer.Lexer{Text: wrongVar}
+	err := l.Process()
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, _, err1 := ParseRules(l.Lexem)
+	if err1 == nil {
+		t.Errorf("Должен кидать ошибку о несовпадающих переменных в правиле переписывания")
+	}
+}
+func TestParserWithVarError(t *testing.T) {
+	l := lexer.Lexer{Text: varError}
+	err := l.Process()
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, _, err1 := ParseRules(l.Lexem)
+	if err1 == nil {
+		t.Errorf("Должен кидать ошибку в объявлении переменных")
+	}
+}
+func TestParserWithConstructorError(t *testing.T) {
+	l := lexer.Lexer{Text: wrongConstructor}
+	err := l.Process()
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, _, err1 := ParseRules(l.Lexem)
+	if err1 == nil {
+		t.Errorf("Должен кидать ошибку о неправильном количестве переменных в конструкторе")
+	}
+}
+
+func TestParserWithVarAsConstructor(t *testing.T) {
+	l := lexer.Lexer{Text: "variables=x, y\nx(y)=y\n----x(y) = y+1\n"}
+	err := l.Process()
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, _, err1 := ParseRules(l.Lexem)
+	if err1 == nil {
+		t.Error("Должен кидать ошибку о неправильной скобочной структуре")
+	}
+}

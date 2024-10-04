@@ -32,6 +32,8 @@ func (p *Lexer) Process() error {
 
 	lexVariables := []rune("variables")
 
+	cEOL, iLine := 0, 0
+
 	for i := 0; i < len(runes); i++ {
 		switch runes[i] {
 		case ' ': // пробел и таб пропустить
@@ -62,9 +64,12 @@ func (p *Lexer) Process() error {
 		default:
 			if runes[i] == '\n' || runes[i] == '\r' { // если перевод строки(причем могут быть 2), добавить лексему перевод строки
 				p.appendLex(i, models.LexEOL, "\n")
-				if i < len(runes)-1 && (runes[i] == '\n' && runes[i+1] == '\r' || runes[i] == '\r' && runes[i+1] == '\n') {
+				if i < len(runes)-1 && (runes[i+1] == '\n' || runes[i+1] == '\r') {
 					i++
 				}
+
+				cEOL++
+				iLine = i
 			} else if isLetter(runes[i]) { // если встретилась буква
 				if runes[i] == 'v' && i+len(lexVariables) < len(runes) { // проверяем на "variables"
 					wordVariablesFound := true
@@ -91,7 +96,7 @@ func (p *Lexer) Process() error {
 				}
 				p.appendLex(i, models.LexNUM, string(runes[start_index:i+1]))
 			} else {
-				return fmt.Errorf("Неизвестный символ на позиции %d:%c", i, runes[i])
+				return fmt.Errorf("Неизвестный символ в строке %d, позиции %d: %s", cEOL+1, i-iLine+1, string(runes[i]))
 			}
 		}
 	}
