@@ -41,7 +41,21 @@ class TRSFramework:
             "   - Для функций: `конструктор(переменная, ...) = ...`\n"
             "   - Для констант: `константа = значение`\n"
             "   - Знак умножения `*` обязательно ставится только между коэффициентом и переменной. Между переменными знак `*` не ставится.\n"
-            "   - Примеры как нужно преобразовать интерпретацию, введенную пользователем: `f(x) = x^3 + 3x` --> `f(x) = x{3} + 3*x`; `f(x, y) = 2*x*y*x + 5y` --> `f(x, y) = 2*xyx + 5*y`; `f(x) = 7x --> `f(x) = 7*x`; `g(x, y) = 91y + 4*x` --> `g(x, y) = 91*y + 4*x`; `f(x, y) = x*y` --> `f(x, y) = xy`; `g(x, y) = 6*x*y` --> `g(x, y) = 6*xy`.\n\n"
+            "   - Далее следует ряд примеров, как ты должна отвечать, в формате:\n"
+            "   `Запрос пользователя: ...\n"
+            "   Правильный ответ: ...`\n"
+            "1. Запрос пользователя: f(x) = x^3 + 3x\n"
+            "   Правильный ответ: f(x) = x{3} + 3*x\n"
+            "2. Запрос пользователя: f(x) = 7x\n"
+            "   Правильный ответ: f(x) = 7*x\n"
+            "3. Запрос пользователя: g(x, y) = 91y + 4*x\n"
+            "   Правильный ответ: g(x, y) = 91*y + 4*x\n"
+            "4. Запрос пользователя: f(x, y) = x*y\n"
+            "   Правильный ответ: f(x, y) = xy\n"
+            "5. Запрос пользователя: g(x, y) = 4*x*y\n"
+            "   Правильный ответ: g(x, y) = 4*xy\n"
+            "6. Запрос пользователя: g(x, y) = 2*x*y*x + 5y\n"
+            "   Правильный ответ: g(x, y) = 2*xyx + 5*y\n\n"
             "Пример TRS и интерпретации:\n"
             "variables = x, y, z\n"
             "f(x) = f(g(x, y))\n"
@@ -62,7 +76,7 @@ class TRSFramework:
 
             while (not formalized_query and attempt < MAX_ATTEMPTS) or (not trs and attempt < MAX_ATTEMPTS):
                 formalized_query = self.generate_response(user_query, context)
-                trs = self.convert(formalized_query)
+                trs = self.convert(user_query, formalized_query)
                 attempt += 1
                 if not trs:
                     print('GPT_error, trying again.')
@@ -78,11 +92,11 @@ class TRSFramework:
             return None
 
 
-    def convert(self, formalized_query: str):
+    def convert(self, user_query: str, formalized_query: str):
         trs = ''
         variables_pattern = r'variables=([a-zA-Z],)*[a-zA-Z]'
         formalized_query = formalized_query.replace(' ', '')
-        #user_query = user_query.replace(' ', '')
+        user_query = user_query.replace(' ', '').replace('*', '').replace('{', '').replace('}', '').replace('^', '')
         letters = []
         if re.search(variables_pattern, formalized_query):
             matches = re.finditer(variables_pattern, formalized_query)
@@ -111,13 +125,11 @@ class TRSFramework:
                 if bool(re.match(only_variables_pattern, s)):
                     return False
                 else:
-                    letters += re.findall(r'[a-zA-Z]', query_line[i])
-                    trs += query_line[i] + '\n'
-
-                # if query_line[i] in user_query:
-                #     trs += query_line[i] + '\n'
-                # else:
-                #     return False
+                    if query_line[i] in user_query:
+                        trs += query_line[i] + '\n'
+                        letters += re.findall(r'[a-zA-Z]', query_line[i])
+                    else:
+                        return False
 
             trs += '-------------------------\n'
             interp = 0
@@ -130,14 +142,13 @@ class TRSFramework:
                 if not bool(re.match(only_variables_pattern, s)):
                     return False
                 else:
-                    letters += re.findall(r'[a-zA-Z]', query_line[i])
-                    trs += query_line[i] + '\n'
-                    interp += 1
-
-                # if query_line[i] in user_query:
-                #     trs += query_line[i] + '\n'
-                # else:
-                #     return False
+                    if query_line[i].replace('*', '').replace('{', '').replace('}', '') in user_query:
+                        trs += query_line[i] + '\n'
+                        interp += 1
+                        letters += re.findall(r'[a-zA-Z]', query_line[i])
+                    else:
+                        print(f'{query_line[i]} не присутсвует в начальном запросе')
+                        return False
 
             letters = set(letters)
             for x in variables:
