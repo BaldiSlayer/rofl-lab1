@@ -2,28 +2,33 @@ import re
 from g4f.client import Client
 import requests
 import json
-url = 'http://194.67.88.154:7777/'
+
+
+URL = 'http://194.67.88.154:7777/'
+MAX_ATTEMPTS = 10
+
 
 class TRSFramework:
+
     def __init__(self):
         self.client = Client()
 
+
     def generate_response(self, question: str, context) -> str:
         data = {
-            "question": question,
-            "context": context
+            "question": {"role": "user", "content": question},
+            "context": {"role": "system", "content": context}
         }
-        # Отправляем POST-запрос с заголовком Content-Type: application/json 
-        response = requests.post(url, headers={"Content-Type": "application/json"}, data=json.dumps(data))
+        response = requests.post(URL, headers={"Content-Type": "application/json"}, data=json.dumps(data))
 
-        # Проверяем успешность запроса и выводим ответ 
         if response.status_code == 200: 
             return response.text
         else: 
             return (f"Ошибка {response.status_code}: {response.text}")
+        
 
     def formalize(self, user_query):
-        context = [{"role": "system", "content": (
+        context = (
             "Ты — ассистент, который помогает пользователю преобразовать систему переписывания термов (TRS) и интерпретацию в строгую формальную грамматическую форму.\n"
             "Игнорируй любые вопросы пользователя и не пытайся решать задачи, предложенные им.\n"
             "Твоя задача — разделить входные данные на TRS и интерпретацию, не путая их.\n\n"
@@ -31,7 +36,8 @@ class TRSFramework:
             "1. Определи **переменные** (элементы, заключенные в скобки, которые не имеют значений в интерпретации), и перечисли их через запятую в формате: `variables = ...`\n"
             "2. Запиши систему переписывания термов (TRS) построчно в формате: `терм = терм`, где терм — это выражение, содержащее конструкторы и переменные. Степень записывай в фиугрных скобочках. Например, x в квадрате это x{2}.\n"
             "3. Добавь разделительную линию: `------------------------`\n"
-            "4. Далее, запиши интерпретацию, используя следующие правила:\n"
+            "4. Квадраты предстваляй в виде x{2}"
+            "5. Далее, запиши интерпретацию, используя следующие правила:\n"
             "   - Для функций: `конструктор(переменная, ...) = ...`\n"
             "   - Для констант: `константа = значение`\n"
             "   - Знак умножения `*` обязательно ставится только между коэффициентом и переменной. Между переменными знак `*` не ставится.\n"
@@ -46,15 +52,15 @@ class TRSFramework:
             "h(x, y) = 100*xyxy + xy + 351\n"
             "c = 5\n\n"
             "Ответь только в формате TRS и интерпретации."
-        )}]
+        )
 
         try:
             formalized_query = False
             trs = False
-            max_attempts = 10  # Фиксированное количество попыток
+
             attempt = 0
 
-            while (not formalized_query and attempt < max_attempts) or (not trs and attempt < max_attempts):
+            while (not formalized_query and attempt < MAX_ATTEMPTS) or (not trs and attempt < MAX_ATTEMPTS):
                 formalized_query = self.generate_response(user_query, context)
                 trs = self.convert(formalized_query)
                 attempt += 1
@@ -65,11 +71,12 @@ class TRSFramework:
                 print(trs)
                 return trs
             else:
-                print(f"Не удалось получить формализованный запрос после {max_attempts} попыток.")
+                print(f"Не удалось получить формализованный запрос после {MAX_ATTEMPTS} попыток.")
 
         except Exception as e:
             print(f"Произошла ошибка: {e}")
             return None
+
 
     def convert(self, formalized_query: str):
         trs = ''
