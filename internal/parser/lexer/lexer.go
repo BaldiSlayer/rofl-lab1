@@ -12,7 +12,7 @@ type Lexer struct {
 
 func (p *Lexer) appendLex(index int, lexType models.LexemType, str string) {
 	p.Lexem = append(p.Lexem, models.Lexem{
-		//index: index,
+		Index:     index,
 		LexemType: lexType,
 		Str:       str,
 	})
@@ -64,7 +64,7 @@ func (p *Lexer) Process() error {
 		default:
 			if runes[i] == '\n' || runes[i] == '\r' { // если перевод строки(причем могут быть 2), добавить лексему перевод строки
 				p.appendLex(i, models.LexEOL, "\n")
-				if i < len(runes)-1 && (runes[i+1] == '\n' || runes[i+1] == '\r') {
+				for i < len(runes)-1 && (runes[i+1] == '\n' || runes[i+1] == '\r') {
 					i++
 				}
 
