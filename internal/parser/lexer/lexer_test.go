@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	//"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 	"testing"
 )
 
@@ -16,5 +15,21 @@ func TestLexerWithPeano(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Should not produce an error")
+	}
+}
+
+func TestUnknownSymbol(t *testing.T) {
+	p := Lexer{Text: "шалаш"}
+	err := p.Process()
+	if err == nil {
+		t.Errorf("Should produce error %s", ">Неизвестный символ в строке 1, позиции 1: ш")
+	}
+}
+
+func TestUnknownSymbolNotInFirstLine(t *testing.T) {
+	p := Lexer{Text: "variables=x\nШ(x)=x\n------Ш(x)=x+1\n"}
+	err := p.Process()
+	if err == nil {
+		t.Errorf("Should produce error %s", ">Неизвестный символ в строке 2, позиции 1: ш")
 	}
 }
