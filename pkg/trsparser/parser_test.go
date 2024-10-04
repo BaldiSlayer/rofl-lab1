@@ -68,8 +68,10 @@ f(x) = 5
 func TestParsesComplexTrs(t *testing.T) {
 	trs, err := Parser{}.Parse(
 		`variables = x, y
+
 f(x, g(y)) = g(f(x, h))
 f(y, x) = g(y)
+
 -----
 f(x, y) = 6*x{322} + 10 + y{120}
 g(x) = xx{2}5*x
@@ -258,11 +260,18 @@ func TestParsesOtherTrs(t *testing.T) {
 	trs, err := Parser{}.Parse(
 		`variables = x,y,z
 f(x,S(y)) = S(f(x,y))
+
 f(x, T) = T
 -------------
+
 S(x) = x+1
 f(x,y)=    x+2*y
+
+
 T = 0
+
+
+
 `,
 	)
 	got, _ := json.Marshal(*trs)
