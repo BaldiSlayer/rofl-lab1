@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -21,6 +23,10 @@ func main() {
 	trs, err := trsparser.Parser{}.Parse(string(input))
 	if err != nil {
 		slog.Error("error while parsing input string", "err", err)
+		var parseError *trsparser.ParseError
+		if errors.As(err, &parseError) {
+			fmt.Printf("llm message: %s\n", parseError.LlmMessage)
+		}
 		os.Exit(1)
 	}
 
