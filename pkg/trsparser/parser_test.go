@@ -20,7 +20,7 @@ func TestErrorOnEmptyInput(t *testing.T) {
 	)
 }
 
-func TestParsesBasicTrs(t *testing.T) {
+func TestParsesSimpleTrs(t *testing.T) {
 	expectedRule := Rule{
 		Lhs: Subexpression{
 			Args: &[]interface{}{NewSubexpression(Subexpression{
