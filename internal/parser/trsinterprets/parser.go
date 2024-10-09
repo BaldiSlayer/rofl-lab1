@@ -237,7 +237,7 @@ func (p *Parser) monomial() (Monomial, error) {
 		return Monomial{}, err
 	}
 
-	for p.peek() != models.LexADD && p.peek() != models.LexEOL {
+	for p.peek() != models.LexADD && p.peek() != models.LexEOL && p.peek() != models.LexEOF {
 		factor, err := p.factor()
 		if err != nil {
 			return Monomial{}, err
@@ -258,7 +258,7 @@ func (p *Parser) factorOrConstant() (Monomial, error) {
 			return Monomial{}, err
 		}
 
-		if p.peek() == models.LexEOL || p.peek() == models.LexADD {
+		if p.peek() == models.LexEOL || p.peek() == models.LexADD || p.peek() == models.LexEOF {
 			return NewConstantMonomial(num), nil
 		}
 

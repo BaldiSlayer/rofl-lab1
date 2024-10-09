@@ -309,7 +309,8 @@ func TestDuplicateInterpretation(t *testing.T) {
 
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "интерпретация конструктора f задана повторно", parseError.LlmMessage)
+	assert.Equal(t, "интерпретация конструктора f задана повторно, "+
+		"хотя каждый конструктор должен иметь только одну интерпретацию", parseError.LlmMessage)
 }
 
 func TestDuplicateArgument(t *testing.T) {
@@ -330,7 +331,8 @@ func TestDuplicateArgument(t *testing.T) {
 
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "в интерпретации конструктора f повторно объявлена переменная x", parseError.LlmMessage)
+	assert.Equal(t, "в интерпретации конструктора f повторно объявлена переменная x, "+
+		"хотя каждая переменная должна быть объявлена один раз", parseError.LlmMessage)
 }
 
 func TestNoSufficientInterpretation(t *testing.T) {

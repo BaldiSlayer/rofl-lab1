@@ -20,6 +20,40 @@ func TestErrorOnEmptyInput(t *testing.T) {
 	)
 }
 
+func TestErrorOnJustEOL(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(`
+
+`)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		"в начале TRS ожидалось перечисление переменных формата \"variables = x,y,z\"\n"+
+         "Возможные способы решения: \n + Переменные должны состоять из одной буквы и разделены запятой",
+		parseError.LlmMessage,
+	)
+}
+
+func TestErrorNoEOL(t *testing.T) {
+	var parseError *ParseError
+
+   _, err := Parser{}.Parse(
+      `variables = x
+f(x) = x
+-----
+f(x) = 5`,
+   )
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		"неверно задана интерпретация f: ожидался перенос строки после определения интерпретации, получено EOF",
+		parseError.LlmMessage,
+	)
+}
+
 func TestParsesSimpleTrs(t *testing.T) {
 	expectedRule := Rule{
 		Lhs: Subexpression{
