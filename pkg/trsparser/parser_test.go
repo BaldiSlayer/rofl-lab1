@@ -103,6 +103,63 @@ f(x) 5
 	)
 }
 
+func TestExcessClosingBracket(t *testing.T) {
+	var parseError *ParseError
+
+   _, err := Parser{}.Parse(
+      `variables = x
+f(x) = x
+------
+f(x)) = 5
+`,
+   )
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		"неверно задана интерпретация конструктора f: ожидался знак равенства после объявления переменных, получено )",
+		parseError.LlmMessage,
+	)
+}
+
+func TestExcessStarSign(t *testing.T) {
+	var parseError *ParseError
+
+   _, err := Parser{}.Parse(
+      `variables = x
+f(x) = x
+------
+f(x) = 5**x
+`,
+   )
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		"неверно задана интерпретация конструктора f: в определении монома ожидалось название переменной, получено *",
+		parseError.LlmMessage,
+	)
+}
+
+func TestMissingClosingBracket(t *testing.T) {
+	var parseError *ParseError
+
+   _, err := Parser{}.Parse(
+      `variables = x
+f(x) = x
+------
+f(x = 5
+`,
+   )
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		"неверно задана интерпретация конструктора f: ожидалось закрытие скобки после объявления переменных через запятую, получено =",
+		parseError.LlmMessage,
+	)
+}
+
 func TestParsesSimpleTrs(t *testing.T) {
 	expectedRule := Rule{
 		Lhs: Subexpression{

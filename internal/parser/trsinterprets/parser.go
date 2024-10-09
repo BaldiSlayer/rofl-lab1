@@ -257,6 +257,7 @@ func (p *Parser) monomial() (Monomial, error) {
 
 func (p *Parser) factorOrConstant() (Monomial, error) {
 	coefficient := 1
+	coefficientRead := false
 
 	if p.peek() == models.LexNUM {
 		num, err := p.number()
@@ -274,9 +275,10 @@ func (p *Parser) factorOrConstant() (Monomial, error) {
 		}
 
 		coefficient = num
+		coefficientRead = true
 	}
 
-	name, err := p.variable()
+	name, err := p.variable(!coefficientRead)
 	if err != nil {
 		return Monomial{}, err
 	}
@@ -295,6 +297,7 @@ func (p *Parser) factorOrConstant() (Monomial, error) {
 
 func (p *Parser) factor() (Factor, error) {
 	coefficient := 1
+	coefficientRead := false
 
 	if p.peek() == models.LexNUM {
 		num, err := p.number()
@@ -308,9 +311,10 @@ func (p *Parser) factor() (Factor, error) {
 		}
 
 		coefficient = num
+		coefficientRead = true
 	}
 
-	name, err := p.variable()
+	name, err := p.variable(!coefficientRead)
 	if err != nil {
 		return Factor{}, err
 	}
@@ -345,11 +349,15 @@ func (p *Parser) starSign(coefficient int) error {
 	return err
 }
 
-func (p *Parser) variable() (string, error) {
+func (p *Parser) variable(expectCoefficient bool) (string, error) {
+	var tail string
+	if expectCoefficient {
+		tail = " или коэффициент"
+	}
 	varLexem, err := p.accept(
 		models.LexLETTER,
 		"variable name",
-		"в определении монома ожидалось название переменной или значение коэффициента",
+		"в определении монома ожидалось название переменной"+tail,
 	)
 	if err != nil {
 		return "", err
