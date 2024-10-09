@@ -1,8 +1,12 @@
 package trsinterprets
 
-import "fmt"
+import (
+	"fmt"
 
-func checkMonomials(monomials []Monomial, args []string) *ParseError {
+	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
+)
+
+func checkMonomials(monomials []Monomial, args []string) *models.ParseError {
 	c := monomialChecker{
 		definedVars: toMap(args),
 	}
@@ -21,14 +25,14 @@ type monomialChecker struct {
 	definedVars map[string]struct{}
 }
 
-func (c *monomialChecker) checkMonomial(monomial Monomial) *ParseError {
+func (c *monomialChecker) checkMonomial(monomial Monomial) *models.ParseError {
 	if monomial.Factors == nil {
 		return nil
 	}
 	if len(*monomial.Factors) == 0 {
-		return &ParseError{
-			llmMessage: "моном должен быть не пуст",
-			message:    "empty monomial",
+		return &models.ParseError{
+			LlmMessage: "моном должен быть не пуст",
+			Message:    "empty monomial",
 		}
 	}
 
@@ -42,17 +46,17 @@ func (c *monomialChecker) checkMonomial(monomial Monomial) *ParseError {
 	return nil
 }
 
-func (c *monomialChecker) checkFactor(factor Factor) *ParseError {
+func (c *monomialChecker) checkFactor(factor Factor) *models.ParseError {
 	if _, ok := c.definedVars[factor.Variable]; !ok {
-		return &ParseError{
-			llmMessage: fmt.Sprintf("не объявлен аргумент %s", factor.Variable),
-			message:    "undefined arg",
+		return &models.ParseError{
+			LlmMessage: fmt.Sprintf("не объявлен аргумент %s", factor.Variable),
+			Message:    "undefined arg",
 		}
 	}
 	return nil
 }
 
-func checkInterpretations(interprets []Interpretation, constructorArity map[string]int) *ParseError {
+func checkInterpretations(interprets []Interpretation, constructorArity map[string]int) *models.ParseError {
 	c := interpretationsChecker{
 		defined: map[string]struct{}{},
 	}
@@ -66,9 +70,9 @@ func checkInterpretations(interprets []Interpretation, constructorArity map[stri
 
 	for expectedName := range constructorArity {
 		if _, ok := c.defined[expectedName]; !ok {
-			return &ParseError{
-				llmMessage: fmt.Sprintf("не хватает интерпретации для конструктора %s", expectedName),
-				message:    "no sufficient interpretation",
+			return &models.ParseError{
+				LlmMessage: fmt.Sprintf("не хватает интерпретации для конструктора %s", expectedName),
+				Message:    "no sufficient interpretation",
 			}
 		}
 	}
@@ -80,10 +84,10 @@ type interpretationsChecker struct {
 	defined map[string]struct{}
 }
 
-type interpretationChecker = func(Interpretation, map[string]int) *ParseError
+type interpretationChecker = func(Interpretation, map[string]int) *models.ParseError
 
 func (c *interpretationsChecker) checkInterpretation(interpret Interpretation,
-	constructorArity map[string]int) *ParseError {
+	constructorArity map[string]int) *models.ParseError {
 
 	checkers := []interpretationChecker{
 		c.checkDuplicateInterpretation,
@@ -103,11 +107,11 @@ func (c *interpretationsChecker) checkInterpretation(interpret Interpretation,
 
 }
 
-func (c *interpretationsChecker) checkDuplicateInterpretation(interpret Interpretation, _ map[string]int) *ParseError {
+func (c *interpretationsChecker) checkDuplicateInterpretation(interpret Interpretation, _ map[string]int) *models.ParseError {
 	if _, ok := c.defined[interpret.Name]; ok {
-		return &ParseError{
-			llmMessage: fmt.Sprintf("интерпретация конструктора %s задана повторно", interpret.Name),
-			message:    "duplicate interpretation",
+		return &models.ParseError{
+			LlmMessage: fmt.Sprintf("интерпретация конструктора %s задана повторно", interpret.Name),
+			Message:    "duplicate interpretation",
 		}
 	}
 	c.defined[interpret.Name] = struct{}{}
@@ -115,13 +119,13 @@ func (c *interpretationsChecker) checkDuplicateInterpretation(interpret Interpre
 }
 
 func (c *interpretationsChecker) checkExcessInterpretation(interpret Interpretation,
-	constructorArity map[string]int) *ParseError {
+	constructorArity map[string]int) *models.ParseError {
 
 	_, ok := constructorArity[interpret.Name]
 	if !ok {
-		return &ParseError{
-			llmMessage: fmt.Sprintf("конструктор %s отсутствует в правилах trs", interpret.Name),
-			message:    "excess interpretation",
+		return &models.ParseError{
+			LlmMessage: fmt.Sprintf("конструктор %s отсутствует в правилах trs", interpret.Name),
+			Message:    "excess interpretation",
 		}
 	}
 
@@ -129,30 +133,30 @@ func (c *interpretationsChecker) checkExcessInterpretation(interpret Interpretat
 }
 
 func (c *interpretationsChecker) checkInterpretationArity(interpret Interpretation,
-	constructorArity map[string]int) *ParseError {
+	constructorArity map[string]int) *models.ParseError {
 
 	expectedArity, _ := constructorArity[interpret.Name]
 	if expectedArity != len(interpret.Args) {
-		return &ParseError{
-			llmMessage: fmt.Sprintf("неверная арность конструктора %s: "+
+		return &models.ParseError{
+			LlmMessage: fmt.Sprintf("неверная арность конструктора %s: "+
 				"ожидалась арность %d, получена арность %d", interpret.Name, expectedArity, len(interpret.Args)),
-			message: "wrong func interpretation arity",
+			Message: "wrong func interpretation arity",
 		}
 	}
 	return nil
 }
 
-func (c *interpretationsChecker) checkDuplicateArgumentName(interpret Interpretation, _ map[string]int) *ParseError {
+func (c *interpretationsChecker) checkDuplicateArgumentName(interpret Interpretation, _ map[string]int) *models.ParseError {
 	args := map[string]struct{}{}
 	for _, arg := range interpret.Args {
 		if _, ok := args[arg]; ok {
-			return &ParseError{
-				llmMessage: fmt.Sprintf(
+			return &models.ParseError{
+				LlmMessage: fmt.Sprintf(
 					"в интерпретации конструктора %s повторно объявлена переменная %s",
 					interpret.Name,
 					arg,
 				),
-				message: "duplicate argument name",
+				Message: "duplicate argument name",
 			}
 		}
 		args[arg] = struct{}{}

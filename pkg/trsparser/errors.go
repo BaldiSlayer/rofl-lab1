@@ -3,7 +3,7 @@ package trsparser
 import (
 	"errors"
 
-	"github.com/BaldiSlayer/rofl-lab1/internal/parser/trsinterprets"
+	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 )
 
 func (e *ParseError) Error() string {
@@ -11,11 +11,11 @@ func (e *ParseError) Error() string {
 }
 
 func toParseError(err error) error {
-	var parseError *trsinterprets.ParseError
+	var parseError *models.ParseError
 	if errors.As(err, &parseError) {
 		return &ParseError{
-			LlmMessage: parseError.LlmMessage(),
-			Summary:    parseError.Error(),
+			LlmMessage: parseError.LlmMessage,
+			Summary:    parseError.Message,
 		}
 	}
 	return &ParseError{
