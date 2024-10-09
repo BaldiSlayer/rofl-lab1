@@ -1,36 +1,33 @@
 package trsinterprets
 
-import "fmt"
-
 type Interpretation struct {
-	name      string
-	args      []string
-	monomials []Monomial
-	constants []int
+	Name      string
+	Args      []string
+	Monomials []Monomial
 }
 
+// NOTE: one of {constant, factors}
 type Monomial struct {
-	variable    string
-	coefficient int
-	power       int
+	Constant *int
+	Factors  *[]Factor
 }
 
-type ParseError struct {
-	llmMessage string
-	message    string
-}
-
-func (child *ParseError) wrap(parent *ParseError) *ParseError {
-	return &ParseError{
-		llmMessage: fmt.Sprintf("%s: %s", parent.llmMessage, child.llmMessage),
-		message:    fmt.Sprintf("%s: %s", parent.message, child.message),
+func NewConstantMonomial(v int) Monomial {
+	return Monomial{
+		Constant: &v,
+		Factors:  nil,
 	}
 }
 
-func (e *ParseError) Error() string {
-	return e.message
+func NewProductMonomial(factors []Factor) Monomial {
+	return Monomial{
+		Constant: nil,
+		Factors:  &factors,
+	}
 }
 
-func (e *ParseError) LlmMessage() string {
-	return e.llmMessage
+type Factor struct {
+	Variable    string
+	Coefficient int
+	Power       int
 }

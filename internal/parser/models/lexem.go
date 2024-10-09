@@ -2,7 +2,8 @@ package models
 
 type Lexem struct {
 	LexemType
-	index int
+	Index int
+	Line  int
 	Str   string
 }
 
@@ -23,6 +24,11 @@ func NewEofLexem() Lexem {
 
 type LexemType int
 
+func GetLexemInterpretation(l LexemType) string {
+	names := [...]string{"variables", "=", "буква", ",", "*", "+", "{", "}", "(", ")", "число", "конец строки", "конец файла", "разделитель"}
+	return names[l]
+}
+
 // <lexem> ::= "variables" | "=" | letter | "," | "*" | "{" | "}" | "(" | ")" | "+" | number | '\r' | \n | \r\n
 const (
 	LexVAR LexemType = iota
@@ -38,5 +44,6 @@ const (
 	LexNUM
 	LexEOL
 	LexEOF
-	LexSEPARATOR //('-')* - separate TRS input and interpet input: can be deleted in the future
+	LexSEPARATOR
+	//('-')* - separate TRS input and interpet input: can be deleted in the future
 )
