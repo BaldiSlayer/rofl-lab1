@@ -76,3 +76,18 @@ func TestParserWithVarAsConstructor(t *testing.T) {
 		t.Error("Должен кидать ошибку о неправильной скобочной структуре")
 	}
 }
+
+
+func TestMind(t *testing.T){
+	input := "variables=x\nf(x) = x-------f(x) = x"
+	l := lexer.Lexer{Text: input}
+	err := l.Process()
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, _, err1 := ParseRules(l.Lexem)
+	if err1 != nil {
+		t.Error(err1)
+	}
+}
