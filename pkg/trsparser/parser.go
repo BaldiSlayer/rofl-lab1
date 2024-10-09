@@ -12,7 +12,7 @@ import (
 type Parser struct{}
 
 func (p Parser) Parse(input string) (*Trs, error) {
-	slog.Info("start parsing with input:\n" + input)
+	slog.Info("start parsing")
 
 	if input == "" {
 		return nil, &ParseError{
