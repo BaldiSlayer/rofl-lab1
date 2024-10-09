@@ -77,8 +77,7 @@ func TestParserWithVarAsConstructor(t *testing.T) {
 	}
 }
 
-
-func TestMind(t *testing.T){
+func TestMind(t *testing.T) {
 	input := "variables=x\nf(x) = x-------f(x) = x"
 	l := lexer.Lexer{Text: input}
 	err := l.Process()

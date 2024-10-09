@@ -3,7 +3,7 @@ package models
 type Lexem struct {
 	LexemType
 	Index int
-	Line int
+	Line  int
 	Str   string
 }
 

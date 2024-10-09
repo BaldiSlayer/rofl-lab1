@@ -13,7 +13,7 @@ type Lexer struct {
 func (p *Lexer) appendLex(indexInLine, line int, lexType models.LexemType, str string) {
 	p.Lexem = append(p.Lexem, models.Lexem{
 		Index:     indexInLine,
-		Line: line,
+		Line:      line,
 		LexemType: lexType,
 		Str:       str,
 	})

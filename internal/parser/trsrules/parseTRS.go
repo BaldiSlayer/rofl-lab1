@@ -295,7 +295,7 @@ func (p *Parser) parseTRS() error {
 	p.Model = TRS{}
 	err := p.parseVars()
 	if err != nil {
-		return errors.Join(err, fmt.Errorf("Возможные способы решения: \n + Переменные должны состоять из одной буквы и разделены запятой"))
+		return err //, fmt.Errorf("Возможные способы решения: \n + Переменные должны состоять из одной буквы и разделены запятой"))
 	}
 	err = p.parseRules()
 	if err != nil {
@@ -349,7 +349,7 @@ func (p *Parser) checkRules() error {
 		right_var := make(map[string]bool)
 		getVariablesFromExpr(&right_var, rule.Rhs)
 		isIn, contr := isSetIn(&left_var, &right_var)
-		if !isIn{
+		if !isIn {
 			return fmt.Errorf("в правиле %d неправильно использованы переменные: %s не может быть использована в правой части", i+1, contr)
 		}
 	}
@@ -371,10 +371,10 @@ func (p *Parser) checkRules() error {
 }
 
 func ParseRules(arr []models.Lexem) (*TRS, []models.Lexem, error) {
-	if len(arr) == 0{
+	if len(arr) == 0 {
 		return nil, arr, fmt.Errorf("должно быть хотя бы одно правило переписывания")
 	}
-	
+
 	p := Parser{lexem: arr}
 
 	err := p.parseTRS()
