@@ -78,7 +78,8 @@ func TestParserWithVarAsConstructor(t *testing.T) {
 }
 
 func TestMind(t *testing.T) {
-	input := "variables=x\nf(x) = x-------f(x) = x"
+	input := "variables=x\nf(x) = x\n-------\nf(x) = x\n"
+
 	l := lexer.Lexer{Text: input}
 	err := l.Process()
 	if err != nil {

@@ -78,9 +78,9 @@ func TestNoInterpretations(t *testing.T) {
 
 	_, err := NewParser(input, map[string]int{}).Parse()
 
-	var parseError *ParseError
+	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "система должна содержать хотя бы одну интерпретацию", parseError.LlmMessage())
+	assert.Equal(t, "система должна содержать хотя бы одну интерпретацию", parseError.LlmMessage)
 }
 
 func TestNoConstructorName(t *testing.T) {
@@ -95,9 +95,9 @@ func TestNoConstructorName(t *testing.T) {
 
 	_, err := NewParser(input, map[string]int{"f": 0, "g": 0}).Parse()
 
-	var parseError *ParseError
+	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверно задана интерпретация: ожидалось название конструктора, получено =", parseError.LlmMessage())
+	assert.Equal(t, "неверно задана интерпретация: ожидалось название конструктора, получено =", parseError.LlmMessage)
 }
 
 func TestSingleInterpretation(t *testing.T) {
@@ -214,10 +214,10 @@ func TestMissingStarSign(t *testing.T) {
 
 	_, err := NewParser(input, map[string]int{"f": 2}).Parse()
 
-	var parseError *ParseError
+	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"ожидался знак * после коэффициента 5 в определении монома, получено x", parseError.LlmMessage())
+		"ожидался знак * после коэффициента 5 в определении монома, получено x", parseError.LlmMessage)
 }
 
 func TestUndefinedVariable(t *testing.T) {
@@ -240,10 +240,10 @@ func TestUndefinedVariable(t *testing.T) {
 
 	_, err := NewParser(input, map[string]int{"f": 2}).Parse()
 
-	var parseError *ParseError
+	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"не объявлен аргумент z", parseError.LlmMessage())
+		"не объявлен аргумент z", parseError.LlmMessage)
 }
 
 func TestInterpretationArityMismatch(t *testing.T) {
@@ -260,9 +260,9 @@ func TestInterpretationArityMismatch(t *testing.T) {
 
 	_, err := NewParser(input, constructorArity).Parse()
 
-	var parseError *ParseError
+	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверная арность конструктора f: ожидалась арность 2, получена арность 1", parseError.LlmMessage())
+	assert.Equal(t, "неверная арность конструктора f: ожидалась арность 2, получена арность 1", parseError.LlmMessage)
 }
 
 func TestExcessInterpretation(t *testing.T) {
@@ -279,9 +279,9 @@ func TestExcessInterpretation(t *testing.T) {
 
 	_, err := NewParser(input, constructorArity).Parse()
 
-	var parseError *ParseError
+	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "конструктор f отсутствует в правилах trs", parseError.LlmMessage())
+	assert.Equal(t, "конструктор f отсутствует в правилах trs", parseError.LlmMessage)
 }
 
 func TestDuplicateInterpretation(t *testing.T) {
@@ -307,9 +307,9 @@ func TestDuplicateInterpretation(t *testing.T) {
 
 	_, err := NewParser(input, constructorArity).Parse()
 
-	var parseError *ParseError
+	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "интерпретация конструктора f задана повторно", parseError.LlmMessage())
+	assert.Equal(t, "интерпретация конструктора f задана повторно", parseError.LlmMessage)
 }
 
 func TestDuplicateArgument(t *testing.T) {
@@ -328,9 +328,9 @@ func TestDuplicateArgument(t *testing.T) {
 
 	_, err := NewParser(input, constructorArity).Parse()
 
-	var parseError *ParseError
+	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "в интерпретации конструктора f повторно объявлена переменная x", parseError.LlmMessage())
+	assert.Equal(t, "в интерпретации конструктора f повторно объявлена переменная x", parseError.LlmMessage)
 }
 
 func TestNoSufficientInterpretation(t *testing.T) {
@@ -347,9 +347,9 @@ func TestNoSufficientInterpretation(t *testing.T) {
 
 	_, err := NewParser(input, constructorArity).Parse()
 
-	var parseError *ParseError
+	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "не хватает интерпретации для конструктора g", parseError.LlmMessage())
+	assert.Equal(t, "не хватает интерпретации для конструктора g", parseError.LlmMessage)
 }
 
 func TestUnusedArgument(t *testing.T) {
@@ -468,9 +468,9 @@ func TestIllFormedMonomial(t *testing.T) {
 
 	_, err := NewParser(input, constructorArity).Parse()
 
-	var parseError *ParseError
+	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
 		"в определении монома ожидалось название переменной или значение коэффициента, "+
-		"получено *", parseError.LlmMessage())
+		"получено *", parseError.LlmMessage)
 }
