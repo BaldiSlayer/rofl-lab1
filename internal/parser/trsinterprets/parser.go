@@ -164,8 +164,14 @@ func (p *Parser) funcInterpretation(name string) (Interpretation, error) {
 		return Interpretation{}, err
 	}
 
-	p.accept(models.LexRB, ")", "ожидалось закрытие скобки после объявления переменных через запятую")
-	p.accept(models.LexEQ, "=", "ожидался знак равенства")
+	_, err = p.accept(models.LexRB, ")", "ожидалось закрытие скобки после объявления переменных через запятую")
+	if err != nil {
+		return Interpretation{}, err
+	}
+	_, err = p.accept(models.LexEQ, "=", "ожидался знак равенства после объявления переменных")
+	if err != nil {
+		return Interpretation{}, err
+	}
 
 	monomials, err := p.funcInterpretationBody()
 	if err != nil {

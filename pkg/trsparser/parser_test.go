@@ -54,6 +54,55 @@ f(x) = 5`,
 	)
 }
 
+func TestErrorNoSeparator(t *testing.T) {
+	var parseError *ParseError
+
+   _, err := Parser{}.Parse(
+      `variables = x
+f(x) = x
+f(x) = 5
+`,
+   )
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		"в строке 3 TRS  на позиции 9 ожидалось \"буква\", найдено \"5\"",
+		parseError.LlmMessage,
+	)
+}
+
+func TestExcessVariables(t *testing.T) {
+   _, err := Parser{}.Parse(
+      `variables = x, y
+f(x) = x
+------
+f(x) = 5
+`,
+   )
+
+   assert.NoError(t, err)
+}
+
+func TestMissingEqualsSign(t *testing.T) {
+	var parseError *ParseError
+
+   _, err := Parser{}.Parse(
+      `variables = x
+f(x) = x
+------
+f(x) 5
+`,
+   )
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		"неверно задана интерпретация конструктора f: ожидался знак равенства после объявления переменных, получено 5",
+		parseError.LlmMessage,
+	)
+}
+
 func TestParsesSimpleTrs(t *testing.T) {
 	expectedRule := Rule{
 		Lhs: Subexpression{
