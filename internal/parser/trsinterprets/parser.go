@@ -43,7 +43,7 @@ func (p *Parser) accept(expectedType models.LexemType,
 	got := p.stream.next()
 	if got.Type() != expectedType {
 		return models.Lexem{}, &models.ParseError{
-			LlmMessage: fmt.Sprintf("%s, получено %v", expectedLlmMessage, got.String()),
+			LlmMessage: fmt.Sprintf("%s, получено \"%s\"", expectedLlmMessage, got.String()),
 			Message:    fmt.Sprintf("expected %s, got %v", expectedMessage, got.String()),
 		}
 	}
@@ -354,7 +354,7 @@ func (p *Parser) starSign(coefficient int) error {
 		models.LexMUL,
 		"star sign",
 		fmt.Sprintf("при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], "+
-			"ожидался знак * после коэффициента %d", coefficient),
+			"ожидался знак \"*\" после коэффициента %d", coefficient),
 	)
 	return err
 }

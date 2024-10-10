@@ -97,7 +97,7 @@ func TestNoConstructorName(t *testing.T) {
 
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверно задана интерпретация: ожидалось название конструктора, получено =", parseError.LlmMessage)
+	assert.Equal(t, `неверно задана интерпретация: ожидалось название конструктора, получено "="`, parseError.LlmMessage)
 }
 
 func TestSingleInterpretation(t *testing.T) {
@@ -216,8 +216,9 @@ func TestMissingStarSign(t *testing.T) {
 
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], ожидался знак * после коэффициента 5, получено x", parseError.LlmMessage)
+	assert.Equal(t, `неверно задана интерпретация конструктора f: `+
+		`при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], `+
+		`ожидался знак "*" после коэффициента 5, получено "x"`, parseError.LlmMessage)
 }
 
 func TestUndefinedVariable(t *testing.T) {
@@ -472,6 +473,7 @@ func TestIllFormedMonomial(t *testing.T) {
 
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], ожидалось название переменной или коэффициент, получено *", parseError.LlmMessage)
+	assert.Equal(t, `неверно задана интерпретация конструктора f: `+
+		`при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], `+
+		`ожидалось название переменной или коэффициент, получено "*"`, parseError.LlmMessage)
 }
