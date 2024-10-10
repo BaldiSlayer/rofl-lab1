@@ -1,7 +1,9 @@
 package trsparser
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/trsinterprets"
@@ -29,18 +31,57 @@ func toParseErrorDTO(err error) error {
 }
 
 func toVariablesDTO(variables []models.Lexem) []string {
-	return nil
+	res := []string{}
+	for _, variable := range variables {
+		res = append(res, variable.String())
+	}
+	return res
 }
 
 func toInterpretsDTO(interprets []trsinterprets.Interpretation) []string {
-	return nil
+	res := []string{}
+	for _, interpret := range interprets {
+		lhs := getLhsString(interpret)
+		rhs := toInterpretationDTO(interpret.Monomials)
+		res = append(res, fmt.Sprintf("%s=%s", lhs, rhs))
+	}
+	return res
 }
 
-func ToRulesDTO(rules []rulesparser.Rule, variables []models.Lexem) []string {
-	return nil
+func toRulesDTO(rules []rulesparser.Rule) []string {
+	res := []string{}
+	for _, rule := range rules {
+		res = append(res, toRuleDTO(rule))
+	}
+	return res
 }
 
-func TranslateInterpretation(m []trsinterprets.Monomial) string {
+func toRuleDTO(rule rulesparser.Rule) string {
+	return fmt.Sprintf("%s=%s", toSubexpressionDTO(rule.Lhs), toSubexpressionDTO(rule.Rhs))
+}
+
+func toSubexpressionDTO(subexpr rulesparser.Subexpression) string {
+	if subexpr.Args == nil || len(*subexpr.Args) == 0 {
+		return subexpr.Letter.String()
+	}
+
+	args := []string{}
+	for _, el := range *subexpr.Args {
+		args = append(args, toSubexpressionDTO(el))
+	}
+
+	return fmt.Sprintf("%s(%s)", subexpr.Letter.String(), strings.Join(args, ","))
+}
+
+func getLhsString(interpret trsinterprets.Interpretation) string {
+	if len(interpret.Args) == 0 {
+		return interpret.Name
+	}
+	args := strings.Join(interpret.Args, ",")
+	return fmt.Sprintf("%s(%s)", interpret.Name, args)
+}
+
+func toInterpretationDTO(m []trsinterprets.Monomial) string {
 	result := ""
 	count := len(m)
 	for i, monom := range m {

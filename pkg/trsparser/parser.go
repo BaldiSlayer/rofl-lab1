@@ -64,7 +64,7 @@ func (p Parser) parse(input string) (*Trs, error) {
 
 	return &Trs{
 		Interpretations: toInterpretsDTO(interprets),
-		Rules:           ToRulesDTO(trs.Rules, trs.Variables),
+		Rules:           toRulesDTO(trs.Rules),
 		Variables:       toVariablesDTO(trs.Variables),
 	}, nil
 }
