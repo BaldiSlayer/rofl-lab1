@@ -76,6 +76,8 @@ curl --data '{
 
 Output:
 
-``` sh
-trs variables are ['x', 'y']
+``` json
+{
+  "answer": "unsat"
+}
 ```
