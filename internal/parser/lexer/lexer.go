@@ -13,8 +13,8 @@ type Lexer struct {
 
 func (p *Lexer) appendLex(indexInLine, line int, lexType models.LexemType, str string) {
 	p.Lexem = append(p.Lexem, models.Lexem{
-		Index:     indexInLine,
-		Line:      line,
+		Index:     indexInLine + 1, //для нумерации с единицы, добавляются единицы
+		Line:      line + 1,
 		LexemType: lexType,
 		Str:       str,
 	})
@@ -44,7 +44,7 @@ func (p *Lexer) Process() error {
 			continue
 		case '-':
 			p.appendLex(i-iLine, cEOL, models.LexSEPARATOR, "-")
-			for i < len(runes) && runes[i] == '-' {
+			for i < len(runes)-1 && runes[i+1] == '-' {
 				i++
 			}
 		case '=':
