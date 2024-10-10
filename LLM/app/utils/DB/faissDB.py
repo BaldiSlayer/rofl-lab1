@@ -6,7 +6,7 @@ import os
 
 
 def initialize_model():
-    return SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
+    return SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
 
 def create_embeddings(model, data):
