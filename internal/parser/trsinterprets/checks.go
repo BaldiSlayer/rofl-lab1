@@ -49,8 +49,11 @@ func (c *monomialChecker) checkMonomial(monomial Monomial) error {
 func (c *monomialChecker) checkFactor(factor Factor) error {
 	if _, ok := c.definedVars[factor.Variable]; !ok {
 		return &models.ParseError{
-			LlmMessage: fmt.Sprintf("не объявлен аргумент %s", factor.Variable),
-			Message:    "undefined arg",
+			LlmMessage: fmt.Sprintf(
+				"аргумент %s не объявлен в левой части выражения, но использован в правой",
+				factor.Variable,
+			),
+			Message: "undefined arg",
 		}
 	}
 	return nil
@@ -110,8 +113,9 @@ func (c *interpretationsChecker) checkInterpretation(interpret Interpretation,
 func (c *interpretationsChecker) checkDuplicateInterpretation(interpret Interpretation, _ map[string]int) error {
 	if _, ok := c.defined[interpret.Name]; ok {
 		return &models.ParseError{
-			LlmMessage: fmt.Sprintf("интерпретация конструктора %s задана повторно", interpret.Name),
-			Message:    "duplicate interpretation",
+			LlmMessage: fmt.Sprintf("интерпретация конструктора %s задана повторно, "+
+				"хотя каждый конструктор должен иметь только одну интерпретацию", interpret.Name),
+			Message: "duplicate interpretation",
 		}
 	}
 	c.defined[interpret.Name] = struct{}{}
@@ -152,7 +156,8 @@ func (c *interpretationsChecker) checkDuplicateArgumentName(interpret Interpreta
 		if _, ok := args[arg]; ok {
 			return &models.ParseError{
 				LlmMessage: fmt.Sprintf(
-					"в интерпретации конструктора %s повторно объявлена переменная %s",
+					"в интерпретации конструктора %s повторно объявлена переменная %s, "+
+						"хотя каждая переменная должна быть объявлена один раз",
 					interpret.Name,
 					arg,
 				),

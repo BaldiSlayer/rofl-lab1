@@ -43,8 +43,14 @@ func (p *Parser) accept(expectedType models.LexemType,
 	got := p.stream.next()
 	if got.Type() != expectedType {
 		return models.Lexem{}, &models.ParseError{
-			LlmMessage: fmt.Sprintf("%s, получено %v", expectedLlmMessage, got.String()),
-			Message:    fmt.Sprintf("expected %s, got %v", expectedMessage, got.String()),
+			LlmMessage: fmt.Sprintf(
+				`%s, получено "%s" (строка %d, символ %d)`,
+				expectedLlmMessage,
+				got.String(),
+				got.Line,
+				got.Index,
+			),
+			Message: fmt.Sprintf("expected %s, got %v", expectedMessage, got.String()),
 		}
 	}
 	return got, nil
@@ -164,8 +170,15 @@ func (p *Parser) funcInterpretation(name string) (Interpretation, error) {
 		return Interpretation{}, err
 	}
 
-	p.accept(models.LexRB, ")", "ожидалось закрытие скобки после объявления переменных через запятую")
-	p.accept(models.LexEQ, "=", "ожидался знак равенства")
+	_, err = p.accept(models.LexRB, ")", "при разборе определения переменных через запятую, "+
+		"ожидалась запятая или закрывающая скобка после перечисления переменных")
+	if err != nil {
+		return Interpretation{}, err
+	}
+	_, err = p.accept(models.LexEQ, "=", "ожидался знак равенства после объявления переменных")
+	if err != nil {
+		return Interpretation{}, err
+	}
 
 	monomials, err := p.funcInterpretationBody()
 	if err != nil {
@@ -185,7 +198,11 @@ func (p *Parser) funcInterpretation(name string) (Interpretation, error) {
 }
 
 func (p *Parser) letters() ([]string, error) {
-	lexem, err := p.accept(models.LexLETTER, "letter", "ожидалась буква - название переменной")
+	lexem, err := p.accept(
+		models.LexLETTER,
+		"letter",
+		"в объявлении переменных ожидалась хотя бы одна буква - название переменной",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +213,11 @@ func (p *Parser) letters() ([]string, error) {
 	for p.peek() == models.LexCOMMA {
 		p.stream.next()
 
-		lexem, err := p.accept(models.LexLETTER, "letter", "ожидалась буква - название переменной")
+		lexem, err := p.accept(
+			models.LexLETTER,
+			"letter",
+			"в объявлении переменных после запятой ожидалась буква - название переменной",
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -237,7 +258,7 @@ func (p *Parser) monomial() (Monomial, error) {
 		return Monomial{}, err
 	}
 
-	for p.peek() != models.LexADD && p.peek() != models.LexEOL {
+	for p.peek() != models.LexADD && p.peek() != models.LexEOL && p.peek() != models.LexEOF {
 		factor, err := p.factor()
 		if err != nil {
 			return Monomial{}, err
@@ -251,6 +272,7 @@ func (p *Parser) monomial() (Monomial, error) {
 
 func (p *Parser) factorOrConstant() (Monomial, error) {
 	coefficient := 1
+	coefficientRead := false
 
 	if p.peek() == models.LexNUM {
 		num, err := p.number()
@@ -258,7 +280,7 @@ func (p *Parser) factorOrConstant() (Monomial, error) {
 			return Monomial{}, err
 		}
 
-		if p.peek() == models.LexEOL || p.peek() == models.LexADD {
+		if p.peek() == models.LexEOL || p.peek() == models.LexADD || p.peek() == models.LexEOF {
 			return NewConstantMonomial(num), nil
 		}
 
@@ -268,9 +290,10 @@ func (p *Parser) factorOrConstant() (Monomial, error) {
 		}
 
 		coefficient = num
+		coefficientRead = true
 	}
 
-	name, err := p.variable()
+	name, err := p.variable(!coefficientRead)
 	if err != nil {
 		return Monomial{}, err
 	}
@@ -289,6 +312,7 @@ func (p *Parser) factorOrConstant() (Monomial, error) {
 
 func (p *Parser) factor() (Factor, error) {
 	coefficient := 1
+	coefficientRead := false
 
 	if p.peek() == models.LexNUM {
 		num, err := p.number()
@@ -302,9 +326,10 @@ func (p *Parser) factor() (Factor, error) {
 		}
 
 		coefficient = num
+		coefficientRead = true
 	}
 
-	name, err := p.variable()
+	name, err := p.variable(!coefficientRead)
 	if err != nil {
 		return Factor{}, err
 	}
@@ -334,16 +359,25 @@ func (p *Parser) starSign(coefficient int) error {
 	_, err := p.accept(
 		models.LexMUL,
 		"star sign",
-		fmt.Sprintf("ожидался знак * после коэффициента %d в определении монома", coefficient),
+		fmt.Sprintf("при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], "+
+			"ожидался знак \"*\" после коэффициента %d", coefficient),
 	)
 	return err
 }
 
-func (p *Parser) variable() (string, error) {
+func (p *Parser) variable(expectCoefficient bool) (string, error) {
+	var expectCoeffText string
+	if expectCoefficient {
+		expectCoeffText = " или коэффициент"
+	}
+
 	varLexem, err := p.accept(
 		models.LexLETTER,
 		"variable name",
-		"в определении монома ожидалось название переменной или значение коэффициента",
+		fmt.Sprintf("при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], "+
+			"ожидалось название переменной%s",
+			expectCoeffText,
+		),
 	)
 	if err != nil {
 		return "", err
