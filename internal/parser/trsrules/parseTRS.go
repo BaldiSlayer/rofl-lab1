@@ -112,9 +112,9 @@ func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) error {
 			}
 			return &models.ParseError{
 				LlmMessage: fmt.Sprintf("в строке %d TRS  на позиции %d ожидалось \"%s\", найдено \"%s\"",
-					l.Line+1, l.Index+1, models.GetLexemInterpretation(Ltype), return_str),
+					l.Line, l.Index, models.GetLexemInterpretation(Ltype), return_str),
 				Message: fmt.Sprintf("at %d:%d expected %s, found %s",
-					l.Line+1, l.Index+1, models.GetLexemInterpretation(Ltype), return_str),
+					l.Line, l.Index, models.GetLexemInterpretation(Ltype), return_str),
 			}
 		}
 	}
