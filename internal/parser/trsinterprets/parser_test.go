@@ -217,7 +217,7 @@ func TestMissingStarSign(t *testing.T) {
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"ожидался знак * после коэффициента 5 в определении монома, получено x", parseError.LlmMessage)
+		"при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], ожидался знак * после коэффициента 5, получено x", parseError.LlmMessage)
 }
 
 func TestUndefinedVariable(t *testing.T) {
@@ -243,7 +243,7 @@ func TestUndefinedVariable(t *testing.T) {
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"не объявлен аргумент z", parseError.LlmMessage)
+		"аргумент z не объявлен в левой части выражения, но использован в правой", parseError.LlmMessage)
 }
 
 func TestInterpretationArityMismatch(t *testing.T) {
@@ -473,6 +473,5 @@ func TestIllFormedMonomial(t *testing.T) {
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"в определении монома ожидалось название переменной или коэффициент, "+
-		"получено *", parseError.LlmMessage)
+		"при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], ожидалось название переменной или коэффициент, получено *", parseError.LlmMessage)
 }

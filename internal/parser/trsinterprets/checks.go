@@ -49,8 +49,11 @@ func (c *monomialChecker) checkMonomial(monomial Monomial) error {
 func (c *monomialChecker) checkFactor(factor Factor) error {
 	if _, ok := c.definedVars[factor.Variable]; !ok {
 		return &models.ParseError{
-			LlmMessage: fmt.Sprintf("не объявлен аргумент %s", factor.Variable),
-			Message:    "undefined arg",
+			LlmMessage: fmt.Sprintf(
+				"аргумент %s не объявлен в левой части выражения, но использован в правой",
+				factor.Variable,
+			),
+			Message: "undefined arg",
 		}
 	}
 	return nil
@@ -112,7 +115,7 @@ func (c *interpretationsChecker) checkDuplicateInterpretation(interpret Interpre
 		return &models.ParseError{
 			LlmMessage: fmt.Sprintf("интерпретация конструктора %s задана повторно, "+
 				"хотя каждый конструктор должен иметь только одну интерпретацию", interpret.Name),
-			Message:    "duplicate interpretation",
+			Message: "duplicate interpretation",
 		}
 	}
 	c.defined[interpret.Name] = struct{}{}

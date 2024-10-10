@@ -164,7 +164,8 @@ func (p *Parser) funcInterpretation(name string) (Interpretation, error) {
 		return Interpretation{}, err
 	}
 
-	_, err = p.accept(models.LexRB, ")", "ожидалось закрытие скобки после объявления переменных через запятую")
+	_, err = p.accept(models.LexRB, ")", "при разборе определения переменных через запятую, "+
+		"ожидалась запятая или закрывающая скобка после перечисления переменных")
 	if err != nil {
 		return Interpretation{}, err
 	}
@@ -191,7 +192,11 @@ func (p *Parser) funcInterpretation(name string) (Interpretation, error) {
 }
 
 func (p *Parser) letters() ([]string, error) {
-	lexem, err := p.accept(models.LexLETTER, "letter", "ожидалась буква - название переменной")
+	lexem, err := p.accept(
+		models.LexLETTER,
+		"letter",
+		"в объявлении переменных ожидалась хотя бы одна буква - название переменной",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +207,11 @@ func (p *Parser) letters() ([]string, error) {
 	for p.peek() == models.LexCOMMA {
 		p.stream.next()
 
-		lexem, err := p.accept(models.LexLETTER, "letter", "ожидалась буква - название переменной")
+		lexem, err := p.accept(
+			models.LexLETTER,
+			"letter",
+			"в объявлении переменных после запятой ожидалась буква - название переменной",
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -344,20 +353,25 @@ func (p *Parser) starSign(coefficient int) error {
 	_, err := p.accept(
 		models.LexMUL,
 		"star sign",
-		fmt.Sprintf("ожидался знак * после коэффициента %d в определении монома", coefficient),
+		fmt.Sprintf("при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], "+
+			"ожидался знак * после коэффициента %d", coefficient),
 	)
 	return err
 }
 
 func (p *Parser) variable(expectCoefficient bool) (string, error) {
-	var tail string
+	var expectCoeffText string
 	if expectCoefficient {
-		tail = " или коэффициент"
+		expectCoeffText = " или коэффициент"
 	}
+
 	varLexem, err := p.accept(
 		models.LexLETTER,
 		"variable name",
-		"в определении монома ожидалось название переменной"+tail,
+		fmt.Sprintf("при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], "+
+			"ожидалось название переменной%s",
+			expectCoeffText,
+		),
 	)
 	if err != nil {
 		return "", err
