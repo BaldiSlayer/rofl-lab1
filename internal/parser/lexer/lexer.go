@@ -43,7 +43,7 @@ func (p *Lexer) Process() error {
 			continue
 		case '-':
 			p.appendLex(i-iLine, cEOL, models.LexSEPARATOR, "-")
-			for i < len(runes) && runes[i] == '-' {
+			for i < len(runes)-1 && runes[i+1] == '-' {
 				i++
 			}
 		case '=':
@@ -70,7 +70,7 @@ func (p *Lexer) Process() error {
 				}
 
 				cEOL++
-				iLine = i+1
+				iLine = i + 1
 			} else if isLetter(runes[i]) { // если встретилась буква
 				if runes[i] == 'v' && i+len(lexVariables) < len(runes) { // проверяем на "variables"
 					wordVariablesFound := true
