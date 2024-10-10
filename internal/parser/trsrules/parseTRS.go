@@ -1,7 +1,6 @@
 package trsparser
 
 import (
-	"errors"
 	"fmt"
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 )
@@ -100,7 +99,7 @@ func (p *Parser) isVariable(l models.Lexem) bool {
 	return false
 }
 
-func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) error {
+func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) *models.ParseError {
 	if l.LexemType != Ltype {
 		switch l.LexemType {
 		/*case models.LexLB:
@@ -112,20 +111,28 @@ func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) error {
 			if l.LexemType == models.LexNUM || l.LexemType == models.LexLETTER {
 				return_str = l.Str
 			}
-			return fmt.Errorf("в строке %d TRS  на позиции %d ожидалось \"%s\", найдено \"%s\"",
-				l.Line+1, l.Index+1, models.GetLexemInterpretation(Ltype), return_str)
-
-			/*fmt.Errorf("%d, %d, %s", l.LexemType, l.Index, l.Str)*/
+			//return fmt.Errorf("в строке %d TRS  на позиции %d ожидалось \"%s\", найдено \"%s\"",
+			//	l.Line+1, l.Index+1, models.GetLexemInterpretation(Ltype), return_str)
+			return &models.ParseError{
+				LlmMessage: fmt.Sprintf("в строке %d TRS  на позиции %d ожидалось \"%s\", найдено \"%s\"",
+					l.Line+1, l.Index+1, models.GetLexemInterpretation(Ltype), return_str),
+				Message: fmt.Sprintf("at %d:%d expected %s, found %s",
+					l.Line+1, l.Index+1, models.GetLexemInterpretation(Ltype), return_str),
+			}
 		}
 	}
 	return nil
 }
 
 // <vars> ::= "variables" "=" <letters> <eol>
-func (p *Parser) parseVars() error {
+func (p *Parser) parseVars() *models.ParseError {
 	err := p.lexCheck(p.lexem[p.index], models.LexVAR)
 	if err != nil {
-		return fmt.Errorf("в начале TRS ожидалось перечисление переменных формата \"variables = x,y,z\"")
+		//return fmt.Errorf()
+		return &models.ParseError{
+			LlmMessage: "в начале TRS ожидалось перечисление переменных формата \"variables = x,y,z\"",
+			Message:    err.Error(),
+		}
 	}
 	p.index++
 	err = p.lexCheck(p.lexem[p.index], models.LexEQ)
@@ -146,10 +153,14 @@ func (p *Parser) parseVars() error {
 }
 
 // <letters> ::= <letter> <letters-tail>
-func (p *Parser) parseLetters() error {
+func (p *Parser) parseLetters() *models.ParseError {
 	err := p.lexCheck(p.lexem[p.index], models.LexLETTER)
 	if err != nil {
-		return fmt.Errorf("должна быть перечислена хоть одна переменная в списке переменных в первой строке")
+		//return fmt.Errorf("должна быть перечислена хоть одна переменная в списке переменных в первой строке")
+		return &models.ParseError{
+			LlmMessage: "должна быть перечислена хоть одна переменная в списке переменных в первой строке",
+			Message:    err.Error(),
+		}
 	}
 	p.addVariable(p.lexem[p.index])
 	p.index++
@@ -158,7 +169,7 @@ func (p *Parser) parseLetters() error {
 }
 
 // <letters-tail> ::= "," <letter> <letters-tail> | ε
-func (p *Parser) parseLettersTail() error {
+func (p *Parser) parseLettersTail() *models.ParseError {
 	// вместо if оптимизировано с ипользованием цикла
 	// для уменьшения глубины стека выполнения
 	for p.lexem[p.index].LexemType == models.LexCOMMA {
@@ -175,7 +186,7 @@ func (p *Parser) parseLettersTail() error {
 }
 
 // <Rules> ::= <rule> <eol> <Rules-tail>
-func (p *Parser) parseRules() error {
+func (p *Parser) parseRules() *models.ParseError {
 	err := p.parseRule()
 	if err != nil {
 		return err
@@ -190,7 +201,7 @@ func (p *Parser) parseRules() error {
 }
 
 // <Rules-tail> ::= <rule> <eol> <Rules-tail> | ε
-func (p *Parser) parseRulesTail() error {
+func (p *Parser) parseRulesTail() *models.ParseError {
 	for p.lexem[p.index].LexemType == models.LexLETTER {
 		err := p.parseRule()
 		if err != nil {
@@ -207,7 +218,7 @@ func (p *Parser) parseRulesTail() error {
 }
 
 // <rule> ::= <term> "=" <term>
-func (p *Parser) parseRule() error {
+func (p *Parser) parseRule() *models.ParseError {
 	r := p.addRule() // return *Rule
 
 	subexp, err := p.parseTerm()
@@ -230,7 +241,7 @@ func (p *Parser) parseRule() error {
 }
 
 // <term> ::= var | constructor <args>
-func (p *Parser) parseTerm() (*Subexpression, error) {
+func (p *Parser) parseTerm() (*Subexpression, *models.ParseError) {
 	err := p.lexCheck(p.lexem[p.index], models.LexLETTER)
 	if err != nil {
 		return nil, err
@@ -251,7 +262,7 @@ func (p *Parser) parseTerm() (*Subexpression, error) {
 }
 
 // <args> ::= ε | "(" <term> <terms-tail> ")"
-func (p *Parser) parseArgs() (*[]Subexpression, error) {
+func (p *Parser) parseArgs() (*[]Subexpression, *models.ParseError) {
 	subexpr_arr := make([]Subexpression, 0)
 	if p.lexem[p.index].LexemType == models.LexLB {
 		p.index++
@@ -276,7 +287,7 @@ func (p *Parser) parseArgs() (*[]Subexpression, error) {
 }
 
 // <terms-tail> ::= "," <term> <terms-tail> | ε
-func (p *Parser) parseTermsTail(arr *[]Subexpression) error {
+func (p *Parser) parseTermsTail(arr *[]Subexpression) *models.ParseError {
 	for p.lexem[p.index].LexemType == models.LexCOMMA {
 		p.index++
 		se, err := p.parseTerm()
@@ -290,7 +301,7 @@ func (p *Parser) parseTermsTail(arr *[]Subexpression) error {
 }
 
 // <s> ::= <vars> <Rules>
-func (p *Parser) parseTRS() error {
+func (p *Parser) parseTRS() *models.ParseError {
 	p.index = 0
 	p.Model = TRS{}
 	err := p.parseVars()
@@ -315,14 +326,20 @@ func getVariablesFromExpr(var_set *map[string]bool, a Subexpression) {
 	}
 }
 
-func (p *Parser) getConstructorsFromExpr(a Subexpression) error {
+func (p *Parser) getConstructorsFromExpr(a Subexpression) *models.ParseError {
 	if a.Args != nil {
 		count, ok := p.Model.Constructors[a.Letter.Str]
 		if !ok {
 			p.Model.Constructors[a.Letter.Str] = len(*a.Args)
 		} else {
 			if count != len(*a.Args) {
-				return fmt.Errorf("несовпадение в количестве элементов конструктора %s: ожидалось %d переменных, найдено %d переменных", a.Letter.Str, count, len(*a.Args))
+				//return fmt.Errorf("несовпадение в количестве элементов конструктора %s: ожидалось %d переменных, найдено %d переменных", a.Letter.Str, count, len(*a.Args))
+				return &models.ParseError{
+					LlmMessage: fmt.Sprintf("несовпадение в количестве элементов конструктора %s: ожидалось %d переменных, найдено %d переменных",
+						a.Letter.Str, count, len(*a.Args)),
+					Message: fmt.Sprintf("constructor mismatch %s: expect %d vars, found %d vars",
+						a.Letter.Str, count, len(*a.Args)),
+				}
 			}
 		}
 		for _, e := range *a.Args {
@@ -342,7 +359,7 @@ func isSetIn(a, b *map[string]bool) (bool, string) {
 	return true, ""
 }
 
-func (p *Parser) checkRules() error {
+func (p *Parser) checkRules() *models.ParseError {
 	for i, rule := range p.Model.Rules { // проверка корректности переменных
 		left_var := make(map[string]bool)
 		getVariablesFromExpr(&left_var, rule.Lhs)
@@ -350,7 +367,13 @@ func (p *Parser) checkRules() error {
 		getVariablesFromExpr(&right_var, rule.Rhs)
 		isIn, contr := isSetIn(&left_var, &right_var)
 		if !isIn {
-			return fmt.Errorf("в правиле %d неправильно использованы переменные: %s не может быть использована в правой части", i+1, contr)
+			//return fmt.Errorf("в правиле %d неправильно использованы переменные: %s не может быть использована в правой части", i+1, contr)
+			return &models.ParseError{
+				LlmMessage: fmt.Sprintf("в правиле %d неправильно использованы переменные: %s не может быть использована в правой части",
+					i+1, contr),
+				Message: fmt.Sprintf("in rule %d var mismatch: %s cant be used",
+					i+1, contr),
+			}
 		}
 	}
 
@@ -359,20 +382,32 @@ func (p *Parser) checkRules() error {
 	for i, rule := range p.Model.Rules {
 		err := p.getConstructorsFromExpr(rule.Lhs)
 		if err != nil {
-			return errors.Join(fmt.Errorf("в левой части правила %d ", i+1), err)
+			//return errors.Join(fmt.Errorf("в левой части правила %d ", i+1), err)
+			return err.Wrap(&models.ParseError{
+				LlmMessage: fmt.Sprintf("в левой части правила %d ", i+1),
+				Message:    fmt.Sprintf("in left part of rule %d ", i+1),
+			})
 		}
 		err = p.getConstructorsFromExpr(rule.Rhs)
 		if err != nil {
-			return errors.Join(fmt.Errorf("в правой части правила %d ", i+1), err)
+			//return errors.Join(fmt.Errorf("в правой части правила %d ", i+1), err)
+			return err.Wrap(&models.ParseError{
+				LlmMessage: fmt.Sprintf("в правой части правила %d ", i+1),
+				Message:    fmt.Sprintf("in right part of rule %d ", i+1),
+			})
 		}
 	}
 
 	return nil
 }
 
-func ParseRules(arr []models.Lexem) (*TRS, []models.Lexem, error) {
+func ParseRules(arr []models.Lexem) (*TRS, []models.Lexem, *models.ParseError) {
 	if len(arr) == 0 {
-		return nil, arr, fmt.Errorf("должно быть хотя бы одно правило переписывания")
+		//return nil, arr, fmt.Errorf("должно быть хотя бы одно правило переписывания")
+		return nil, arr, &models.ParseError{
+			LlmMessage: "должно быть хотя бы одно правило переписывания",
+			Message:    "need term rewrite rule",
+		}
 	}
 
 	p := Parser{lexem: arr}
