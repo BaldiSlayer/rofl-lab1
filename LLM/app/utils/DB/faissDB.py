@@ -21,10 +21,32 @@ def create_faiss_index(embeddings):
     return index
 
 
-def search_similar(model, index, query, data, k=2):
+def search_similar(model, index, query, data, k_max=10, similarity_threshold=0.1):
+    """
+    Dynamic search for similar objects based on similarity threshold.
+    :param model: sentence transformer model
+    :param index: FAISS index
+    :param query: query string
+    :param data: original data (list of questions/answers)
+    :param k_max: maximum number of results to return
+    :param similarity_threshold: threshold for similarity to dynamically adjust k
+    :return: list of similar objects
+    """
+    # get the query vector
     query_embedding = model.encode([query])
-    D, I = index.search(np.array(query_embedding), k)
-    return [data[idx] for idx in I[0]]
+
+    # perform a search with the maximum value of k
+    D, I = index.search(np.array(query_embedding), k_max)
+
+    # Dynamically determine k depending on the distances
+    dynamic_k = 1  # At least one result is always returned
+    for i in range(1, k_max):
+        if D[0][i] - D[0][i - 1] > similarity_threshold:
+            break
+        dynamic_k += 1
+
+    # Return only those objects that satisfy the dynamic k
+    return [data[idx] for idx in I[0][:dynamic_k]]
 
 
 def save_vectorized_data(data, embeddings, index, filename):
@@ -122,7 +144,9 @@ def add_new_questions(new_questions, filename="vectorized_data"):
 # # Пример использования функции добавления новых вопросов:
 # new_questions = [
 #     {"question": "Что такое машинное обучение?", "answer": "Это область искусственного интеллекта"},
-#     {"question": "Что такое нейронные сети?", "answer": "Это модель вычислений, имитирующая работу мозга"}
+#     {"question": "Что такое нейронные сети?", "answer": "Это модель вычислений, имитирующая работу мозга"},
+#     {"question": "Что ML?", "answer": "это область ИИ"},
+#     {"question": "Что НЛП?", "answer": "это область ИИ"}
 # ]
 #
 # add_new_questions(new_questions, filename="vectorized_data")
@@ -133,27 +157,6 @@ def add_new_questions(new_questions, filename="vectorized_data"):
 #     {"question": "Что такое МЛ?", "answer": "это область ИИ"},
 # ]
 #
-# results = process_questions(questions, use_saved=True)
-#
-# for result in results:
-#     print(result)
-#     print("-" * 50)
-
-# # Пример использования
-# questions = [
-#     {"question": "Что такое ТФЯ?", "answer": "теория формальных языков"},
-#     {"question": "Что такое НЛП?", "answer": "обработка естественного языка"},
-#     {"question": "На какие языки перевод?", "answer": "перевод на русский язык и на английский языки"},
-# ]
-#
-# # Первый запуск: создание и сохранение векторизованных данных
-# results = process_questions(questions, use_saved=False)
-#
-# for result in results:
-#     print(result)
-#     print("-" * 50)
-#
-# # Второй запуск: использование сохраненных векторизованных данных
 # results = process_questions(questions, use_saved=True)
 #
 # for result in results:
