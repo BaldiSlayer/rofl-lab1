@@ -25,3 +25,10 @@ class QuestionAnswer(BaseModel):
 class AddQuestionsRequest(BaseModel):
     new_questions: List[QuestionAnswer]
     filename: Optional[str] = "vectorized_data"
+
+
+# Модель запроса для сохранения векторных данных
+class SaveVectorizedDataRequest(BaseModel):
+    data: List[QuestionAnswer]  # Список вопросов и ответов
+    embeddings: List[List[float]]  # Эмбеддинги в виде списка списков
+    filename: Optional[str] = "vectorized_data"  # Имя файла для сохранения
