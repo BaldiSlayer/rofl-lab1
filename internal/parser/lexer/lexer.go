@@ -70,7 +70,7 @@ func (p *Lexer) Process() error {
 				}
 
 				cEOL++
-				iLine = i
+				iLine = i+1
 			} else if isLetter(runes[i]) { // если встретилась буква
 				if runes[i] == 'v' && i+len(lexVariables) < len(runes) { // проверяем на "variables"
 					wordVariablesFound := true

@@ -335,15 +335,18 @@ func (p *Parser) getConstructorsFromExpr(a Subexpression) *models.ParseError {
 			if count != len(*a.Args) {
 				//return fmt.Errorf("несовпадение в количестве элементов конструктора %s: ожидалось %d переменных, найдено %d переменных", a.Letter.Str, count, len(*a.Args))
 				return &models.ParseError{
-					LlmMessage: fmt.Sprintf("несовпадение в количестве элементов конструктора %s: ожидалось %d переменных, найдено %d переменных",
+					LlmMessage: fmt.Sprintf("несовпадение в количестве элементов конструктора %s: ожидалось %d аргументов, найдено %d аргументов",
 						a.Letter.Str, count, len(*a.Args)),
-					Message: fmt.Sprintf("constructor mismatch %s: expect %d vars, found %d vars",
+					Message: fmt.Sprintf("constructor mismatch %s: expect %d args, found %d args",
 						a.Letter.Str, count, len(*a.Args)),
 				}
 			}
 		}
 		for _, e := range *a.Args {
-			p.getConstructorsFromExpr(e)
+			err := p.getConstructorsFromExpr(e)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -384,16 +387,16 @@ func (p *Parser) checkRules() *models.ParseError {
 		if err != nil {
 			//return errors.Join(fmt.Errorf("в левой части правила %d ", i+1), err)
 			return err.Wrap(&models.ParseError{
-				LlmMessage: fmt.Sprintf("в левой части правила %d ", i+1),
-				Message:    fmt.Sprintf("in left part of rule %d ", i+1),
+				LlmMessage: fmt.Sprintf("в левой части правила %d", i+1),
+				Message:    fmt.Sprintf("in left part of rule %d", i+1),
 			})
 		}
 		err = p.getConstructorsFromExpr(rule.Rhs)
 		if err != nil {
 			//return errors.Join(fmt.Errorf("в правой части правила %d ", i+1), err)
 			return err.Wrap(&models.ParseError{
-				LlmMessage: fmt.Sprintf("в правой части правила %d ", i+1),
-				Message:    fmt.Sprintf("in right part of rule %d ", i+1),
+				LlmMessage: fmt.Sprintf("в правой части правила %d", i+1),
+				Message:    fmt.Sprintf("in right part of rule %d", i+1),
 			})
 		}
 	}

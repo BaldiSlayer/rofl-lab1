@@ -1,6 +1,7 @@
 package trsparser
 
 import (
+	"fmt"
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/lexer"
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 	"testing"
@@ -78,16 +79,21 @@ func TestParserWithVarAsConstructor(t *testing.T) {
 }
 
 func TestMind(t *testing.T) {
-	input := "variables=x\nf(x) = x\n-------\nf(x) = x\n"
+	input := `variables=x
+x(x, g(y)) = g(f(x))
+-------`
 
 	l := lexer.Lexer{Text: input}
 	err := l.Process()
 	if err != nil {
 		t.Error(err)
 	}
+	for _, e := range l.Lexem {
+		fmt.Printf("%d:%d %s\n", e.Line, e.Index, e.Str)
+	}
 
 	_, _, err1 := ParseRules(l.Lexem)
 	if err1 != nil {
-		t.Error(err1)
+		t.Error(err1.LlmMessage)
 	}
 }
