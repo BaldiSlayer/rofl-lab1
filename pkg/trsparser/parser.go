@@ -23,7 +23,7 @@ func (p Parser) Parse(input string) (*Trs, error) {
 
 	trs, err := p.parse(input)
 	if err != nil {
-		return nil, toParseError(err)
+		return nil, err
 	}
 	return trs, err
 }

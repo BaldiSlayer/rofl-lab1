@@ -78,7 +78,10 @@ func TestParserWithVarAsConstructor(t *testing.T) {
 }
 
 func TestMind(t *testing.T) {
-	input := "variables=x\nf(x) = x\n-------\nf(x) = x\n"
+	input := `variables=x
+x(x, g(y)) = g(f(x))
+-------`
+
 	l := lexer.Lexer{Text: input}
 	err := l.Process()
 	if err != nil {
@@ -86,7 +89,7 @@ func TestMind(t *testing.T) {
 	}
 
 	_, _, err1 := ParseRules(l.Lexem)
-	if err1 != nil {
-		t.Error(err1)
+	if err1 == nil {
+		t.Error("должен бросать ошибку о неправильной лексеме в второй строчке")
 	}
 }

@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"fmt"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 )
 
@@ -70,7 +71,7 @@ func (p *Lexer) Process() error {
 				}
 
 				cEOL++
-				iLine = i
+				iLine = i + 1
 			} else if isLetter(runes[i]) { // если встретилась буква
 				if runes[i] == 'v' && i+len(lexVariables) < len(runes) { // проверяем на "variables"
 					wordVariablesFound := true
@@ -97,7 +98,14 @@ func (p *Lexer) Process() error {
 				}
 				p.appendLex(i-iLine, cEOL, models.LexNUM, string(runes[start_index:i+1]))
 			} else {
-				return fmt.Errorf("Неизвестный символ в строке %d, позиции %d: %s", cEOL+1, i-iLine+1, string(runes[i]))
+				l := cEOL + 1
+				c := i - iLine + 1
+				symbol := string(runes[i])
+				return &models.ParseError{
+					LlmMessage: fmt.Sprintf("неизвестный символ в строке %d, позиции %d: %s", l, c, symbol),
+					Message:    fmt.Sprintf("unknown symbol at %d:%d: %s", l, c, symbol),
+					Err:        nil,
+				}
 			}
 		}
 	}
