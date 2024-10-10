@@ -44,73 +44,11 @@ components:
         - null
         - null
         rules:
-        - lhs:
-            args:
-            - ""
-            - ""
-            letter:
-              name: name
-              isVariable: true
-          rhs:
-            args:
-            - ""
-            - ""
-            letter:
-              name: name
-              isVariable: true
-        - lhs:
-            args:
-            - ""
-            - ""
-            letter:
-              name: name
-              isVariable: true
-          rhs:
-            args:
-            - ""
-            - ""
-            letter:
-              name: name
-              isVariable: true
+        - null
+        - null
         interpretations:
-        - args:
-          - null
-          - null
-          monomials:
-          - factors:
-            - variable: variable
-              coefficient: 1
-              power: 1
-            - variable: variable
-              coefficient: 1
-              power: 1
-          - factors:
-            - variable: variable
-              coefficient: 1
-              power: 1
-            - variable: variable
-              coefficient: 1
-              power: 1
-          name: name
-        - args:
-          - null
-          - null
-          monomials:
-          - factors:
-            - variable: variable
-              coefficient: 1
-              power: 1
-            - variable: variable
-              coefficient: 1
-              power: 1
-          - factors:
-            - variable: variable
-              coefficient: 1
-              power: 1
-            - variable: variable
-              coefficient: 1
-              power: 1
-          name: name
+        - null
+        - null
       properties:
         variables:
           items:
@@ -120,13 +58,13 @@ components:
           type: array
         rules:
           items:
-            $ref: '#/components/schemas/Rule'
+            $ref: '#/components/schemas/NonEmptyString'
           minItems: 1
           title: rules
           type: array
         interpretations:
           items:
-            $ref: '#/components/schemas/Interpretation'
+            $ref: '#/components/schemas/NonEmptyString'
           minItems: 1
           title: interpretations
           type: array
@@ -140,166 +78,3 @@ components:
       minLength: 1
       title: NonEmptyString
       type: string
-    Rule:
-      example:
-        lhs:
-          args:
-          - ""
-          - ""
-          letter:
-            name: name
-            isVariable: true
-        rhs:
-          args:
-          - ""
-          - ""
-          letter:
-            name: name
-            isVariable: true
-      properties:
-        lhs:
-          $ref: '#/components/schemas/Subexpression'
-        rhs:
-          $ref: '#/components/schemas/Subexpression'
-      required:
-      - lhs
-      - rhs
-      title: Rule
-      type: object
-    Subexpression:
-      example:
-        args:
-        - ""
-        - ""
-        letter:
-          name: name
-          isVariable: true
-      properties:
-        letter:
-          $ref: '#/components/schemas/Letter'
-        args:
-          items: {}
-          title: args
-          type: array
-      required:
-      - letter
-      title: Subexpression
-      type: object
-    Letter:
-      description: represents variable or constructor
-      example:
-        name: name
-        isVariable: true
-      properties:
-        name:
-          minLength: 1
-          title: NonEmptyString
-          type: string
-        isVariable:
-          title: isVariable
-          type: boolean
-      required:
-      - isVariable
-      - name
-      title: Letter
-      type: object
-    Interpretation:
-      example:
-        args:
-        - null
-        - null
-        monomials:
-        - factors:
-          - variable: variable
-            coefficient: 1
-            power: 1
-          - variable: variable
-            coefficient: 1
-            power: 1
-        - factors:
-          - variable: variable
-            coefficient: 1
-            power: 1
-          - variable: variable
-            coefficient: 1
-            power: 1
-        name: name
-      properties:
-        name:
-          minLength: 1
-          title: NonEmptyString
-          type: string
-        args:
-          items:
-            $ref: '#/components/schemas/NonEmptyString'
-          title: args
-          type: array
-        monomials:
-          items:
-            $ref: '#/components/schemas/Monomial'
-          title: monomials
-          type: array
-      required:
-      - args
-      - monomials
-      - name
-      title: Interpretation
-      type: object
-    Monomial:
-      oneOf:
-      - $ref: '#/components/schemas/ProductMonomial'
-      - $ref: '#/components/schemas/ConstantMonomial'
-      title: Monomial
-      type: object
-    ProductMonomial:
-      example:
-        factors:
-        - variable: variable
-          coefficient: 1
-          power: 1
-        - variable: variable
-          coefficient: 1
-          power: 1
-      properties:
-        factors:
-          items:
-            $ref: '#/components/schemas/Factor'
-          minItems: 1
-          title: factors
-          type: array
-      required:
-      - factors
-      title: ProductMonomial
-      type: object
-    Factor:
-      example:
-        variable: variable
-        coefficient: 1
-        power: 1
-      properties:
-        variable:
-          minLength: 1
-          title: NonEmptyString
-          type: string
-        coefficient:
-          minimum: 1
-          title: coefficient
-          type: integer
-        power:
-          minimum: 1
-          title: power
-          type: integer
-      required:
-      - variable
-      title: Factor
-      type: object
-    ConstantMonomial:
-      properties:
-        constant:
-          minimum: 1
-          title: constant
-          type: integer
-      required:
-      - constant
-      title: ConstantMonomial
-      type: object
