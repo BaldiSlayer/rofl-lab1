@@ -97,7 +97,9 @@ func TestNoConstructorName(t *testing.T) {
 
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверно задана интерпретация: ожидалось название конструктора, получено =", parseError.LlmMessage)
+	assert.Equal(t,
+		`неверно задана интерпретация: ожидалось название конструктора, получено "=" (строка 0, символ 0)`,
+		parseError.LlmMessage)
 }
 
 func TestSingleInterpretation(t *testing.T) {
@@ -216,8 +218,10 @@ func TestMissingStarSign(t *testing.T) {
 
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"ожидался знак * после коэффициента 5 в определении монома, получено x", parseError.LlmMessage)
+	assert.Equal(t, `неверно задана интерпретация конструктора f: `+
+		`при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], `+
+		`ожидался знак "*" после коэффициента 5, получено "x" `+
+		`(строка 0, символ 0)`, parseError.LlmMessage)
 }
 
 func TestUndefinedVariable(t *testing.T) {
@@ -243,7 +247,7 @@ func TestUndefinedVariable(t *testing.T) {
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"не объявлен аргумент z", parseError.LlmMessage)
+		"аргумент z не объявлен в левой части выражения, но использован в правой", parseError.LlmMessage)
 }
 
 func TestInterpretationArityMismatch(t *testing.T) {
@@ -309,7 +313,8 @@ func TestDuplicateInterpretation(t *testing.T) {
 
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "интерпретация конструктора f задана повторно", parseError.LlmMessage)
+	assert.Equal(t, "интерпретация конструктора f задана повторно, "+
+		"хотя каждый конструктор должен иметь только одну интерпретацию", parseError.LlmMessage)
 }
 
 func TestDuplicateArgument(t *testing.T) {
@@ -330,7 +335,8 @@ func TestDuplicateArgument(t *testing.T) {
 
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "в интерпретации конструктора f повторно объявлена переменная x", parseError.LlmMessage)
+	assert.Equal(t, "в интерпретации конструктора f повторно объявлена переменная x, "+
+		"хотя каждая переменная должна быть объявлена один раз", parseError.LlmMessage)
 }
 
 func TestNoSufficientInterpretation(t *testing.T) {
@@ -470,7 +476,8 @@ func TestIllFormedMonomial(t *testing.T) {
 
 	var parseError *models.ParseError
 	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(t, "неверно задана интерпретация конструктора f: "+
-		"в определении монома ожидалось название переменной или значение коэффициента, "+
-		"получено *", parseError.LlmMessage)
+	assert.Equal(t, `неверно задана интерпретация конструктора f: `+
+		`при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], `+
+		`ожидалось название переменной или коэффициент, получено "*" `+
+		`(строка 0, символ 0)`, parseError.LlmMessage)
 }
