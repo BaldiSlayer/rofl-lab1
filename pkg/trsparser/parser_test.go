@@ -20,6 +20,256 @@ func TestErrorOnEmptyInput(t *testing.T) {
 	)
 }
 
+func TestErrorOnJustEOL(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(`
+
+`)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`в начале TRS ожидалось перечисление переменных формата "variables = x,y,z": `+
+			`в строке 1 TRS  на позиции 1 ожидалось "variables", найдено "конец строки"`,
+		parseError.LlmMessage,
+	)
+}
+
+func TestErrorNoEOL(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(
+		`variables = x
+f(x) = x
+-----
+f(x) = 5`,
+	)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`неверно задана интерпретация f: `+
+			`ожидался перенос строки после определения интерпретации, получено "EOF" (строка 0, символ 0)`,
+		parseError.LlmMessage,
+	)
+}
+
+func TestErrorNoSeparator(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(
+		`variables = x
+f(x) = x
+f(x) = 5
+`,
+	)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`в строке 3 TRS  на позиции 8 ожидалось "буква", найдено "5"`,
+		parseError.LlmMessage,
+	)
+}
+
+func TestExcessVariables(t *testing.T) {
+	_, err := Parser{}.Parse(
+		`variables = x, y
+f(x) = x
+------
+f(x) = 5
+`,
+	)
+
+	assert.NoError(t, err)
+}
+
+func TestMissingEqualsSign(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(
+		`variables = x
+f(x) = x
+------
+f(x) 5
+`,
+	)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`неверно задана интерпретация конструктора f: `+
+			`ожидался знак равенства после объявления переменных, получено "5" (строка 2, символ 12)`,
+		parseError.LlmMessage,
+	)
+}
+
+func TestExcessClosingBracket(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(
+		`variables = x
+f(x) = x
+------
+f(x)) = 5
+`,
+	)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`неверно задана интерпретация конструктора f: `+
+			`ожидался знак равенства после объявления переменных, получено ")" (строка 2, символ 11)`,
+		parseError.LlmMessage,
+	)
+}
+
+func TestExcessStarSign(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(
+		`variables = x
+f(x) = x
+------
+f(x) = 5**x
+`,
+	)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`неверно задана интерпретация конструктора f: `+
+			`при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], `+
+			`ожидалось название переменной, получено "*" (строка 2, символ 16)`,
+		parseError.LlmMessage,
+	)
+}
+
+func TestMissingClosingBracket(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(
+		`variables = x
+f(x) = x
+------
+f(x = 5
+`,
+	)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`неверно задана интерпретация конструктора f: `+
+			`при разборе определения переменных через запятую, `+
+			`ожидалась запятая или закрывающая скобка после перечисления переменных, получено "=" `+
+			`(строка 2, символ 11)`,
+		parseError.LlmMessage,
+	)
+}
+
+func TestExcessClosingBracketInRules(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(
+		`variables = x
+f(x = x
+-----
+f(x) = 5
+`,
+	)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`в строке 2 TRS  на позиции 5 ожидалось ")", найдено "="`,
+		parseError.LlmMessage,
+	)
+}
+
+func TestMissingEqualSignAtVariablesBlock(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(
+		`variables x
+f(x) = x
+-----
+f(x) = 5
+`,
+	)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`в строке 1 TRS  на позиции 11 ожидалось "=", найдено "x"`,
+		parseError.LlmMessage,
+	)
+}
+
+func TestCoefficientAfterVariable(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(
+		`variables = x
+f(x) = x
+-----
+f(x) = x*5
+`,
+	)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`неверно задана интерпретация конструктора f: `+
+			`при разборе монома в формате [опциональный коэффициент *] переменная [опциональная степень], `+
+			`ожидалось название переменной или коэффициент, получено "*" (строка 2, символ 14)`,
+		parseError.LlmMessage,
+	)
+}
+
+func TestNoVariablesInInterpretation(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(
+		`variables = x
+f(x) = x
+-----
+f() = x*5
+`,
+	)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`неверно задана интерпретация конструктора f: `+
+			`в объявлении переменных ожидалась хотя бы одна буква - название переменной, получено ")" `+
+			`(строка 2, символ 8)`,
+		parseError.LlmMessage,
+	)
+}
+
+func TestNestedBracketsInInterpretation(t *testing.T) {
+	var parseError *ParseError
+
+	_, err := Parser{}.Parse(
+		`variables = x
+f(x) = x
+-----
+f(x, g(y)) = x*5
+`,
+	)
+
+	assert.ErrorAs(t, err, &parseError)
+	assert.Equal(
+		t,
+		`неверно задана интерпретация конструктора f: `+
+			`при разборе определения переменных через запятую, `+
+			`ожидалась запятая или закрывающая скобка после перечисления переменных, получено "(" `+
+			`(строка 2, символ 12)`,
+		parseError.LlmMessage,
+	)
+}
+
 func TestParsesSimpleTrs(t *testing.T) {
 	expectedRule := Rule{
 		Lhs: Subexpression{
