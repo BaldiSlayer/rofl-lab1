@@ -110,6 +110,7 @@ func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) error {
 			if l.LexemType == models.LexNUM || l.LexemType == models.LexLETTER {
 				return_str = l.Str
 			}
+			// FIXME: inner error here
 			return &models.ParseError{
 				LlmMessage: fmt.Sprintf("в строке %d TRS  на позиции %d ожидалось \"%s\", найдено \"%s\"",
 					l.Line+1, l.Index+1, models.GetLexemInterpretation(Ltype), return_str),

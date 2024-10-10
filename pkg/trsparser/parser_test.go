@@ -30,8 +30,8 @@ func TestErrorOnJustEOL(t *testing.T) {
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(
 		t,
-		"в начале TRS ожидалось перечисление переменных формата \"variables = x,y,z\"\n"+
-			"Возможные способы решения: \n + Переменные должны состоять из одной буквы и разделены запятой",
+		`в начале TRS ожидалось перечисление переменных формата "variables = x,y,z": `+
+			`в строке 1 TRS  на позиции 1 ожидалось "variables", найдено "конец строки"`,
 		parseError.LlmMessage,
 	)
 }
@@ -67,7 +67,7 @@ f(x) = 5
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(
 		t,
-		"в строке 3 TRS  на позиции 9 ожидалось \"буква\", найдено \"5\"",
+		`в строке 3 TRS  на позиции 8 ожидалось "буква", найдено "5"`,
 		parseError.LlmMessage,
 	)
 }
@@ -180,7 +180,7 @@ f(x) = 5
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(
 		t,
-		"в строке 2 TRS  на позиции 6 ожидалось \")\", найдено \"=\"",
+		`в строке 2 TRS  на позиции 5 ожидалось ")", найдено "="`,
 		parseError.LlmMessage,
 	)
 }
@@ -199,9 +199,7 @@ f(x) = 5
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(
 		t,
-		// TODO: просто писть про формат блока переменных?
-		"в строке 1 TRS  на позиции 11 ожидалось \"=\", найдено \"x\"\n"+
-			"Возможные способы решения: \n + Переменные должны состоять из одной буквы и разделены запятой",
+		`в строке 1 TRS  на позиции 11 ожидалось "=", найдено "x"`,
 		parseError.LlmMessage,
 	)
 }
