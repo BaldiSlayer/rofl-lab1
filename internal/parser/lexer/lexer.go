@@ -13,8 +13,8 @@ type Lexer struct {
 
 func (p *Lexer) appendLex(indexInLine, line int, lexType models.LexemType, str string) {
 	p.Lexem = append(p.Lexem, models.Lexem{
-		Index:     indexInLine+1, //для нумерации с единицы, добавляются единицы
-		Line:      line+1,
+		Index:     indexInLine + 1, //для нумерации с единицы, добавляются единицы
+		Line:      line + 1,
 		LexemType: lexType,
 		Str:       str,
 	})
