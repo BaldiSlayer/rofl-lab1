@@ -88,12 +88,9 @@ x(x, g(y)) = g(f(x))
 	if err != nil {
 		t.Error(err)
 	}
-	for _, e := range l.Lexem {
-		fmt.Printf("%d:%d %s\n", e.Line, e.Index, e.Str)
-	}
 
 	_, _, err1 := ParseRules(l.Lexem)
-	if err1 != nil {
-		t.Error(err1.LlmMessage)
+	if err1 == nil {
+		t.Error("должен бросать ошибку о неправильной лексеме в второй строчке")
 	}
 }
