@@ -6,7 +6,7 @@ import (
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 )
 
-func checkMonomials(monomials []Monomial, args []string) *models.ParseError {
+func checkMonomials(monomials []Monomial, args []string) error {
 	c := monomialChecker{
 		definedVars: toMap(args),
 	}
@@ -25,7 +25,7 @@ type monomialChecker struct {
 	definedVars map[string]struct{}
 }
 
-func (c *monomialChecker) checkMonomial(monomial Monomial) *models.ParseError {
+func (c *monomialChecker) checkMonomial(monomial Monomial) error {
 	if monomial.Factors == nil {
 		return nil
 	}
@@ -46,7 +46,7 @@ func (c *monomialChecker) checkMonomial(monomial Monomial) *models.ParseError {
 	return nil
 }
 
-func (c *monomialChecker) checkFactor(factor Factor) *models.ParseError {
+func (c *monomialChecker) checkFactor(factor Factor) error {
 	if _, ok := c.definedVars[factor.Variable]; !ok {
 		return &models.ParseError{
 			LlmMessage: fmt.Sprintf("не объявлен аргумент %s", factor.Variable),
@@ -56,7 +56,7 @@ func (c *monomialChecker) checkFactor(factor Factor) *models.ParseError {
 	return nil
 }
 
-func checkInterpretations(interprets []Interpretation, constructorArity map[string]int) *models.ParseError {
+func checkInterpretations(interprets []Interpretation, constructorArity map[string]int) error {
 	c := interpretationsChecker{
 		defined: map[string]struct{}{},
 	}
@@ -84,10 +84,10 @@ type interpretationsChecker struct {
 	defined map[string]struct{}
 }
 
-type interpretationChecker = func(Interpretation, map[string]int) *models.ParseError
+type interpretationChecker = func(Interpretation, map[string]int) error
 
 func (c *interpretationsChecker) checkInterpretation(interpret Interpretation,
-	constructorArity map[string]int) *models.ParseError {
+	constructorArity map[string]int) error {
 
 	checkers := []interpretationChecker{
 		c.checkDuplicateInterpretation,
@@ -107,7 +107,7 @@ func (c *interpretationsChecker) checkInterpretation(interpret Interpretation,
 
 }
 
-func (c *interpretationsChecker) checkDuplicateInterpretation(interpret Interpretation, _ map[string]int) *models.ParseError {
+func (c *interpretationsChecker) checkDuplicateInterpretation(interpret Interpretation, _ map[string]int) error {
 	if _, ok := c.defined[interpret.Name]; ok {
 		return &models.ParseError{
 			LlmMessage: fmt.Sprintf("интерпретация конструктора %s задана повторно", interpret.Name),
@@ -119,7 +119,7 @@ func (c *interpretationsChecker) checkDuplicateInterpretation(interpret Interpre
 }
 
 func (c *interpretationsChecker) checkExcessInterpretation(interpret Interpretation,
-	constructorArity map[string]int) *models.ParseError {
+	constructorArity map[string]int) error {
 
 	_, ok := constructorArity[interpret.Name]
 	if !ok {
@@ -133,7 +133,7 @@ func (c *interpretationsChecker) checkExcessInterpretation(interpret Interpretat
 }
 
 func (c *interpretationsChecker) checkInterpretationArity(interpret Interpretation,
-	constructorArity map[string]int) *models.ParseError {
+	constructorArity map[string]int) error {
 
 	expectedArity, _ := constructorArity[interpret.Name]
 	if expectedArity != len(interpret.Args) {
@@ -146,7 +146,7 @@ func (c *interpretationsChecker) checkInterpretationArity(interpret Interpretati
 	return nil
 }
 
-func (c *interpretationsChecker) checkDuplicateArgumentName(interpret Interpretation, _ map[string]int) *models.ParseError {
+func (c *interpretationsChecker) checkDuplicateArgumentName(interpret Interpretation, _ map[string]int) error {
 	args := map[string]struct{}{}
 	for _, arg := range interpret.Args {
 		if _, ok := args[arg]; ok {
