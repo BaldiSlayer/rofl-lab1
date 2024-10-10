@@ -3,9 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
-	"io/ioutil"
+	"io"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func (controller *Controller) knowledgeBase(question string) (string, error) {
@@ -28,7 +29,7 @@ func (controller *Controller) KnowledgeBase(w http.ResponseWriter, r *http.Reque
 		Question string `json:"question"`
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		ErrorHandler(errorRow{
 			w:         w,

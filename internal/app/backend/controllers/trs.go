@@ -3,7 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -47,7 +47,7 @@ func (controller *Controller) TRSCheck(w http.ResponseWriter, r *http.Request, _
 		Request string `json:"request"`
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		ErrorHandler(errorRow{
 			w:         w,

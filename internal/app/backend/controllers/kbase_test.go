@@ -6,11 +6,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/julienschmidt/httprouter"
+	"github.com/stretchr/testify/require"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/mclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/trsclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/vdatabase"
-	"github.com/julienschmidt/httprouter"
-	"github.com/stretchr/testify/require"
 )
 
 func TestController_KnowledgeBase(t *testing.T) {
@@ -43,11 +44,12 @@ func TestController_KnowledgeBase(t *testing.T) {
 	router := httprouter.New()
 	router.GET("/knowledge_base", controller.KnowledgeBase)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		tc := test
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			requestBody := strings.NewReader(tt.args.requestString)
+			requestBody := strings.NewReader(tc.args.requestString)
 			request, err := http.NewRequest("GET", "/knowledge_base", requestBody)
 
 			require.NoError(t, err)
@@ -55,9 +57,9 @@ func TestController_KnowledgeBase(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			router.ServeHTTP(recorder, request)
 
-			require.Equal(t, tt.args.statusCode, recorder.Code)
+			require.Equal(t, tc.args.statusCode, recorder.Code)
 
-			require.Equal(t, tt.args.response, recorder.Body.String())
+			require.Equal(t, tc.args.response, recorder.Body.String())
 		})
 	}
 }

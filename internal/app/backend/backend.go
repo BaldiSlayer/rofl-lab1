@@ -6,12 +6,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/bconfig"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/controllers"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/mclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/trsclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/vdatabase"
-	"github.com/julienschmidt/httprouter"
 )
 
 const (
