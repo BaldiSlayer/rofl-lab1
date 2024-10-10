@@ -89,6 +89,56 @@ def process_questions(questions_list, use_saved=False, filename="vectorized_data
     return results
 
 
+def add_new_questions(new_questions, filename="vectorized_data"):
+    """
+    Add new questions to the existing vectorized database and update the embeddings and FAISS index.
+    :param new_questions: list of new questions in the format [{"question": "text", "answer": "text"}]
+    :param filename: base filename for saved data
+    """
+    model = initialize_model()
+
+    # Load existing data
+    if os.path.exists(f"{filename}_data.pkl"):
+        data, embeddings, index = load_vectorized_data(filename)
+    else:
+        raise FileNotFoundError(f"No existing data found at {filename}. Please initialize the database first.")
+
+    # Create embeddings for new questions
+    new_embeddings = create_embeddings(model, new_questions)
+
+    # Concatenate old and new data and embeddings
+    updated_data = data + new_questions
+    updated_embeddings = np.vstack((embeddings, new_embeddings))
+
+    # Update FAISS index with new embeddings
+    index.add(new_embeddings)
+
+    # Save the updated data, embeddings, and FAISS index
+    save_vectorized_data(updated_data, updated_embeddings, index, filename)
+
+    print(f"Added {len(new_questions)} new questions to the database.")
+
+
+# # Пример использования функции добавления новых вопросов:
+# new_questions = [
+#     {"question": "Что такое машинное обучение?", "answer": "Это область искусственного интеллекта"},
+#     {"question": "Что такое нейронные сети?", "answer": "Это модель вычислений, имитирующая работу мозга"}
+# ]
+#
+# add_new_questions(new_questions, filename="vectorized_data")
+#
+# questions = [
+#     {"question": "Что такое ТФЯ?", "answer": "теория формальных языков"},
+#     {"question": "Что такое НЛП?", "answer": "обработка естественного языка"},
+#     {"question": "Что такое МЛ?", "answer": "это область ИИ"},
+# ]
+#
+# results = process_questions(questions, use_saved=True)
+#
+# for result in results:
+#     print(result)
+#     print("-" * 50)
+
 # # Пример использования
 # questions = [
 #     {"question": "Что такое ТФЯ?", "answer": "теория формальных языков"},
