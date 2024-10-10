@@ -3,12 +3,7 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from openapi_server.models.base_model import Model
-from openapi_server.models.interpretation import Interpretation
-from openapi_server.models.rule import Rule
 from openapi_server import util
-
-from openapi_server.models.interpretation import Interpretation  # noqa: E501
-from openapi_server.models.rule import Rule  # noqa: E501
 
 
 class Trs(Model):
@@ -23,14 +18,14 @@ class Trs(Model):
         :param variables: The variables of this Trs.  # noqa: E501
         :type variables: List[str]
         :param rules: The rules of this Trs.  # noqa: E501
-        :type rules: List[Rule]
+        :type rules: List[str]
         :param interpretations: The interpretations of this Trs.  # noqa: E501
-        :type interpretations: List[Interpretation]
+        :type interpretations: List[str]
         """
         self.openapi_types = {
             'variables': List[str],
-            'rules': List[Rule],
-            'interpretations': List[Interpretation]
+            'rules': List[str],
+            'interpretations': List[str]
         }
 
         self.attribute_map = {
@@ -80,22 +75,22 @@ class Trs(Model):
         self._variables = variables
 
     @property
-    def rules(self) -> List[Rule]:
+    def rules(self) -> List[str]:
         """Gets the rules of this Trs.
 
 
         :return: The rules of this Trs.
-        :rtype: List[Rule]
+        :rtype: List[str]
         """
         return self._rules
 
     @rules.setter
-    def rules(self, rules: List[Rule]):
+    def rules(self, rules: List[str]):
         """Sets the rules of this Trs.
 
 
         :param rules: The rules of this Trs.
-        :type rules: List[Rule]
+        :type rules: List[str]
         """
         if rules is None:
             raise ValueError("Invalid value for `rules`, must not be `None`")  # noqa: E501
@@ -105,22 +100,22 @@ class Trs(Model):
         self._rules = rules
 
     @property
-    def interpretations(self) -> List[Interpretation]:
+    def interpretations(self) -> List[str]:
         """Gets the interpretations of this Trs.
 
 
         :return: The interpretations of this Trs.
-        :rtype: List[Interpretation]
+        :rtype: List[str]
         """
         return self._interpretations
 
     @interpretations.setter
-    def interpretations(self, interpretations: List[Interpretation]):
+    def interpretations(self, interpretations: List[str]):
         """Sets the interpretations of this Trs.
 
 
         :param interpretations: The interpretations of this Trs.
-        :type interpretations: List[Interpretation]
+        :type interpretations: List[str]
         """
         if interpretations is None:
             raise ValueError("Invalid value for `interpretations`, must not be `None`")  # noqa: E501
