@@ -71,7 +71,7 @@ func (p *Lexer) Process() error {
 				}
 
 				cEOL++
-				iLine = i+1
+				iLine = i + 1
 			} else if isLetter(runes[i]) { // если встретилась буква
 				if runes[i] == 'v' && i+len(lexVariables) < len(runes) { // проверяем на "variables"
 					wordVariablesFound := true
@@ -98,8 +98,8 @@ func (p *Lexer) Process() error {
 				}
 				p.appendLex(i-iLine, cEOL, models.LexNUM, string(runes[start_index:i+1]))
 			} else {
-				l := cEOL+1
-				c := i-iLine+1
+				l := cEOL + 1
+				c := i - iLine + 1
 				symbol := string(runes[i])
 				return &models.ParseError{
 					LlmMessage: fmt.Sprintf("неизвестный символ в строке %d, позиции %d: %s", l, c, symbol),

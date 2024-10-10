@@ -5,7 +5,7 @@ import "fmt"
 type ParseError struct {
 	LlmMessage string
 	Message    string
-	Err error
+	Err        error
 }
 
 func NewParseError(message, llmMessage string) error {

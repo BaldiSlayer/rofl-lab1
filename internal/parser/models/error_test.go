@@ -7,7 +7,7 @@ import (
 )
 
 func TestWrapping(t *testing.T) {
-	err := func () error {
+	err := func() error {
 		return NewParseError("inner error", "вложенная ошибка")
 	}()
 
