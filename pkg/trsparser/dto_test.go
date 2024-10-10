@@ -1,36 +1,40 @@
-package trsinterprets
+package trsparser
 
-import "testing"
+import (
+	"testing"
 
-func TestParserWithPeano(t *testing.T) {
-	f := make([]Factor, 4)
-	f[0] = Factor{
+	"github.com/BaldiSlayer/rofl-lab1/internal/parser/trsinterprets"
+)
+
+func TestPeanoDto(t *testing.T) {
+	f := make([]trsinterprets.Factor, 4)
+	f[0] = trsinterprets.Factor{
 		Coefficient: 1,
 		Power:       1,
 		Variable:    "a",
 	}
-	f[1] = Factor{
+	f[1] = trsinterprets.Factor{
 		Coefficient: 2,
 		Power:       1,
 		Variable:    "b",
 	}
-	f[2] = Factor{
+	f[2] = trsinterprets.Factor{
 		Coefficient: 1,
 		Power:       2,
 		Variable:    "c",
 	}
-	f[3] = Factor{
+	f[3] = trsinterprets.Factor{
 		Coefficient: 3,
 		Power:       4,
 		Variable:    "d",
 	}
 
-	m := make([]Monomial, 2)
+	m := make([]trsinterprets.Monomial, 2)
 	two := 2
-	m[0] = Monomial{
+	m[0] = trsinterprets.Monomial{
 		Constant: &two,
 	}
-	m[1] = Monomial{
+	m[1] = trsinterprets.Monomial{
 		Factors: &f,
 	}
 
