@@ -43,8 +43,14 @@ func (p *Parser) accept(expectedType models.LexemType,
 	got := p.stream.next()
 	if got.Type() != expectedType {
 		return models.Lexem{}, &models.ParseError{
-			LlmMessage: fmt.Sprintf("%s, получено \"%s\"", expectedLlmMessage, got.String()),
-			Message:    fmt.Sprintf("expected %s, got %v", expectedMessage, got.String()),
+			LlmMessage: fmt.Sprintf(
+				`%s, получено "%s" (строка %d, символ %d)`,
+				expectedLlmMessage,
+				got.String(),
+				got.Line,
+				got.Index,
+			),
+			Message: fmt.Sprintf("expected %s, got %v", expectedMessage, got.String()),
 		}
 	}
 	return got, nil
