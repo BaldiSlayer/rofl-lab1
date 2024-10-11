@@ -35,8 +35,8 @@ func TestParserWithWrongVar(t *testing.T) {
 	}
 
 	_, _, err1 := ParseRules(l.Lexem)
-	if err1 == nil {
-		t.Errorf("Должен кидать ошибку о несовпадающих переменных в правиле переписывания")
+	if err1.Error() != "in rule 1 var mismatch: z cant be used" {
+		t.Error(err1)
 	}
 }
 func TestParserWithVarError(t *testing.T) {
@@ -47,8 +47,8 @@ func TestParserWithVarError(t *testing.T) {
 	}
 
 	_, _, err1 := ParseRules(l.Lexem)
-	if err1 == nil {
-		t.Errorf("Должен кидать ошибку в объявлении переменных")
+	if err1.Error() != "at 1:18 expected буква, found конец строки" {
+		t.Error(err1)
 	}
 }
 func TestParserWithConstructorError(t *testing.T) {
@@ -59,8 +59,8 @@ func TestParserWithConstructorError(t *testing.T) {
 	}
 
 	_, _, err1 := ParseRules(l.Lexem)
-	if err1 == nil {
-		t.Errorf("Должен кидать ошибку о неправильном количестве переменных в конструкторе")
+	if err1.Error() != "in line 2 constructor mismatch f: expect 2 args, found 1 args" {
+		t.Error(err1)
 	}
 }
 
@@ -72,8 +72,8 @@ func TestParserWithVarAsConstructor(t *testing.T) {
 	}
 
 	_, _, err1 := ParseRules(l.Lexem)
-	if err1 == nil {
-		t.Error("Должен кидать ошибку о неправильной скобочной структуре")
+	if err1.Error() != "in line 2 at 1 var x used as constructor" {
+		t.Error(err1)
 	}
 }
 

@@ -60,6 +60,8 @@ type Parser struct {
 	lexem []models.Lexem
 	index int //index of syntax analyzing
 
+	errors []*models.ParseError
+
 	Model TRS
 }
 
@@ -268,6 +270,14 @@ func (p *Parser) parseTerm() (*Subexpression, error) {
 		}
 		return &Subexpression{Args: subexpr_arr, Letter: letter}, nil
 	} else { // variable
+		if p.index < len(p.lexem) && p.lexem[p.index].LexemType == models.LexLB{
+			return nil, &models.ParseError{
+					LlmMessage: fmt.Sprintf("в строке %d позиции %d переменная %s использована как конструктор",
+						letter.Line,letter.Index, letter.Str),
+					Message: fmt.Sprintf("in line %d at %d var %s used as constructor",
+						letter.Line,letter.Index, letter.Str),
+				}
+		}
 		return &Subexpression{Args: nil, Letter: letter}, nil
 	}
 }
@@ -316,6 +326,8 @@ func (p *Parser) parseTRS() error {
 	p.index = 0
 	p.Model = TRS{}
 	p.Model.Constructors = make(map[string]int)
+	p.errors = make([]*models.ParseError, 0)
+
 	err := p.parseVars()
 	if err != nil {
 		return err
