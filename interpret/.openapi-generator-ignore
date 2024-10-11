@@ -26,6 +26,7 @@
 .dockerignore
 .openapi-generator-ignore
 .travis.yml
+openapi_server/__main__.py
 Dockerfile
 README.md
 git_push.sh

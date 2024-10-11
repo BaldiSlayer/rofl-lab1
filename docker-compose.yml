@@ -6,3 +6,15 @@ services:
     ports:
       - "8100:8100"
     container_name: LLM
+  backend:
+    build:
+      dockerfile: ./dockerfiles/backend.dockerfile
+    ports:
+      - "9000:9000"
+    container_name: backend
+  interpret:
+    build:
+      dockerfile: ./dockerfiles/interpret.dockerfile
+    ports:
+      - "8081:8081"
+    container_name: interpret
