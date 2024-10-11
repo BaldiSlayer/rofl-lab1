@@ -177,7 +177,7 @@ f(x) = 5
 `,
 	)
 	assert.NoError(t, err)
-	
+
 }
 
 func TestMissingEqualSignAtVariablesBlock(t *testing.T) {
