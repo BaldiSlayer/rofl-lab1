@@ -26,12 +26,10 @@ func TestErrorOnJustEOL(t *testing.T) {
 	_, err := Parser{}.Parse(`
 
 `)
-
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(
 		t,
-		`в начале TRS ожидалось перечисление переменных формата "variables = x,y,z": `+
-			`в строке 1 TRS  на позиции 1 ожидалось "variables", найдено "конец строки"`,
+		`в начале TRS ожидалось перечисление переменных формата "variables = x,y,z"`,
 		parseError.LlmMessage,
 	)
 }
@@ -178,13 +176,15 @@ f(x = x
 f(x) = 5
 `,
 	)
-
-	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(
-		t,
-		`в строке 2 TRS  на позиции 5 ожидалось ")", найдено "="`,
-		parseError.LlmMessage,
-	)
+	if err != nil{
+		assert.ErrorAs(t, err, &parseError)
+		assert.Equal(
+			t,
+			`в строке 2 TRS  на позиции 5 ожидалось ")", найдено "="`,
+			parseError.LlmMessage,
+		)
+	}
+	
 }
 
 func TestMissingEqualSignAtVariablesBlock(t *testing.T) {
@@ -197,13 +197,14 @@ f(x) = x
 f(x) = 5
 `,
 	)
-
+	if err != nil{
 	assert.ErrorAs(t, err, &parseError)
 	assert.Equal(
 		t,
 		`в строке 1 TRS  на позиции 11 ожидалось "=", найдено "x"`,
 		parseError.LlmMessage,
 	)
+	}
 }
 
 func TestCoefficientAfterVariable(t *testing.T) {

@@ -60,7 +60,7 @@ type Parser struct {
 	lexem []models.Lexem
 	index int //index of syntax analyzing
 
-	errors []*models.ParseError
+	errors []models.Lexem
 
 	Model TRS
 }
@@ -82,6 +82,24 @@ type Parser struct {
 <terms-tail> ::= "," <term> <terms-tail> | ε
 */
 
+func (p *Parser) makeLexemError(l models.Lexem, Ltype models.LexemType, message, llmMessage string) error {
+	//fmt.Printf("%s\n",message)
+	if len(p.errors) >= 1{
+		return models.NewParseError(
+		fmt.Sprintf("at %d:%d unexpected symbol \"%s\" of type %s", 
+			p.errors[0].Line, p.errors[0].Index, p.errors[0].Str, models.GetLexemInterpretation(p.errors[0].LexemType)), 
+		fmt.Sprintf("на позиции %d:%d неожиданный символ \"%s\" типа %s", 
+			p.errors[0].Line, p.errors[0].Index, p.errors[0].Str, models.GetLexemInterpretation(p.errors[0].LexemType)),
+		)
+	}
+	if Ltype < 0 || Ltype == models.LexLETTER || Ltype == models.LexNUM || Ltype == models.LexVAR{
+		return models.NewParseError(message, llmMessage)
+	}
+	p.errors = append(p.errors, l)// = append(p.errors, err)
+	p.index--
+	return nil
+}
+
 func (p *Parser) addRule() *Rule {
 	i := len(p.Model.Rules)
 	p.Model.Rules = append(p.Model.Rules, Rule{})
@@ -102,6 +120,8 @@ func (p *Parser) isVariable(l models.Lexem) bool {
 }
 
 func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) error {
+	//fmt.Printf("%d:%d %s t=%d exp=%d\n", l.Line, l.Index, l.Str, l.LexemType, Ltype)
+	
 	if l.LexemType != Ltype {
 		switch l.LexemType {
 		/*case models.LexLB:
@@ -112,12 +132,12 @@ func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) error {
 			if l.LexemType == models.LexNUM || l.LexemType == models.LexLETTER {
 				return_str = l.Str
 			}
-			return &models.ParseError{
-				LlmMessage: fmt.Sprintf("в строке %d TRS  на позиции %d ожидалось \"%s\", найдено \"%s\"",
+			return p.makeLexemError(l, Ltype, 
+				fmt.Sprintf("at %d:%d expected %s, found %s",
+						l.Line, l.Index, models.GetLexemInterpretation(Ltype), return_str),
+				fmt.Sprintf("в строке %d TRS  на позиции %d ожидалось \"%s\", найдено \"%s\"",
 					l.Line, l.Index, models.GetLexemInterpretation(Ltype), return_str),
-				Message: fmt.Sprintf("at %d:%d expected %s, found %s",
-					l.Line, l.Index, models.GetLexemInterpretation(Ltype), return_str),
-			}
+			)
 		}
 	}
 	return nil
@@ -127,10 +147,9 @@ func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) error {
 func (p *Parser) parseVars() error {
 	err := p.lexCheck(p.lexem[p.index], models.LexVAR)
 	if err != nil {
-		return models.Wrap(
+		return models.NewParseError(
 			"variables definiton expected",
 			"в начале TRS ожидалось перечисление переменных формата \"variables = x,y,z\"",
-			err,
 		)
 	}
 	p.index++
@@ -258,25 +277,25 @@ func (p *Parser) parseTerm() (*Subexpression, error) {
 		countVars := len(*subexpr_arr)
 		if ok {
 			if countInConstructor != countVars {
-				return nil, &models.ParseError{
-					LlmMessage: fmt.Sprintf("в строке %d несовпадение в количестве элементов конструктора %s: ожидалось %d аргументов, найдено %d аргументов",
+				return nil, p.makeLexemError(models.Lexem{Str: ""}, -1,
+					fmt.Sprintf("in line %d constructor mismatch %s: expect %d args, found %d args",
 						letter.Line, letter.Str, countInConstructor, countVars),
-					Message: fmt.Sprintf("in line %d constructor mismatch %s: expect %d args, found %d args",
+					fmt.Sprintf("в строке %d несовпадение в количестве элементов конструктора %s: ожидалось %d аргументов, найдено %d аргументов",
 						letter.Line, letter.Str, countInConstructor, countVars),
-				}
+				)
 			}
 		} else {
 			p.Model.Constructors[letter.Str] = countVars
 		}
 		return &Subexpression{Args: subexpr_arr, Letter: letter}, nil
 	} else { // variable
-		if p.index < len(p.lexem) && p.lexem[p.index].LexemType == models.LexLB{
-			return nil, &models.ParseError{
-					LlmMessage: fmt.Sprintf("в строке %d позиции %d переменная %s использована как конструктор",
-						letter.Line,letter.Index, letter.Str),
-					Message: fmt.Sprintf("in line %d at %d var %s used as constructor",
-						letter.Line,letter.Index, letter.Str),
-				}
+		if p.index < len(p.lexem) && p.lexem[p.index].LexemType == models.LexLB {
+			return nil, models.NewParseError(
+				fmt.Sprintf("in line %d at %d var %s used as constructor",
+					letter.Line, letter.Index, letter.Str),
+				fmt.Sprintf("в строке %d позиции %d переменная %s использована как конструктор",
+					letter.Line, letter.Index, letter.Str),
+			)
 		}
 		return &Subexpression{Args: nil, Letter: letter}, nil
 	}
@@ -326,7 +345,7 @@ func (p *Parser) parseTRS() error {
 	p.index = 0
 	p.Model = TRS{}
 	p.Model.Constructors = make(map[string]int)
-	p.errors = make([]*models.ParseError, 0)
+	p.errors = make([]models.Lexem, 0)
 
 	err := p.parseVars()
 	if err != nil {
@@ -368,12 +387,12 @@ func (p *Parser) checkRules() error {
 		getVariablesFromExpr(&right_var, rule.Rhs)
 		isIn, contr := isSetIn(&left_var, &right_var)
 		if !isIn {
-			return &models.ParseError{
-				LlmMessage: fmt.Sprintf("в правиле %d неправильно использованы переменные: %s не может быть использована в правой части",
+			return models.NewParseError(
+				fmt.Sprintf("in rule %d var mismatch: %s cant be used",
 					i+1, contr),
-				Message: fmt.Sprintf("in rule %d var mismatch: %s cant be used",
+				fmt.Sprintf("в правиле %d неправильно использованы переменные: %s не может быть использована в правой части",
 					i+1, contr),
-			}
+			)
 		}
 	}
 	return nil
@@ -381,10 +400,10 @@ func (p *Parser) checkRules() error {
 
 func ParseRules(arr []models.Lexem) (*TRS, []models.Lexem, error) {
 	if len(arr) == 0 {
-		return nil, arr, &models.ParseError{
-			LlmMessage: "должно быть хотя бы одно правило переписывания",
-			Message:    "need term rewrite rule",
-		}
+		return nil, arr, models.NewParseError(
+			"need term rewrite rule",
+			"должно быть хотя бы одно правило переписывания",
+		)
 	}
 
 	p := Parser{lexem: arr}
