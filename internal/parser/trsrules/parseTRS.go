@@ -82,9 +82,9 @@ type Parser struct {
 <terms-tail> ::= "," <term> <terms-tail> | ε
 */
 
-func (p *Parser) makeLexemError(l models.Lexem, Ltype models.LexemType, message, llmMessage string) error {
+func (p *Parser) makeError(message, llmMessage string) error {
 	//fmt.Printf("%s\n",message)
-	if len(p.errors) >= 1 {
+	if len(p.errors) == 1 {
 		return models.NewParseError(
 			fmt.Sprintf("at %d:%d unexpected symbol \"%s\" of type %s",
 				p.errors[0].Line, p.errors[0].Index, p.errors[0].Str, models.GetLexemInterpretation(p.errors[0].LexemType)),
@@ -92,7 +92,20 @@ func (p *Parser) makeLexemError(l models.Lexem, Ltype models.LexemType, message,
 				p.errors[0].Line, p.errors[0].Index, p.errors[0].Str, models.GetLexemInterpretation(p.errors[0].LexemType)),
 		)
 	}
-	if Ltype < 0 || Ltype == models.LexLETTER || Ltype == models.LexNUM || Ltype == models.LexVAR {
+	return models.NewParseError(message, llmMessage)
+}
+
+func (p *Parser) makeLexemError(l models.Lexem, Ltype models.LexemType, message, llmMessage string) error {
+	//fmt.Printf("%s\n",message)
+	if len(p.errors) == 1 {
+		return models.NewParseError(
+			fmt.Sprintf("at %d:%d unexpected symbol \"%s\" of type %s",
+				p.errors[0].Line, p.errors[0].Index, p.errors[0].Str, models.GetLexemInterpretation(p.errors[0].LexemType)),
+			fmt.Sprintf("на позиции %d:%d неожиданный символ \"%s\" типа %s",
+				p.errors[0].Line, p.errors[0].Index, p.errors[0].Str, models.GetLexemInterpretation(p.errors[0].LexemType)),
+		)
+	}
+	if Ltype == models.LexLETTER || Ltype == models.LexNUM || Ltype == models.LexVAR {
 		return models.NewParseError(message, llmMessage)
 	}
 	p.errors = append(p.errors, l) // = append(p.errors, err)
@@ -254,6 +267,14 @@ func (p *Parser) parseRule() error {
 	if err != nil {
 		return err
 	}
+	if subexp == nil {
+		return models.NewParseError(
+			fmt.Sprintf("in line %d not found rule",
+				p.lexem[p.index].Line),
+			fmt.Sprintf("в строке %d не найдена правая часть правила переписывания",
+				p.lexem[p.index].Line),
+		)
+	}
 	r.Rhs = *subexp
 	return nil
 }
@@ -277,7 +298,7 @@ func (p *Parser) parseTerm() (*Subexpression, error) {
 		countVars := len(*subexpr_arr)
 		if ok {
 			if countInConstructor != countVars {
-				return nil, p.makeLexemError(models.Lexem{Str: ""}, -1,
+				return nil, p.makeError(
 					fmt.Sprintf("in line %d constructor mismatch %s: expect %d args, found %d args",
 						letter.Line, letter.Str, countInConstructor, countVars),
 					fmt.Sprintf("в строке %d несовпадение в количестве элементов конструктора %s: ожидалось %d аргументов, найдено %d аргументов",

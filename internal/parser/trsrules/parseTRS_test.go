@@ -79,9 +79,8 @@ func TestParserWithVarAsConstructor(t *testing.T) {
 
 func TestMind(t *testing.T) {
 	input := `variables=x
-f(x, f(x,x)) = f(xa, f(x,x))
+f(x) = 
 -------`
-
 	l := lexer.Lexer{Text: input}
 	err := l.Process()
 	if err != nil {
