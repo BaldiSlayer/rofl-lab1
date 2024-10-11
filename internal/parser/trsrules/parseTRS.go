@@ -252,6 +252,20 @@ func (p *Parser) parseTerm() (*Subexpression, error) {
 		if err1 != nil {
 			return nil, err1
 		}
+		countInConstructor, ok := p.Model.Constructors[letter.Str]
+		countVars := len(*subexpr_arr)
+		if ok {
+			if countInConstructor != countVars {
+				return nil, &models.ParseError{
+					LlmMessage: fmt.Sprintf("в строке %d несовпадение в количестве элементов конструктора %s: ожидалось %d аргументов, найдено %d аргументов",
+						letter.Line, letter.Str, countInConstructor, countVars),
+					Message: fmt.Sprintf("in line %d constructor mismatch %s: expect %d args, found %d args",
+						letter.Line, letter.Str, countInConstructor, countVars),
+				}
+			}
+		} else {
+			p.Model.Constructors[letter.Str] = countVars
+		}
 		return &Subexpression{Args: subexpr_arr, Letter: letter}, nil
 	} else { // variable
 		return &Subexpression{Args: nil, Letter: letter}, nil
@@ -301,6 +315,7 @@ func (p *Parser) parseTermsTail(arr *[]Subexpression) error {
 func (p *Parser) parseTRS() error {
 	p.index = 0
 	p.Model = TRS{}
+	p.Model.Constructors = make(map[string]int)
 	err := p.parseVars()
 	if err != nil {
 		return err
@@ -321,31 +336,6 @@ func getVariablesFromExpr(var_set *map[string]bool, a Subexpression) {
 			getVariablesFromExpr(var_set, e)
 		}
 	}
-}
-
-func (p *Parser) getConstructorsFromExpr(a Subexpression) error {
-	if a.Args != nil {
-		count, ok := p.Model.Constructors[a.Letter.Str]
-		if !ok {
-			p.Model.Constructors[a.Letter.Str] = len(*a.Args)
-		} else {
-			if count != len(*a.Args) {
-				return &models.ParseError{
-					LlmMessage: fmt.Sprintf("несовпадение в количестве элементов конструктора %s: ожидалось %d аргументов, найдено %d аргументов",
-						a.Letter.Str, count, len(*a.Args)),
-					Message: fmt.Sprintf("constructor mismatch %s: expect %d args, found %d args",
-						a.Letter.Str, count, len(*a.Args)),
-				}
-			}
-		}
-		for _, e := range *a.Args {
-			err := p.getConstructorsFromExpr(e)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 func isSetIn(a, b *map[string]bool) (bool, string) {
@@ -374,28 +364,6 @@ func (p *Parser) checkRules() error {
 			}
 		}
 	}
-
-	p.Model.Constructors = make(map[string]int)
-
-	for i, rule := range p.Model.Rules {
-		err := p.getConstructorsFromExpr(rule.Lhs)
-		if err != nil {
-			return models.Wrap(
-				fmt.Sprintf("in the left part of the rule %d", i+1),
-				fmt.Sprintf("в левой части правила %d", i+1),
-				err,
-			)
-		}
-		err = p.getConstructorsFromExpr(rule.Rhs)
-		if err != nil {
-			return models.Wrap(
-				fmt.Sprintf("in the right part of the rule %d", i+1),
-				fmt.Sprintf("в правой части правила %d", i+1),
-				err,
-			)
-		}
-	}
-
 	return nil
 }
 
