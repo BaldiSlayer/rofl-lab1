@@ -176,7 +176,7 @@ f(x = x
 f(x) = 5
 `,
 	)
-	if err != nil{
+	if err != nil {
 		assert.ErrorAs(t, err, &parseError)
 		assert.Equal(
 			t,
@@ -184,7 +184,7 @@ f(x) = 5
 			parseError.LlmMessage,
 		)
 	}
-	
+
 }
 
 func TestMissingEqualSignAtVariablesBlock(t *testing.T) {
@@ -197,13 +197,13 @@ f(x) = x
 f(x) = 5
 `,
 	)
-	if err != nil{
-	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(
-		t,
-		`в строке 1 TRS  на позиции 11 ожидалось "=", найдено "x"`,
-		parseError.LlmMessage,
-	)
+	if err != nil {
+		assert.ErrorAs(t, err, &parseError)
+		assert.Equal(
+			t,
+			`в строке 1 TRS  на позиции 11 ожидалось "=", найдено "x"`,
+			parseError.LlmMessage,
+		)
 	}
 }
 

@@ -84,18 +84,18 @@ type Parser struct {
 
 func (p *Parser) makeLexemError(l models.Lexem, Ltype models.LexemType, message, llmMessage string) error {
 	//fmt.Printf("%s\n",message)
-	if len(p.errors) >= 1{
+	if len(p.errors) >= 1 {
 		return models.NewParseError(
-		fmt.Sprintf("at %d:%d unexpected symbol \"%s\" of type %s", 
-			p.errors[0].Line, p.errors[0].Index, p.errors[0].Str, models.GetLexemInterpretation(p.errors[0].LexemType)), 
-		fmt.Sprintf("на позиции %d:%d неожиданный символ \"%s\" типа %s", 
-			p.errors[0].Line, p.errors[0].Index, p.errors[0].Str, models.GetLexemInterpretation(p.errors[0].LexemType)),
+			fmt.Sprintf("at %d:%d unexpected symbol \"%s\" of type %s",
+				p.errors[0].Line, p.errors[0].Index, p.errors[0].Str, models.GetLexemInterpretation(p.errors[0].LexemType)),
+			fmt.Sprintf("на позиции %d:%d неожиданный символ \"%s\" типа %s",
+				p.errors[0].Line, p.errors[0].Index, p.errors[0].Str, models.GetLexemInterpretation(p.errors[0].LexemType)),
 		)
 	}
-	if Ltype < 0 || Ltype == models.LexLETTER || Ltype == models.LexNUM || Ltype == models.LexVAR{
+	if Ltype < 0 || Ltype == models.LexLETTER || Ltype == models.LexNUM || Ltype == models.LexVAR {
 		return models.NewParseError(message, llmMessage)
 	}
-	p.errors = append(p.errors, l)// = append(p.errors, err)
+	p.errors = append(p.errors, l) // = append(p.errors, err)
 	p.index--
 	return nil
 }
@@ -121,7 +121,7 @@ func (p *Parser) isVariable(l models.Lexem) bool {
 
 func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) error {
 	//fmt.Printf("%d:%d %s t=%d exp=%d\n", l.Line, l.Index, l.Str, l.LexemType, Ltype)
-	
+
 	if l.LexemType != Ltype {
 		switch l.LexemType {
 		/*case models.LexLB:
@@ -132,9 +132,9 @@ func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) error {
 			if l.LexemType == models.LexNUM || l.LexemType == models.LexLETTER {
 				return_str = l.Str
 			}
-			return p.makeLexemError(l, Ltype, 
+			return p.makeLexemError(l, Ltype,
 				fmt.Sprintf("at %d:%d expected %s, found %s",
-						l.Line, l.Index, models.GetLexemInterpretation(Ltype), return_str),
+					l.Line, l.Index, models.GetLexemInterpretation(Ltype), return_str),
 				fmt.Sprintf("в строке %d TRS  на позиции %d ожидалось \"%s\", найдено \"%s\"",
 					l.Line, l.Index, models.GetLexemInterpretation(Ltype), return_str),
 			)
