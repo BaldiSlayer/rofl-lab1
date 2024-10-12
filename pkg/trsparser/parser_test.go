@@ -678,12 +678,12 @@ func newInt(v int) *int {
 
 func TestSpecificRules(t *testing.T) {
 	/*исходный тест исправленный по ошибкам
-	`variables=x
-f(x,g(x,y,y) = f(x,y)
-----------
-f(x,y,z) = x+y
-y = 0
-g(x,y) = x*y`
+		`variables=x
+	f(x,g(x,y,y) = f(x,y)
+	----------
+	f(x,y,z) = x+y
+	y = 0
+	g(x,y) = x*y`
 	*/
 
 	_, err := Parser{}.Parse(
