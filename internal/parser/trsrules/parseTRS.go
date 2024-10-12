@@ -132,8 +132,18 @@ func (p *Parser) isVariable(l models.Lexem) bool {
 	return false
 }
 
-func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) error {
+func (p *Parser) lexCheck(Ltype models.LexemType) error {
 	//fmt.Printf("%d:%d %s t=%d exp=%d\n", l.Line, l.Index, l.Str, l.LexemType, Ltype)
+	if p.index >= len(p.lexem) {
+		l := p.lexem[p.index-1]
+		return p.makeError(
+			fmt.Sprintf("after %d:%d expected %s, found end of instructions",
+				l.Line, l.Index, models.GetLexemInterpretation(Ltype)),
+			fmt.Sprintf("после %d:%d ожидалась %s, найден конец инструкций",
+				l.Line, l.Index, models.GetLexemInterpretation(Ltype)),
+		)
+	}
+	l := p.lexem[p.index]
 
 	if l.LexemType != Ltype {
 		switch l.LexemType {
@@ -158,7 +168,7 @@ func (p *Parser) lexCheck(l models.Lexem, Ltype models.LexemType) error {
 
 // <vars> ::= "variables" "=" <letters> <eol>
 func (p *Parser) parseVars() error {
-	err := p.lexCheck(p.lexem[p.index], models.LexVAR)
+	err := p.lexCheck(models.LexVAR)
 	if err != nil {
 		return models.NewParseError(
 			"variables definiton expected",
@@ -166,7 +176,7 @@ func (p *Parser) parseVars() error {
 		)
 	}
 	p.index++
-	err = p.lexCheck(p.lexem[p.index], models.LexEQ)
+	err = p.lexCheck(models.LexEQ)
 	if err != nil {
 		return err
 	}
@@ -175,7 +185,7 @@ func (p *Parser) parseVars() error {
 	if err != nil {
 		return err
 	}
-	err = p.lexCheck(p.lexem[p.index], models.LexEOL)
+	err = p.lexCheck(models.LexEOL)
 	if err != nil {
 		return err
 	}
@@ -185,7 +195,7 @@ func (p *Parser) parseVars() error {
 
 // <letters> ::= <letter> <letters-tail>
 func (p *Parser) parseLetters() error {
-	err := p.lexCheck(p.lexem[p.index], models.LexLETTER)
+	err := p.lexCheck(models.LexLETTER)
 	if err != nil {
 		return models.Wrap(
 			"at least one variable definition expected",
@@ -205,7 +215,7 @@ func (p *Parser) parseLettersTail() error {
 	// для уменьшения глубины стека выполнения
 	for p.lexem[p.index].LexemType == models.LexCOMMA {
 		p.index++
-		err := p.lexCheck(p.lexem[p.index], models.LexLETTER)
+		err := p.lexCheck(models.LexLETTER)
 		if err != nil {
 			return err
 		}
@@ -222,7 +232,7 @@ func (p *Parser) parseRules() error {
 	if err != nil {
 		return err
 	}
-	err = p.lexCheck(p.lexem[p.index], models.LexEOL)
+	err = p.lexCheck(models.LexEOL)
 	if err != nil {
 		return err
 	}
@@ -238,7 +248,7 @@ func (p *Parser) parseRulesTail() error {
 		if err != nil {
 			return err
 		}
-		err = p.lexCheck(p.lexem[p.index], models.LexEOL)
+		err = p.lexCheck(models.LexEOL)
 		if err != nil {
 			return err
 		}
@@ -258,7 +268,7 @@ func (p *Parser) parseRule() error {
 	}
 	r.Lhs = *subexp
 
-	err = p.lexCheck(p.lexem[p.index], models.LexEQ)
+	err = p.lexCheck(models.LexEQ)
 	if err != nil {
 		return err
 	}
@@ -281,7 +291,7 @@ func (p *Parser) parseRule() error {
 
 // <term> ::= var | constructor <args>
 func (p *Parser) parseTerm() (*Subexpression, error) {
-	err := p.lexCheck(p.lexem[p.index], models.LexLETTER)
+	err := p.lexCheck(models.LexLETTER)
 	if err != nil {
 		return nil, err
 	}
@@ -338,7 +348,7 @@ func (p *Parser) parseArgs() (*[]Subexpression, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = p.lexCheck(p.lexem[p.index], models.LexRB)
+		err = p.lexCheck(models.LexRB)
 		if err != nil {
 			return nil, err
 		}
@@ -366,7 +376,7 @@ func (p *Parser) parseTRS() error {
 	p.index = 0
 	p.Model = TRS{}
 	p.Model.Constructors = make(map[string]int)
-	p.errors = make([]models.Lexem, 0)
+	p.errors = make([]models.Lexem, 0, 1)
 
 	err := p.parseVars()
 	if err != nil {
