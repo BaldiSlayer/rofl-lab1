@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/mclient"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/trsclient"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/trsclient"
 )
 
 // Controller - тип, который объединяет все ручки

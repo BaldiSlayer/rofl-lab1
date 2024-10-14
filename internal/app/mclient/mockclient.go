@@ -1,6 +1,6 @@
 package mclient
 
-import "github.com/BaldiSlayer/rofl-lab1/internal/app/backend/models"
+import "github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 
 type Mock struct{}
 

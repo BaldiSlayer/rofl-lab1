@@ -3,7 +3,7 @@ package controllers
 import (
 	"time"
 
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/xretry"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/xretry"
 )
 
 const (

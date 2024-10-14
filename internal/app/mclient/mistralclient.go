@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/mclient/mistral"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/models"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient/mistral"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 )
 
 var _ ModelClient = (*Mistral)(nil)
@@ -16,9 +16,9 @@ type Mistral struct{
 	*mistral.ClientWithResponses
 }
 
-const LlmServer = "llm:8100"
+const LlmServer = "http://llm:8100"
 
-func NewMistralClient() (*Mistral, error) {
+func NewMistralClient() (ModelClient, error) {
 	c, err := mistral.NewClientWithResponses(LlmServer)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (mc *Mistral) Ask(question string) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode() != http.StatusOK {
-		slog.Error("error requesting LLM", "code", resp.StatusCode)
+		slog.Error("error requesting LLM", "code", resp.StatusCode())
 		return "", errors.New("error requesting LLM")
 	}
 
