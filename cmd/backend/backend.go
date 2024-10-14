@@ -1,14 +1,7 @@
 package main
 
-import (
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend"
-)
+import "fmt"
 
 func main() {
-	app := backend.New(
-		backend.WithConfig(),
-		backend.WithLogger(),
-	)
-
-	app.Run()
+	fmt.Println("TODO: implement me")
 }
