@@ -1,15 +1,49 @@
 package mclient
 
-import "github.com/BaldiSlayer/rofl-lab1/internal/app/backend/models"
+import (
+	"context"
+	"errors"
+	"log/slog"
+	"net/http"
 
-//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen --config=config.yaml ../../../../docs/llm-api.yaml
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/mclient/mistral"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/backend/models"
+)
 
 var _ ModelClient = (*Mistral)(nil)
 
-type Mistral struct{}
+type Mistral struct{
+	*mistral.ClientWithResponses
+}
+
+const LlmServer = "llm:8100"
+
+func NewMistralClient() (*Mistral, error) {
+	c, err := mistral.NewClientWithResponses(LlmServer)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Mistral{
+		ClientWithResponses: c,
+	}, nil
+}
 
 func (mc *Mistral) Ask(question string) (string, error) {
-	return question, nil
+	resp, err := mc.ApiGetChatResponseGetChatResponsePostWithResponse(context.TODO(), mistral.GetChatResponseRequest{
+		Context: nil,
+		Model:   nil,
+		Prompt:  question,
+	})
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		slog.Error("error requesting LLM", "code", resp.StatusCode)
+		return "", errors.New("error requesting LLM")
+	}
+
+	return resp.JSON200.Response, nil
 }
 
 func (mc *Mistral) AskWithContext(question string, answerContext []models.QAPair) (string, error) {

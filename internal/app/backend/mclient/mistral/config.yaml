@@ -1,5 +1,5 @@
-package: mclient
-output: mistralclient.gen.go
+package: mistral
+output: client.gen.go
 generate:
   models: true
   client: true

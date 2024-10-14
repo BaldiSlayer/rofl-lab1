@@ -44,7 +44,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/GetChatResponseResponse'
         '422':
           description: Validation Error
           content:
@@ -132,6 +133,13 @@ components:
       required:
         - prompt
       title: GetChatResponseRequest
+    GetChatResponseResponse:
+      properties:
+        response:
+          type: string
+      type: object
+      required:
+        - response
     HTTPValidationError:
       properties:
         detail:
