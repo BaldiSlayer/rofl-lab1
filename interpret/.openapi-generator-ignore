@@ -32,6 +32,7 @@ README.md
 git_push.sh
 setup.py
 test-requirements.txt
+requirements.txt
 tox.ini
 openapi_server/controllers/
 openapi_server/test/
