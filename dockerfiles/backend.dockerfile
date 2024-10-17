@@ -12,7 +12,7 @@ RUN go build -o /bin/backend /app/cmd/backend/backend.go
 
 FROM ubuntu:20.04
 
-RUN apt-get install -y ca-certificates
+RUN apt-get update && apt-get install -y ca-certificates
 
 COPY --from=build /bin/backend /bin/backend
 
