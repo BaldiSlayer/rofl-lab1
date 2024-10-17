@@ -4,14 +4,14 @@ services:
     build:
       dockerfile: dockerfiles/llm.dockerfile
     container_name: llm
-    image: tlf-lab1-llm
+    image: stewkk/tfl-lab1-llm:latest
   backend:
     build:
       dockerfile: ./dockerfiles/backend.dockerfile
     container_name: backend
-    image: tlf-lab1-backend
+    image: stewkk/tfl-lab1-backend:latest
   interpret:
     build:
       dockerfile: ./dockerfiles/interpret.dockerfile
     container_name: interpret
-    image: tlf-lab1-interpret
+    image: stewkk/tfl-lab1-interpret:latest
