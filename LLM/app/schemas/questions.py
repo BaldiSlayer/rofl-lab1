@@ -10,7 +10,7 @@ class QuestionAnswer(BaseModel):
 
 # Модель запроса для process_questions
 class ProcessQuestionsRequest(BaseModel):
-    questions_list: List[QuestionAnswer]
+    questions_list: List[map]
     use_saved: Optional[bool] = False
     filename: Optional[str] = "vectorized_data"
 
