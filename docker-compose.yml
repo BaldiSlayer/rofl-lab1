@@ -4,7 +4,7 @@ services:
     build:
       dockerfile: dockerfiles/llm.dockerfile
     container_name: llm
-    image: stewkk/tfl-lab1-llm:latest
+    # image: stewkk/tfl-lab1-llm:latest
   backend:
     build:
       dockerfile: ./dockerfiles/backend.dockerfile
@@ -12,9 +12,9 @@ services:
       TGTOKEN: "${TGTOKEN}"
     env_file: ".env"
     container_name: backend
-    image: stewkk/tfl-lab1-backend:latest
+    # image: stewkk/tfl-lab1-backend:latest
   interpret:
     build:
       dockerfile: ./dockerfiles/interpret.dockerfile
     container_name: interpret
-    image: stewkk/tfl-lab1-interpret:latest
+    # image: stewkk/tfl-lab1-interpret:latest

@@ -65,6 +65,8 @@ func New(opts ...Option) *App {
 
 	err = tgBot.initControllers()
 
+	slog.Debug("initialized tgbot api")
+
 	return tgBot
 }
 
@@ -78,6 +80,7 @@ func (bot *App) Run() {
 	slog.Info("telegram bot has successfully started")
 
 	for update := range updates {
+		slog.Debug("processing update")
 		go func(update tgbotapi.Update) {
 			err := bot.actionsPooler.Exec(update)
 			if err != nil {

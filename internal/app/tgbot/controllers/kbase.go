@@ -27,6 +27,7 @@ func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.
 	go func() {
 		// TODO: pass context
 		answer, err = usecases.AskKnowledgeBase(controller.ModelClient, update.Message.Text)
+		// TODO: check error message
 		doneChan <- struct{}{}
 	}()
 
