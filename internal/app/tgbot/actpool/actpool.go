@@ -2,12 +2,12 @@ package actpool
 
 import (
 	"fmt"
+	"log/slog"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/ustorage"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
-
-var ErrNoAction = fmt.Errorf("action pooler has no action for this state")
 
 type StateTransition = func(update tgbotapi.Update) (models.UserState, error)
 
@@ -40,6 +40,7 @@ func (b *BotActionsPool) AddStateTransition(state models.UserState, f StateTrans
 func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
 	userState := b.storage.GetState(update.Message.Chat.ID)
 
+	slog.Info(fmt.Sprint(b.actions))
 	f, ok := b.actions[userState]
 	if !ok {
 		return fmt.Errorf("action pooler has no action for this state: %v", userState)
