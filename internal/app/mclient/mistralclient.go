@@ -29,13 +29,7 @@ func NewMistralClient(questions []models.QAPair) (ModelClient, error) {
 		ClientWithResponses: c,
 	}
 
-	// FIXME: hack to empty db in case of restart
-	message, err := mc.processQuestionsRequest([]models.QAPair{}, false)
-	if err != nil {
-		return nil, err
-	}
-
-	message, err = mc.processQuestionsRequest(questions, false)
+	message, err := mc.processQuestionsRequest(questions, false)
 	if err != nil {
 		return nil, err
 	}
