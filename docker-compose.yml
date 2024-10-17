@@ -1,8 +1,20 @@
 version: '3'
 services:
-  api:
+  llm:
     build:
       dockerfile: dockerfiles/llm.dockerfile
-    ports:
-      - "8100:8100"
-    container_name: LLM
+    container_name: llm
+    image: stewkk/tfl-lab1-llm:latest
+  backend:
+    build:
+      dockerfile: ./dockerfiles/backend.dockerfile
+    environment:
+      TGTOKEN: "${TGTOKEN}"
+    env_file: ".env"
+    container_name: backend
+    image: stewkk/tfl-lab1-backend:latest
+  interpret:
+    build:
+      dockerfile: ./dockerfiles/interpret.dockerfile
+    container_name: interpret
+    image: stewkk/tfl-lab1-interpret:latest

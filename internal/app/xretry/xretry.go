@@ -1,5 +1,7 @@
 package xretry
 
+// TODO: decide if it's needed
+
 import (
 	"errors"
 	"fmt"

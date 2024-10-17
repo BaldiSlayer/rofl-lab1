@@ -1,13 +1,34 @@
-connexion[swagger-ui] >= 2.6.0; python_version>="3.6"
-# 2.3 is the last version that supports python 3.4-3.5
-connexion[swagger-ui] <= 2.3.0; python_version=="3.5" or python_version=="3.4"
-# prevent breaking dependencies from advent of connexion>=3.0
-connexion[swagger-ui] <= 2.14.2; python_version>"3.4"
-# connexion requires werkzeug but connexion < 2.4.0 does not install werkzeug
-# we must peg werkzeug versions below to fix connexion
-# https://github.com/zalando/connexion/pull/1044
-werkzeug == 0.16.1; python_version=="3.5" or python_version=="3.4"
-swagger-ui-bundle >= 0.0.2
-python_dateutil >= 2.6.0
-setuptools >= 21.0.0
-Flask == 2.1.1
+attrs==24.2.0
+boto==2.49.0
+certifi==2024.8.30
+charset-normalizer==3.3.2
+click==8.1.7
+clickclick==20.10.2
+connexion==2.14.2
+distlib==0.3.8
+filelock==3.13.4
+Flask==2.1.1
+gunicorn==23.0.0
+idna==3.10
+inflection==0.5.1
+itsdangerous==2.2.0
+Jinja2==3.1.4
+jsonschema==4.23.0
+jsonschema-specifications==2023.12.1
+MarkupSafe==2.1.5
+mpmath==1.3.0
+packaging==24.1
+platformdirs==4.2.0
+python-dateutil==2.9.0.post0
+PyYAML==6.0.2
+referencing==0.35.1
+requests==2.32.3
+rpds-py==0.20.0
+six==1.16.0
+swagger-ui-bundle==0.0.9
+sympy==1.13.3
+urllib3==2.2.3
+virtualenv==20.25.3
+Werkzeug==2.2.3
+z3-solver==4.13.3.0
+uvicorn==0.31.0
