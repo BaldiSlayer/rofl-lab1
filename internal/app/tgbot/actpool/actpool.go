@@ -42,7 +42,7 @@ func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
 
 	f, ok := b.actions[userState]
 	if !ok {
-		return ErrNoAction
+		return fmt.Errorf("action pooler has no action for this state: %v", userState)
 	}
 
 	currentState, err := f(update)
