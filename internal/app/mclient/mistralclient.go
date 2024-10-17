@@ -12,26 +12,51 @@ import (
 
 var _ ModelClient = (*Mistral)(nil)
 
-type Mistral struct{
+type Mistral struct {
 	*mistral.ClientWithResponses
 }
 
 const LlmServer = "http://llm:8100"
 
-func NewMistralClient() (ModelClient, error) {
+func NewMistralClient(questions []models.QAPair) (ModelClient, error) {
 	c, err := mistral.NewClientWithResponses(LlmServer)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Mistral{
+	mc := &Mistral{
 		ClientWithResponses: c,
-	}, nil
+	}
+
+	message, err := mc.processQuestionsRequest(questions, false)
+	if err != nil {
+		return nil, err
+	}
+
+	slog.Info("Initialized llm context", "message", message)
+
+	return mc, nil
 }
 
 func (mc *Mistral) Ask(question string) (string, error) {
+	return mc.ask(question, nil)
+}
+
+func (mc *Mistral) AskWithContext(question string) (string, error) {
+	context, err := mc.processQuestionsRequest([]models.QAPair{{
+		Question: question,
+		Answer:   "",
+	}}, true)
+	if err != nil {
+		return "", err
+	}
+
+	return mc.ask(question, &context)
+}
+
+func (mc *Mistral) ask(question string, contextStr *string) (string, error) {
 	resp, err := mc.ApiGetChatResponseGetChatResponsePostWithResponse(context.TODO(), mistral.GetChatResponseRequest{
-		Context: nil,
+		Context: contextStr,
 		Model:   nil,
 		Prompt:  question,
 	})
@@ -46,6 +71,30 @@ func (mc *Mistral) Ask(question string) (string, error) {
 	return resp.JSON200.Response, nil
 }
 
-func (mc *Mistral) AskWithContext(question string, answerContext []models.QAPair) (string, error) {
-	return question, nil
+func toQuestionsList(QAPairs []models.QAPair) []mistral.QuestionAnswer {
+	res := []mistral.QuestionAnswer{}
+	for _, qa := range QAPairs {
+		res = append(res, mistral.QuestionAnswer{
+			Answer:   qa.Answer,
+			Question: qa.Question,
+		})
+	}
+	return res
+}
+
+func (mc *Mistral) processQuestionsRequest(QAPairs []models.QAPair, useSaved bool) (string, error) {
+	resp, err := mc.ApiProcessQuestionsProcessQuestionsPostWithResponse(context.TODO(), mistral.ProcessQuestionsRequest{
+		Filename:      nil,
+		QuestionsList: toQuestionsList(QAPairs),
+		UseSaved:      &useSaved,
+	})
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		slog.Error("error requesting LLM", "code", resp.StatusCode())
+		return "", errors.New("error requesting LLM")
+	}
+
+	return resp.JSON200.Result, nil
 }

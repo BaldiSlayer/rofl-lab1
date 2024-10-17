@@ -4,13 +4,13 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
+	appmodels "github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/actpool"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/controllers"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgcommons"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgconfig"
 )
@@ -91,13 +91,18 @@ func (bot *App) Run() {
 }
 
 func (bot *App) initControllers() error {
-	mclient, err := mclient.NewMistralClient()
+	context, err := appmodels.LoadQABase()
 	if err != nil {
-		// TODO
+		return err
+	}
+
+	mclient, err := mclient.NewMistralClient(context)
+	if err != nil {
+		return err
 	}
 
 	controller := controllers.Controller{
-		Bot:           bot.bot,
+		Bot:         bot.bot,
 		ModelClient: mclient,
 	}
 

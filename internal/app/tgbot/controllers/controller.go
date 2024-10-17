@@ -7,6 +7,6 @@ import (
 
 // Controller служит для передачи данных в контроллеры
 type Controller struct {
-	Bot           *tgcommons.Bot
+	Bot         *tgcommons.Bot
 	ModelClient mclient.ModelClient
 }

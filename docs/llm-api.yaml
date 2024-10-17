@@ -20,7 +20,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ProcessQuestionsResponse'
         '422':
           description: Validation Error
           content:
@@ -153,7 +154,7 @@ components:
       properties:
         questions_list:
           items:
-            type: string
+            $ref: '#/components/schemas/QuestionAnswer'
           type: array
           title: Questions List
         use_saved:
@@ -168,6 +169,13 @@ components:
       required:
         - questions_list
       title: ProcessQuestionsRequest
+    ProcessQuestionsResponse:
+      properties:
+        result:
+          type: string
+      type: object
+      required:
+        - result
     QuestionAnswer:
       properties:
         question:

@@ -41,9 +41,14 @@ type HTTPValidationError struct {
 
 // ProcessQuestionsRequest defines model for ProcessQuestionsRequest.
 type ProcessQuestionsRequest struct {
-	Filename      *string  `json:"filename,omitempty"`
-	QuestionsList []string `json:"questions_list"`
-	UseSaved      *bool    `json:"use_saved,omitempty"`
+	Filename      *string          `json:"filename,omitempty"`
+	QuestionsList []QuestionAnswer `json:"questions_list"`
+	UseSaved      *bool            `json:"use_saved,omitempty"`
+}
+
+// ProcessQuestionsResponse defines model for ProcessQuestionsResponse.
+type ProcessQuestionsResponse struct {
+	Result string `json:"result"`
 }
 
 // QuestionAnswer defines model for QuestionAnswer.
@@ -614,7 +619,7 @@ func (r ApiGetChatResponseGetChatResponsePostResponse) StatusCode() int {
 type ApiProcessQuestionsProcessQuestionsPostResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *interface{}
+	JSON200      *ProcessQuestionsResponse
 	JSON422      *HTTPValidationError
 }
 
@@ -806,7 +811,7 @@ func ParseApiProcessQuestionsProcessQuestionsPostResponse(rsp *http.Response) (*
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
+		var dest ProcessQuestionsResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
