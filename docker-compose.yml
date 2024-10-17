@@ -4,11 +4,14 @@ services:
     build:
       dockerfile: dockerfiles/llm.dockerfile
     container_name: llm
-  kbase:
+    image: tlf-lab1-llm
+  backend:
     build:
-      dockerfile: ./dockerfiles/kbase.dockerfile
-    container_name: kbase
+      dockerfile: ./dockerfiles/backend.dockerfile
+    container_name: backend
+    image: tlf-lab1-backend
   interpret:
     build:
       dockerfile: ./dockerfiles/interpret.dockerfile
     container_name: interpret
+    image: tlf-lab1-interpret

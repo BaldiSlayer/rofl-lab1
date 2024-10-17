@@ -2,15 +2,17 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
 )
 
-func main() {
+func cli() {
 	r := bufio.NewReader(os.Stdin)
 	data, err := io.ReadAll(r)
 	if err != nil {
@@ -33,4 +35,20 @@ func main() {
 	}
 
 	fmt.Println(answer)
+}
+
+func main() {
+	useCli := flag.Bool("cli", false, "run with cli interface")
+
+	flag.Parse()
+
+	if *useCli {
+		cli()
+		return
+	}
+
+	// TODO: start tgbot here
+	for {
+		time.Sleep(time.Second * 1000)
+	}
 }
