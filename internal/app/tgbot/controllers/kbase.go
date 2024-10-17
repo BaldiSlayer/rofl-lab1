@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -13,7 +14,7 @@ import (
 )
 
 const (
-	waitForKBQuestionTimeout = 2 * time.Second
+	waitForKBQuestionTimeout = 10 * time.Second
 )
 
 func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.UserState, error) {
@@ -27,6 +28,9 @@ func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.
 	go func() {
 		// TODO: pass context
 		answer, err = usecases.AskKnowledgeBase(controller.ModelClient, update.Message.Text)
+		if err != nil {
+			slog.Error(err.Error())
+		}
 		// TODO: check error message
 		doneChan <- struct{}{}
 	}()
