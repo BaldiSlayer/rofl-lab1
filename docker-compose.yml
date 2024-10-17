@@ -8,6 +8,9 @@ services:
   backend:
     build:
       dockerfile: ./dockerfiles/backend.dockerfile
+    environment:
+      TGTOKEN: "${TGTOKEN}"
+    env_file: ".env"
     container_name: backend
     image: stewkk/tfl-lab1-backend:latest
   interpret:

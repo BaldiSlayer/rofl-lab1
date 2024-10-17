@@ -7,9 +7,9 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"time"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot"
 )
 
 func cli() {
@@ -47,8 +47,9 @@ func main() {
 		return
 	}
 
-	// TODO: start tgbot here
-	for {
-		time.Sleep(time.Second * 1000)
-	}
+	app := tgbot.New(
+		tgbot.WithConfig(),
+	)
+
+	app.Run()
 }

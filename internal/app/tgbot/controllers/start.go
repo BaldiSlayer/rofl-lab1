@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 )
 
 // EmptyState - начальное состояние, в котором пользователь еще не имеет своего состояния в системе

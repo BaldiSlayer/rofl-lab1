@@ -1,16 +1,18 @@
 package tgbot
 
 import (
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"log/slog"
 	"os"
 
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/actpool"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/beclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/controllers"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgcommons"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgconfig"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type App struct {
@@ -68,6 +70,7 @@ func New(opts ...Option) *App {
 
 func (bot *App) Run() {
 	u := tgbotapi.NewUpdate(0)
+	// TODO configure limit
 	u.Timeout = 60
 
 	updates := bot.bot.GetUpdatesChan(u)
@@ -75,7 +78,6 @@ func (bot *App) Run() {
 	slog.Info("telegram bot has successfully started")
 
 	for update := range updates {
-		// походу надо будет сюда еще воткнуть rate limiter
 		go func(update tgbotapi.Update) {
 			err := bot.actionsPooler.Exec(update)
 			if err != nil {
@@ -86,9 +88,14 @@ func (bot *App) Run() {
 }
 
 func (bot *App) initControllers() error {
+	mclient, err := mclient.NewMistralClient()
+	if err != nil {
+		// TODO
+	}
+
 	controller := controllers.Controller{
 		Bot:           bot.bot,
-		BackendClient: &beclient.MockBackendClient{},
+		ModelClient: mclient,
 	}
 
 	bot.actionsPooler.AddStateTransition(

@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"time"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
 )
 
 const (
@@ -22,7 +25,8 @@ func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.
 
 	doneChan := make(chan struct{}, 1)
 	go func() {
-		answer, err = controller.BackendClient.AskKB(ctx, update.Message.Text)
+		// TODO: pass context
+		answer, err = usecases.AskKnowledgeBase(controller.ModelClient, update.Message.Text)
 		doneChan <- struct{}{}
 	}()
 
