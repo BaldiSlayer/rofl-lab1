@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Mapping, Optional
 from pydantic import BaseModel
 
 
@@ -10,7 +10,7 @@ class QuestionAnswer(BaseModel):
 
 # Модель запроса для process_questions
 class ProcessQuestionsRequest(BaseModel):
-    questions_list: List[map]
+    questions_list: List[Mapping[str, str]]
     use_saved: Optional[bool] = False
     filename: Optional[str] = "vectorized_data"
 
