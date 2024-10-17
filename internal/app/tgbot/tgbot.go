@@ -65,6 +65,11 @@ func New(opts ...Option) *App {
 
 	err = tgBot.initControllers()
 
+	if err != nil {
+			slog.Error("error initializing controllers", "error", err)
+		os.Exit(1)
+	}
+
 	slog.Debug("initialized tgbot api")
 
 	return tgBot
