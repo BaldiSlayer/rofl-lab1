@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/hashicorp/go-retryablehttp"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient/mistral"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 )
@@ -20,7 +22,11 @@ type Mistral struct {
 const LlmServer = "http://llm:8100"
 
 func NewMistralClient(questions []models.QAPair) (ModelClient, error) {
-	c, err := mistral.NewClientWithResponses(LlmServer)
+	retryClient := retryablehttp.NewClient()
+	retryClient.RetryMax = 5
+	standardClient := retryClient.StandardClient() // *http.Client
+
+	c, err := mistral.NewClientWithResponses(LlmServer, mistral.WithHTTPClient(standardClient))
 	if err != nil {
 		return nil, err
 	}
