@@ -3,15 +3,12 @@ services:
   llm:
     build:
       dockerfile: dockerfiles/llm.dockerfile
-    pull_policy: build
     container_name: llm
   kbase:
     build:
       dockerfile: ./dockerfiles/kbase.dockerfile
-    pull_policy: build
     container_name: kbase
   interpret:
     build:
       dockerfile: ./dockerfiles/interpret.dockerfile
-    pull_policy: build
     container_name: interpret
