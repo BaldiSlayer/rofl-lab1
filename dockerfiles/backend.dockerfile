@@ -14,4 +14,4 @@ FROM ubuntu:20.04
 
 COPY --from=build /bin/backend /bin/backend
 
-CMD ["/bin/bash"]
+CMD ["/bin/backend"]
