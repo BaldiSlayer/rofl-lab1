@@ -5,5 +5,5 @@ import (
 )
 
 func AskKnowledgeBase(modelClient mclient.ModelClient, question string) (string, error) {
-	return modelClient.Ask(question)
+	return modelClient.AskWithContext(question)
 }

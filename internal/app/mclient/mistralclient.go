@@ -16,6 +16,7 @@ type Mistral struct {
 	*mistral.ClientWithResponses
 }
 
+// TODO: configure?
 const LlmServer = "http://llm:8100"
 
 func NewMistralClient(questions []models.QAPair) (ModelClient, error) {
@@ -28,7 +29,13 @@ func NewMistralClient(questions []models.QAPair) (ModelClient, error) {
 		ClientWithResponses: c,
 	}
 
-	message, err := mc.processQuestionsRequest(questions, false)
+	// FIXME: hack to empty db in case of restart
+	message, err := mc.processQuestionsRequest([]models.QAPair{}, false)
+	if err != nil {
+		return nil, err
+	}
+
+	message, err = mc.processQuestionsRequest(questions, false)
 	if err != nil {
 		return nil, err
 	}
