@@ -26,12 +26,10 @@ func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.
 
 	doneChan := make(chan struct{}, 1)
 	go func() {
-		// TODO: pass context
 		answer, err = usecases.AskKnowledgeBase(controller.ModelClient, update.Message.Text)
 		if err != nil {
 			slog.Error(err.Error())
 		}
-		// TODO: check error message
 		doneChan <- struct{}{}
 	}()
 
@@ -47,6 +45,12 @@ func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.
 			return curState, errors.Join(err1, err)
 		}
 	case <-doneChan:
+		if err != nil {
+			curState, err1 := controller.EmptyState(update)
+
+			return curState, errors.Join(err1, err)
+		}
+
 		err = controller.Bot.SendMessage(
 			update.Message.Chat.ID,
 			fmt.Sprintf("Ответ модели на Ваш вопрос: %s", answer),
