@@ -6,7 +6,8 @@ COPY go.mod go.sum /app/
 RUN go mod download
 
 COPY /cmd/backend /app/cmd/backend
-COPY /internal/app /app/internal/app
+COPY /internal /app/internal
+COPY /pkg /app/pkg
 
 RUN go build -o /bin/backend /app/cmd/backend/backend.go
 
