@@ -7,11 +7,10 @@ services:
     image: stewkk/tfl-lab1-llm:latest
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/ping"]
-      interval: 1m30s
+      interval: 30s
       timeout: 10s
       retries: 5
       start_period: 5s
-      start_interval: 5s
   backend:
     build:
       dockerfile: ./dockerfiles/backend.dockerfile
@@ -32,8 +31,7 @@ services:
     image: stewkk/tfl-lab1-interpret:latest
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/ping"]
-      interval: 1m30s
+      interval: 30s
       timeout: 10s
       retries: 5
       start_period: 5s
-      start_interval: 5s
