@@ -6,13 +6,14 @@ COPY go.mod go.sum /app/
 RUN go mod download
 
 COPY /cmd/backend /app/cmd/backend
-COPY /internal/app/backend /app/internal/app/backend
+COPY /internal/app /app/internal/app
 
 RUN go build -o /bin/backend /app/cmd/backend/backend.go
 
 FROM ubuntu:20.04
 
-COPY /database.jsonl /database.jsonl
+RUN apt-get update && apt-get install -y ca-certificates
+
 COPY --from=build /bin/backend /bin/backend
 
 CMD ["/bin/backend"]

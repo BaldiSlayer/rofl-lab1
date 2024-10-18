@@ -1,0 +1,237 @@
+openapi: 3.0.0
+info:
+  title: TFL
+  version: 0.0.1
+paths:
+  /process_questions:
+    post:
+      tags:
+        - Questions
+      summary: Api Process Questions
+      operationId: api_process_questions_process_questions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcessQuestionsRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessQuestionsResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /get_chat_response:
+    post:
+      tags:
+        - Questions
+      summary: Api Get Chat Response
+      operationId: api_get_chat_response_get_chat_response_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetChatResponseRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetChatResponseResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /add_questions:
+    post:
+      tags:
+        - Questions
+      summary: Api Add Questions
+      operationId: api_add_questions_add_questions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddQuestionsRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /save_vectorized_data:
+    post:
+      tags:
+        - Questions
+      summary: Api Save Vectorized Data
+      operationId: api_save_vectorized_data_save_vectorized_data_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveVectorizedDataRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    AddQuestionsRequest:
+      properties:
+        new_questions:
+          items:
+            $ref: '#/components/schemas/QuestionAnswer'
+          type: array
+          title: New Questions
+        filename:
+          type: string
+          title: Filename
+          default: vectorized_data
+      type: object
+      required:
+        - new_questions
+      title: AddQuestionsRequest
+    GetChatResponseRequest:
+      properties:
+        prompt:
+          type: string
+          title: Prompt
+        context:
+          type: string
+          title: Context
+        model:
+          type: string
+          title: Model
+          default: open-mistral-7b
+      type: object
+      required:
+        - prompt
+      title: GetChatResponseRequest
+    GetChatResponseResponse:
+      properties:
+        response:
+          type: string
+      type: object
+      required:
+        - response
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ProcessQuestionsRequest:
+      properties:
+        questions_list:
+          items:
+            $ref: '#/components/schemas/QuestionAnswer'
+          type: array
+          title: Questions List
+        use_saved:
+          type: boolean
+          title: Use Saved
+          default: false
+        filename:
+          type: string
+          title: Filename
+          default: vectorized_data
+      type: object
+      required:
+        - questions_list
+      title: ProcessQuestionsRequest
+    ProcessQuestionsResponse:
+      properties:
+        result:
+          type: array
+          items:
+            type: string
+      type: object
+      required:
+        - result
+    QuestionAnswer:
+      properties:
+        question:
+          type: string
+          title: Question
+        answer:
+          type: string
+          title: Answer
+      type: object
+      required:
+        - question
+        - answer
+      title: QuestionAnswer
+    SaveVectorizedDataRequest:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/QuestionAnswer'
+          type: array
+          title: Data
+        embeddings:
+          items:
+            items:
+              type: number
+            type: array
+          type: array
+          title: Embeddings
+        filename:
+          type: string
+          title: Filename
+          default: vectorized_data
+      type: object
+      required:
+        - data
+        - embeddings
+      title: SaveVectorizedDataRequest
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError

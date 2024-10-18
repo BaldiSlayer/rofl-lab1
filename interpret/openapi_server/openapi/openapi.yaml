@@ -6,6 +6,14 @@ servers:
 - description: Local server
   url: http://localhost:8080/
 paths:
+  /ping:
+    get:
+      operationId: healthcheck
+      responses:
+        "200":
+          description: OK
+      summary: Healthcheck
+      x-openapi-router-controller: openapi_server.controllers.default_controller
   /trs/interpret:
     post:
       operationId: trs_interpret

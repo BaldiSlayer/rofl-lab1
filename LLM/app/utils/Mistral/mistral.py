@@ -12,6 +12,7 @@ def make_api_key():
     """
     os.environ["MISTRAL_API_KEY"] = api_key
 
+
 def initialize_client():
     """Инициализирует клиента Mistral с API-ключом."""
     make_api_key()
@@ -24,7 +25,7 @@ def initialize_client():
         return None
 
 
-def get_chat_response(prompt, context=None, model = "open-mistral-7b"):
+def get_chat_response(prompt, context=None, model="open-mistral-7b"):
     """
     Получает ответ от LLM на основе предоставленного промпта и контекста.
 
@@ -41,7 +42,6 @@ def get_chat_response(prompt, context=None, model = "open-mistral-7b"):
         messages.append({"role": "system", "content": context})
 
     messages.append({"role": "user", "content": prompt})
-
 
     chat_response = client.chat.complete(
         model=model,

@@ -11,6 +11,12 @@ router = APIRouter(
 )
 
 
+# Маршрут для healthcheck
+@router.get("/ping")
+def api_ping():
+    return "OK"
+
+
 # Маршрут для process_questions
 @router.post("/process_questions")
 def api_process_questions(request: ProcessQuestionsRequest):
