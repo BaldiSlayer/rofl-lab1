@@ -29,3 +29,14 @@ def trs_interpret(body):  # noqa: E501
         return InterpretResult(interpret(trs)), 200, {"Content-Type": "application/json"}
 
     return "Bad request", 400, {"Content-Type": "text/plain"}
+
+
+def healthcheck():  # noqa: E501
+    """Healthcheck
+
+     # noqa: E501
+
+
+    :rtype: Union[None, Tuple[None, int], Tuple[None, int, Dict[str, str]]
+    """
+    return "OK", 200, {"Content-Type": "text/plain"}
