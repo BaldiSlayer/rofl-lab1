@@ -51,7 +51,7 @@ func (mc *Mistral) Ask(question string) (string, error) {
 }
 
 func (mc *Mistral) AskWithContext(question string) (string, error) {
-	context, err := mc.processQuestionsRequest([]models.QAPair{{
+	contexts, err := mc.processQuestionsRequest([]models.QAPair{{
 		Question: question,
 		Answer:   "",
 	}}, true)
@@ -59,11 +59,15 @@ func (mc *Mistral) AskWithContext(question string) (string, error) {
 		return "", err
 	}
 
-	if len(context) != 1 {
-		return "", fmt.Errorf("expected single answer from process_questions endpoint, got %d", len(context))
+	if len(contexts) != 1 {
+		return "", fmt.Errorf("expected single answer from process_questions endpoint, got %d", len(contexts))
 	}
 
-	return mc.ask(question, &context[0])
+	context := contexts[0]
+
+	slog.Info("executing model request", "question", question, "context", context)
+
+	return mc.ask(question, &context)
 }
 
 func (mc *Mistral) ask(question string, contextStr *string) (string, error) {
