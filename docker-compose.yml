@@ -6,7 +6,7 @@ services:
     container_name: llm
     image: stewkk/tfl-lab1-llm:latest
     volumes:
-      - ./LLM/app/utils/Mistral/config.py:/LLM/app/utils/Mistral/config.py
+      - ./LLM/app/utils/Mistral/config.py:/api/app/utils/Mistral/config.py
     healthcheck:
       test: curl --fail 'http://llm:8100/ping' || exit 1
       interval: 30s
