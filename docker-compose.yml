@@ -6,7 +6,7 @@ services:
     container_name: llm
     image: stewkk/tfl-lab1-llm:latest
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8100/ping"]
+      test: curl --fail 'http://llm:8100/ping' || exit 1
       interval: 30s
       timeout: 10s
       retries: 5
@@ -30,7 +30,7 @@ services:
     container_name: interpret
     image: stewkk/tfl-lab1-interpret:latest
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/ping"]
+      test: curl --fail 'http://interpret:8081/ping' || exit 1
       interval: 30s
       timeout: 10s
       retries: 5
