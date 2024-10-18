@@ -36,12 +36,12 @@ func NewMistralClient(questions []models.QAPair) (ModelClient, error) {
 		ClientWithResponses: c,
 	}
 
-	message, err := mc.processQuestionsRequest(questions, false)
+	_, err = mc.processQuestionsRequest(questions, false)
 	if err != nil {
 		return nil, err
 	}
 
-	slog.Info("Initialized llm context", "messages", message)
+	slog.Info("initialized llm context")
 
 	return mc, nil
 }
