@@ -3,6 +3,7 @@ package mclient
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -40,7 +41,7 @@ func NewMistralClient(questions []models.QAPair) (ModelClient, error) {
 		return nil, err
 	}
 
-	slog.Info("Initialized llm context", "message", message)
+	slog.Info("Initialized llm context", "messages", message)
 
 	return mc, nil
 }
@@ -58,7 +59,11 @@ func (mc *Mistral) AskWithContext(question string) (string, error) {
 		return "", err
 	}
 
-	return mc.ask(question, &context)
+	if len(context) != 1 {
+		return "", fmt.Errorf("expected single answer from process_questions endpoint, got %d", len(context))
+	}
+
+	return mc.ask(question, &context[0])
 }
 
 func (mc *Mistral) ask(question string, contextStr *string) (string, error) {
@@ -89,24 +94,19 @@ func toQuestionsList(QAPairs []models.QAPair) []mistral.QuestionAnswer {
 	return res
 }
 
-func (mc *Mistral) processQuestionsRequest(QAPairs []models.QAPair, useSaved bool) (string, error) {
+func (mc *Mistral) processQuestionsRequest(QAPairs []models.QAPair, useSaved bool) ([]string, error) {
 	resp, err := mc.ApiProcessQuestionsProcessQuestionsPostWithResponse(context.TODO(), mistral.ProcessQuestionsRequest{
 		Filename:      nil,
 		QuestionsList: toQuestionsList(QAPairs),
 		UseSaved:      &useSaved,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if resp.StatusCode() != http.StatusOK {
 		slog.Error("error requesting LLM", "code", resp.StatusCode())
-		return "", errors.New("error requesting LLM")
+		return nil, errors.New("error requesting LLM")
 	}
 
-	result := resp.JSON200.Result
-	if len(result) != 1 {
-		return "", errors.New("expected 1 answer in results array from llm")
-	}
-
-	return result[0], nil
+	return resp.JSON200.Result, nil
 }
