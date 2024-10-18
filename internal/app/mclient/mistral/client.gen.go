@@ -48,7 +48,7 @@ type ProcessQuestionsRequest struct {
 
 // ProcessQuestionsResponse defines model for ProcessQuestionsResponse.
 type ProcessQuestionsResponse struct {
-	Result string `json:"result"`
+	Result []string `json:"result"`
 }
 
 // QuestionAnswer defines model for QuestionAnswer.
