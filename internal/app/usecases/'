@@ -1,3 +1,0 @@
-package usecases
-
-func CheckTrsTermination(request string)
