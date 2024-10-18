@@ -172,7 +172,9 @@ components:
     ProcessQuestionsResponse:
       properties:
         result:
-          type: string
+          type: array
+          items:
+            type: string
       type: object
       required:
         - result

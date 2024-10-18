@@ -67,7 +67,6 @@ func (mc *Mistral) ask(question string, contextStr *string) (string, error) {
 		Model:   nil,
 		Prompt:  question,
 	})
-	slog.Info("/get_chat_response request", "status", resp.Status())
 	if err != nil {
 		return "", err
 	}
@@ -96,7 +95,6 @@ func (mc *Mistral) processQuestionsRequest(QAPairs []models.QAPair, useSaved boo
 		QuestionsList: toQuestionsList(QAPairs),
 		UseSaved:      &useSaved,
 	})
-	slog.Info("/process_questions request", "status", resp.Status())
 	if err != nil {
 		return "", err
 	}
