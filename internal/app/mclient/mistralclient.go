@@ -103,5 +103,10 @@ func (mc *Mistral) processQuestionsRequest(QAPairs []models.QAPair, useSaved boo
 		return "", errors.New("error requesting LLM")
 	}
 
-	return resp.JSON200.Result, nil
+	result := resp.JSON200.Result
+	if len(result) != 1 {
+		return "", errors.New("expected 1 answer in results array from llm")
+	}
+
+	return result[0], nil
 }
