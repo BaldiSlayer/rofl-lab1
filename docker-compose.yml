@@ -22,16 +22,10 @@ services:
     depends_on:
       llm:
         condition: service_healthy
-      interpret:
-        condition: service_healthy
+      # interpret:
+      #   condition: service_healthy
   interpret:
     build:
       dockerfile: ./dockerfiles/interpret.dockerfile
     container_name: interpret
     image: stewkk/tfl-lab1-interpret:latest
-    healthcheck:
-      test: curl --fail 'http://interpret:8081/ping' || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 5s
