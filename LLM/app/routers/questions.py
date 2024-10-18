@@ -12,7 +12,7 @@ router = APIRouter(
 
 
 # Маршрут для healthcheck
-@router.get("ping")
+@router.get("/ping")
 def api_ping():
     return "OK"
 
