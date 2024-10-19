@@ -1,0 +1,9 @@
+package: interpretclient
+output: client.gen.go
+generate:
+  models: true
+  client: true
+output-options:
+  skip-prune: false
+import-mapping:
+  trs-parser-api.yaml: ../../../docs/trs-parser-api.yaml
