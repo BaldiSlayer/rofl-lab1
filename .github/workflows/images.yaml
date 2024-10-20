@@ -24,6 +24,10 @@ jobs:
         uses: docker/setup-buildx-action@v3
         id: builder-interpret
       -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        id: builder-formalize
+      -
         name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -58,4 +62,14 @@ jobs:
           tags: stewkk/tfl-lab1-interpret:latest
           file: ./dockerfiles/interpret.dockerfile
           cache-from: type=registry,ref=stewkk/tfl-lab1-interpret:latest
+          cache-to: type=inline
+      -
+        name: Build and push formalize
+        uses: docker/build-push-action@v6
+        with:
+          builder: ${{ steps.builder-formalize.outputs.name }}
+          push: true
+          tags: stewkk/tfl-lab1-formalize:latest
+          file: ./dockerfiles/formalize.dockerfile
+          cache-from: type=registry,ref=stewkk/tfl-lab1-formalize:latest
           cache-to: type=inline
