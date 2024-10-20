@@ -13,7 +13,7 @@ import (
 	"net/url"
 	"strings"
 
-	externalRef0 "../../../docs/trs-parser-api.yaml"
+	externalRef0 "github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
 )
 
 // InterpretResult defines model for InterpretResult.
