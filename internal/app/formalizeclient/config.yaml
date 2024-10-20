@@ -1,0 +1,7 @@
+package: formalizeclient
+output: client.gen.go
+generate:
+  models: true
+  client: true
+output-options:
+  skip-prune: false

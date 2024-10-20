@@ -48,7 +48,7 @@ func (i *Interpreter) Interpret(trs trsparser.Trs) (string, error) {
 	}
 	if res.StatusCode() != http.StatusOK {
 		slog.Error("error requesting Interpret", "code", res.StatusCode())
-		return "", errors.New("error requesting Internal")
+		return "", errors.New("error requesting Interpret")
 	}
 
 	return res.JSON200.Answer, nil

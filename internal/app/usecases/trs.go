@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/formalizeclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/interpretclient"
 	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
 )
@@ -8,12 +9,14 @@ import (
 type TrsUseCases struct {
 	parser trsparser.Parser
 	interpret interpretclient.Interpreter
+	formalize formalizeclient.Formalizer
 }
 
 func (uc TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, error) {
-
-	// TODO: сходить в клиент formalize
-	formalizedTrs := "TODO"
+	formalizedTrs, err := uc.formalize.Formalize(request)
+	if err != nil {
+		return trsparser.Trs{}, "", err
+	}
 
 	trs, err := uc.parser.Parse(formalizedTrs)
 	if err != nil {
@@ -24,9 +27,10 @@ func (uc TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, e
 }
 
 func (uc TrsUseCases) FixFormalTrs(request, formalTrs string, parseError trsparser.ParseError) (trsparser.Trs, string, error) {
-
-	// TODO: сходить в клиент formalize
-	formalizedTrs := "TODO"
+	formalizedTrs, err := uc.formalize.Formalize(request)
+	if err != nil {
+		return trsparser.Trs{}, "", err
+	}
 
 	trs, err := uc.parser.Parse(formalizedTrs)
 	if err != nil {
