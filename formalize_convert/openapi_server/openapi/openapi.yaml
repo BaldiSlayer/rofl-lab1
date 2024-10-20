@@ -1,0 +1,58 @@
+openapi: 3.0.0
+info:
+  title: Formalize part API
+  version: 0.1.0
+servers:
+- description: Local server
+  url: http://localhost:8080/
+paths:
+  /ping:
+    get:
+      operationId: healthcheck
+      responses:
+        "200":
+          description: OK
+      summary: Healthcheck
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /trs/formalize:
+    post:
+      operationId: trs_formalize
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FormalizeRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormalizeResult'
+          description: OK
+      summary: Extract formal definition of trs
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+components:
+  schemas:
+    FormalizeRequest:
+      example:
+        trs: trs
+      properties:
+        trs:
+          title: trs
+          type: string
+      required:
+      - trs
+      title: FormalizeRequest
+      type: object
+    FormalizeResult:
+      example:
+        formalTrs: formalTrs
+      properties:
+        formalTrs:
+          title: formalTrs
+          type: string
+      required:
+      - formalTrs
+      title: FormalizeResult
+      type: object
