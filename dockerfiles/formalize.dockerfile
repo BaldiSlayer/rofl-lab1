@@ -11,7 +11,7 @@ COPY /formalize_convert/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY /formalize_convert/gf4/requirements.txt .
+COPY /formalize_convert/g4f/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
