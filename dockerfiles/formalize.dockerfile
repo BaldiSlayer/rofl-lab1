@@ -11,10 +11,6 @@ COPY /formalize_convert/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY /formalize_convert/g4f/requirements.txt .
-
-RUN pip install --no-cache-dir -r requirements.txt
-
 COPY /formalize_convert .
 
-CMD gunicorn 'openapi_server.__main__:app' --workers 8 --bind=0.0.0.0:8081
+CMD gunicorn 'openapi_server.__main__:app' --workers 8 --bind=0.0.0.0:8081 --timeout 240

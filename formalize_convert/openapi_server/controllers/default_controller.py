@@ -7,7 +7,7 @@ from openapi_server.models.formalize_request import FormalizeRequest  # noqa: E5
 from openapi_server.models.formalize_result import FormalizeResult  # noqa: E501
 from openapi_server import util
 
-import g4f.main_g4f as logic
+import main as logic
 
 
 def healthcheck():  # noqa: E501
@@ -21,7 +21,7 @@ def healthcheck():  # noqa: E501
     return "OK", 200, {"Content-Type": "text/plain"}
 
 
-def trs_formalize(formalize_request):  # noqa: E501
+def trs_formalize(body):  # noqa: E501
     """Extract formal definition of trs
 
      # noqa: E501
@@ -33,7 +33,7 @@ def trs_formalize(formalize_request):  # noqa: E501
     """
     if connexion.request.is_json:
         formalize_request = FormalizeRequest.from_dict(connexion.request.get_json())  # noqa: E501
-        res = logic.framework.formalize(formalize_request.trs)
+        res = logic.formalize(formalize_request.trs)
         if res is None:
             return "Unexpected error", 500, {"Content-Type": "text/plain"}
         return FormalizeResult(res), 200, {"Content-Type": "application/json"}

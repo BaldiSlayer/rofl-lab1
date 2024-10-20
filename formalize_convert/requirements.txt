@@ -12,3 +12,27 @@ python_dateutil >= 2.6.0
 setuptools >= 21.0.0
 Flask == 2.1.1
 gunicorn==23.0.0
+requests
+pycryptodome
+curl_cffi>=0.6.2
+aiohttp
+certifi
+browser_cookie3
+PyExecJS
+duckduckgo-search>=5.0
+nest_asyncio
+werkzeug
+loguru
+pillow
+platformdirs
+fastapi
+uvicorn
+flask
+brotli
+beautifulsoup4
+aiohttp_socks
+pywebview
+plyer
+cryptography
+nodriver
+g4f
