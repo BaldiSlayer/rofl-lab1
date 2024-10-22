@@ -14,6 +14,18 @@ import (
 	"strings"
 )
 
+// FixRequest defines model for FixRequest.
+type FixRequest struct {
+	Error     string `json:"error"`
+	FormalTrs string `json:"formalTrs"`
+	Trs       string `json:"trs"`
+}
+
+// FixResponse defines model for FixResponse.
+type FixResponse struct {
+	FormalTrs string `json:"formalTrs"`
+}
+
 // FormalizeRequest defines model for FormalizeRequest.
 type FormalizeRequest struct {
 	Trs string `json:"trs"`
@@ -23,6 +35,9 @@ type FormalizeRequest struct {
 type FormalizeResult struct {
 	FormalTrs string `json:"formalTrs"`
 }
+
+// TrsFixJSONRequestBody defines body for TrsFix for application/json ContentType.
+type TrsFixJSONRequestBody = FixRequest
 
 // TrsFormalizeJSONRequestBody defines body for TrsFormalize for application/json ContentType.
 type TrsFormalizeJSONRequestBody = FormalizeRequest
@@ -103,6 +118,11 @@ type ClientInterface interface {
 	// Healthcheck request
 	Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// TrsFixWithBody request with any body
+	TrsFixWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TrsFix(ctx context.Context, body TrsFixJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// TrsFormalizeWithBody request with any body
 	TrsFormalizeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -111,6 +131,30 @@ type ClientInterface interface {
 
 func (c *Client) Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewHealthcheckRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TrsFixWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTrsFixRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TrsFix(ctx context.Context, body TrsFixJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTrsFixRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -168,6 +212,46 @@ func NewHealthcheckRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewTrsFixRequest calls the generic TrsFix builder with application/json body
+func NewTrsFixRequest(server string, body TrsFixJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTrsFixRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewTrsFixRequestWithBody generates requests for TrsFix with any type of body
+func NewTrsFixRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/trs/fix")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -258,6 +342,11 @@ type ClientWithResponsesInterface interface {
 	// HealthcheckWithResponse request
 	HealthcheckWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthcheckResponse, error)
 
+	// TrsFixWithBodyWithResponse request with any body
+	TrsFixWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TrsFixResponse, error)
+
+	TrsFixWithResponse(ctx context.Context, body TrsFixJSONRequestBody, reqEditors ...RequestEditorFn) (*TrsFixResponse, error)
+
 	// TrsFormalizeWithBodyWithResponse request with any body
 	TrsFormalizeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TrsFormalizeResponse, error)
 
@@ -279,6 +368,28 @@ func (r HealthcheckResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r HealthcheckResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TrsFixResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *FixResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r TrsFixResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TrsFixResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -316,6 +427,23 @@ func (c *ClientWithResponses) HealthcheckWithResponse(ctx context.Context, reqEd
 	return ParseHealthcheckResponse(rsp)
 }
 
+// TrsFixWithBodyWithResponse request with arbitrary body returning *TrsFixResponse
+func (c *ClientWithResponses) TrsFixWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TrsFixResponse, error) {
+	rsp, err := c.TrsFixWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTrsFixResponse(rsp)
+}
+
+func (c *ClientWithResponses) TrsFixWithResponse(ctx context.Context, body TrsFixJSONRequestBody, reqEditors ...RequestEditorFn) (*TrsFixResponse, error) {
+	rsp, err := c.TrsFix(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTrsFixResponse(rsp)
+}
+
 // TrsFormalizeWithBodyWithResponse request with arbitrary body returning *TrsFormalizeResponse
 func (c *ClientWithResponses) TrsFormalizeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TrsFormalizeResponse, error) {
 	rsp, err := c.TrsFormalizeWithBody(ctx, contentType, body, reqEditors...)
@@ -344,6 +472,32 @@ func ParseHealthcheckResponse(rsp *http.Response) (*HealthcheckResponse, error) 
 	response := &HealthcheckResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTrsFixResponse parses an HTTP response from a TrsFixWithResponse call
+func ParseTrsFixResponse(rsp *http.Response) (*TrsFixResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TrsFixResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest FixResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil

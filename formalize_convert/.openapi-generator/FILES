@@ -2,6 +2,8 @@ openapi_server/__init__.py
 openapi_server/encoder.py
 openapi_server/models/__init__.py
 openapi_server/models/base_model.py
+openapi_server/models/fix_request.py
+openapi_server/models/fix_response.py
 openapi_server/models/formalize_request.py
 openapi_server/models/formalize_result.py
 openapi_server/openapi/openapi.yaml
