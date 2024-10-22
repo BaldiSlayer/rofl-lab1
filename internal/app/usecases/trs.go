@@ -7,7 +7,7 @@ import (
 )
 
 type TrsUseCases struct {
-	parser trsparser.Parser
+	parser    trsparser.Parser
 	interpret interpretclient.Interpreter
 	formalize formalizeclient.Formalizer
 }
