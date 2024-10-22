@@ -1,15 +1,45 @@
 package usecases
 
-import "github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
+import (
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/formalizeclient"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/interpretclient"
+	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
+)
 
-func ExtractFormalTrs(request string) (trsparser.Trs, string, error) {
-	return trsparser.Trs{}, "", nil
+type TrsUseCases struct {
+	parser    trsparser.Parser
+	interpret interpretclient.Interpreter
+	formalize formalizeclient.Formalizer
 }
 
-func FixFormalTrs(request, formalTrs string, parseError trsparser.ParseError) (trsparser.Trs, string, error) {
-	return trsparser.Trs{}, "", nil
+func (uc TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, error) {
+	formalizedTrs, err := uc.formalize.Formalize(request)
+	if err != nil {
+		return trsparser.Trs{}, "", err
+	}
+
+	trs, err := uc.parser.Parse(formalizedTrs)
+	if err != nil {
+		return trsparser.Trs{}, formalizedTrs, err
+	}
+
+	return *trs, formalizedTrs, nil
 }
 
-func InterpretFormalTrs(trsparser.Trs) (string, error) {
-	return "", nil
+func (uc TrsUseCases) FixFormalTrs(request, formalTrs string, parseError trsparser.ParseError) (trsparser.Trs, string, error) {
+	formalizedTrs, err := uc.formalize.FixFormalized(request, formalTrs, parseError.LlmMessage)
+	if err != nil {
+		return trsparser.Trs{}, "", err
+	}
+
+	trs, err := uc.parser.Parse(formalizedTrs)
+	if err != nil {
+		return trsparser.Trs{}, formalizedTrs, err
+	}
+
+	return *trs, formalizedTrs, nil
+}
+
+func (uc TrsUseCases) InterpretFormalTrs(trs trsparser.Trs) (string, error) {
+	return uc.interpret.Interpret(trs)
 }

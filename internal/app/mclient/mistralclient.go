@@ -20,14 +20,14 @@ type Mistral struct {
 }
 
 // TODO: configure?
-const LlmServer = "http://llm:8100"
+const llmServer = "http://llm:8100"
 
 func NewMistralClient(questions []models.QAPair) (ModelClient, error) {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = 5
 	standardClient := retryClient.StandardClient() // *http.Client
 
-	c, err := mistral.NewClientWithResponses(LlmServer, mistral.WithHTTPClient(standardClient))
+	c, err := mistral.NewClientWithResponses(llmServer, mistral.WithHTTPClient(standardClient))
 	if err != nil {
 		return nil, err
 	}
