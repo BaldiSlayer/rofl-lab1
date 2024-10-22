@@ -8,7 +8,8 @@ client = Client()
 def generate_response(question: str, context: str) -> str:
     response = client.chat.completions.create(
         model="gpt-4o",
-        messages=[{"role": "user", "content": question}, {"role": "system", "content": context}]
+        messages=[{"role": "user", "content": question},
+                  {"role": "system", "content": context}]
     )
 
     return response.choices[0].message.content
@@ -72,12 +73,12 @@ def fix_formalized_trs(user_query: str, ans_llm: str,  parse_error: str):
         if trs:
             return trs
         else:
-            print(f"Не удалось получить формализованный запрос после {MAX_ATTEMPTS} попыток.")
+            print(
+                f"Не удалось получить формализованный запрос после {MAX_ATTEMPTS} попыток.")
 
     except Exception as e:
         print(f"Произошла ошибка: {e}")
         return None
-
 
 
 def formalize(user_query: str):
@@ -149,13 +150,8 @@ def convert(user_query: str, formalized_query: str):
     trs = ''
     variables_pattern = r'variables=([a-zA-Z],)*[a-zA-Z]'
     formalized_query = formalized_query.replace(' ', '')
-<<<<<<< HEAD
-    user_query = user_query.replace(' ', '').replace('*', '').replace('{', '').replace('}', '').replace('^', '')
-=======
     user_query = user_query.replace(' ', '').replace(
         '*', '').replace('{', '').replace('}', '').replace('^', '')
-    letters = []
->>>>>>> 9748fb0 (Fix formalize server)
     if re.search(variables_pattern, formalized_query):
         matches = re.finditer(variables_pattern, formalized_query)
         variables = []
@@ -214,17 +210,14 @@ def convert(user_query: str, formalized_query: str):
 if __name__ == "__main__":
     user_query = "Дана система переписывания термов (TRS): f(x)=a, g(x)=f(f(x)), u(x,y)=c(g(x),f(y)). Я интерпретирую её конструкторы так: a=1, f(x)=x**2+2*x+1, g(x)=x**3, u(x,y)=x*y, c(x,y)=x+y. Доказывает ли моя интерпретация завершимость trs?"
 
-<<<<<<< HEAD
-llm = '''variables=x,y
-f(x)=a
-g(x)=f(f(x))
-u(x,y)=c(g(x),f(y))
--------------------------
-'''
+    llm = '''variables=x,y
+    f(x)=a
+    g(x)=f(f(x))
+    u(x,y)=c(g(x),f(y))
+    -------------------------
+    '''
 
-err = 'система должна содержать хотя бы одну интерпретацию'
+    err = 'система должна содержать хотя бы одну интерпретацию'
 
-print(fix_formalized_trs(user_query, llm, err)) #возвращает trs и интерпретацию
-=======
-    formalize(user_query)  # возвращает trs и интерпретацию
->>>>>>> 9748fb0 (Fix formalize server)
+    # возвращает trs и интерпретацию
+    print(fix_formalized_trs(user_query, llm, err))
