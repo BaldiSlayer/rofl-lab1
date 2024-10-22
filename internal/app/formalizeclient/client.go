@@ -35,9 +35,26 @@ func NewFormalizer() (*Formalizer, error) {
 	}, nil
 }
 
-func (i *Formalizer) Formalize(trs string) (string, error) {
-	res, err := i.TrsFormalizeWithResponse(context.TODO(), TrsFormalizeJSONRequestBody{
+func (client *Formalizer) Formalize(trs string) (string, error) {
+	res, err := client.TrsFormalizeWithResponse(context.TODO(), TrsFormalizeJSONRequestBody{
 		Trs: trs,
+	})
+	if err != nil {
+		return "", err
+	}
+	if res.StatusCode() != http.StatusOK {
+		slog.Error("error requesting Formalize", "code", res.StatusCode())
+		return "", errors.New("error requesting Formalize")
+	}
+
+	return res.JSON200.FormalTrs, nil
+}
+
+func (client *Formalizer) FixFormalized(trs string, formalTrs string, errorStr string) (string, error) {
+	res, err := client.TrsFixWithResponse(context.TODO(), TrsFixJSONRequestBody{
+		Error:     errorStr,
+		FormalTrs: formalTrs,
+		Trs:       trs,
 	})
 	if err != nil {
 		return "", err

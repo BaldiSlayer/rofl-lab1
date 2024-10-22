@@ -27,8 +27,7 @@ func (uc TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, e
 }
 
 func (uc TrsUseCases) FixFormalTrs(request, formalTrs string, parseError trsparser.ParseError) (trsparser.Trs, string, error) {
-	// TODO: pass error
-	formalizedTrs, err := uc.formalize.Formalize(request)
+	formalizedTrs, err := uc.formalize.FixFormalized(request, formalTrs, parseError.LlmMessage)
 	if err != nil {
 		return trsparser.Trs{}, "", err
 	}
