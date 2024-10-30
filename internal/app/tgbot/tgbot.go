@@ -76,6 +76,7 @@ func New(opts ...Option) *App {
 }
 
 func (bot *App) Run() {
+	// FIXME: set last update ID?
 	u := tgbotapi.NewUpdate(0)
 	// TODO configure limit
 	u.Timeout = 60
@@ -117,13 +118,8 @@ func (bot *App) initControllers() error {
 	)
 
 	bot.actionsPooler.AddStateTransition(
-		models.StartState,
-		controller.Start,
-	)
-
-	bot.actionsPooler.AddStateTransition(
-		models.WaitForKBQuestion,
-		controller.WaitForKBQuestion,
+		models.WaitForRequest,
+		controller.WaitForRequest,
 	)
 
 	return nil

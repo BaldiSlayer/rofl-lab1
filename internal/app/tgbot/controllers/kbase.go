@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -17,13 +16,13 @@ const (
 	waitForKBQuestionTimeout = 10 * time.Second
 )
 
-func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) handleKnowledgeBaseRequest(update tgbotapi.Update) (models.UserState, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), waitForKBQuestionTimeout)
 	defer cancel()
 
+	// FIXME: антипаттерн так получать значения?
 	var answer string
 	var err error
-
 	doneChan := make(chan struct{}, 1)
 	go func() {
 		answer, err = usecases.AskKnowledgeBase(controller.ModelClient, update.Message.Text)
@@ -37,30 +36,32 @@ func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.
 	case <-ctx.Done():
 		err = controller.Bot.SendMessage(
 			update.Message.Chat.ID,
-			"К сожалению не удалось получить ответ на Ваш вопрос",
+			"Таймаут при запросе к Базе Знаний, введите новый запрос",
 		)
 		if err != nil {
-			curState, err1 := controller.EmptyState(update)
-
-			return curState, errors.Join(err1, err)
+			return models.WaitForRequest, err
 		}
 	case <-doneChan:
 		if err != nil {
-			curState, err1 := controller.EmptyState(update)
+			err = controller.Bot.SendMessage(
+				update.Message.Chat.ID,
+				"Ошибка при запросе к Базе Знаний, введите новый запрос",
+			)
+			if err != nil {
+				return models.WaitForRequest, err
+			}
 
-			return curState, errors.Join(err1, err)
+			return models.WaitForRequest, err
 		}
 
 		err = controller.Bot.SendMessage(
 			update.Message.Chat.ID,
-			fmt.Sprintf("Ответ модели на Ваш вопрос: %s", answer),
+			fmt.Sprintf("Ответ Базы Знаний: %s", answer),
 		)
 		if err != nil {
-			curState, err1 := controller.EmptyState(update)
-
-			return curState, errors.Join(err1, err)
+			return models.WaitForRequest, err
 		}
 	}
 
-	return controller.EmptyState(update)
+	panic("unreachable")
 }

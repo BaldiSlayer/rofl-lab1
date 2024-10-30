@@ -6,10 +6,8 @@ type UserState int
 const (
 	// EmptyState - состояние пользователя, когда он в первый раз пришел в бота
 	EmptyState UserState = iota
-	// StartState - начальное состояние пользователя
-	StartState
-	// WaitForKBQuestion - состояние ожидания от пользователя ввода запроса к базе знаний
-	WaitForKBQuestion
+	// WaitForRequest - состояние ожидания ввода запроса от пользователя
+	WaitForRequest
 	// WaitForKBResponse - состояние ожидания ответа от backend
 	WaitForKBResponse
 	TRSState

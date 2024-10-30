@@ -1,47 +1,33 @@
 package controllers
 
 import (
+	"log/slog"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 )
 
-// EmptyState - начальное состояние, в котором пользователь еще не имеет своего состояния в системе
+// EmptyState - начальное состояние
 func (controller *Controller) EmptyState(update tgbotapi.Update) (models.UserState, error) {
 	chatID := update.Message.Chat.ID
 
-	err := controller.Bot.SendStartUpKeyboard(chatID)
+	err := controller.Bot.SendMessage(chatID, "Введите запрос к базе знаний")
 	if err != nil {
 		return models.EmptyState, err
 	}
 
-	return models.StartState, err
+	return models.WaitForRequest, err
 }
 
-func (controller *Controller) Start(update tgbotapi.Update) (models.UserState, error) {
-	if update.Message.Text == "База знаний" {
-		err := controller.Bot.RemoveKeyboard(
-			update.Message.Chat.ID,
-			"Введите свой запрос к LLM:",
-		)
-		if err != nil {
-			return models.EmptyState, err
-		}
+func (controller *Controller) WaitForRequest(update tgbotapi.Update) (models.UserState, error) {
+	if update.Message.IsCommand() && update.Message.Command() == "trs" {
+		slog.Info("Got command trs", "text", update.Message.Text)
 
-		return models.WaitForKBQuestion, nil
+		// TODO: trs handler
+
+		return models.EmptyState, nil
 	}
 
-	if update.Message.Text == "TRS Solver" {
-		err := controller.Bot.RemoveKeyboard(
-			update.Message.Chat.ID,
-			"Введите TRS:",
-		)
-		if err != nil {
-			return models.EmptyState, err
-		}
-
-		return models.TRSState, nil
-	}
-
-	return models.EmptyState, nil
+	return controller.handleKnowledgeBaseRequest(update)
 }
