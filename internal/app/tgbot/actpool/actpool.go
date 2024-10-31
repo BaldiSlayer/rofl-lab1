@@ -35,7 +35,7 @@ func (b *BotActionsPool) AddStateTransition(state models.UserState, f StateTrans
 func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
 	// FIXME: брать мьютекс на юзера
 
-	userState, err := b.storage.GetState(update.Message.Chat.ID)
+	userState, err := b.storage.GetState(update.SentFrom().ID)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
 		return err
 	}
 
-	err = b.storage.SetState(update.Message.Chat.ID, currentState)
+	err = b.storage.SetState(update.SentFrom().ID, currentState)
 	if err != nil {
 		return err
 	}
