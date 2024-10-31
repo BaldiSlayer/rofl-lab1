@@ -31,7 +31,7 @@ func (controller *Controller) handleTrsRequest(update tgbotapi.Update) (models.U
 
 	state, err := controller.extractTrs(args, update)
 	if err != nil {
-		return models.GetRequest, errors.Join(err, controller.Bot.SendMessage(update.Message.From.ID, "Введите запрос к Базе Знаний"))
+		return 0, errors.Join(err, controller.Bot.SendMessage(update.Message.From.ID, "Введите запрос к Базе Знаний"))
 	}
 
 	return state, nil
@@ -44,7 +44,7 @@ func (controller *Controller) GetTrs(update tgbotapi.Update) (models.UserState, 
 
 	state, err := controller.extractTrs(update.Message.Text, update)
 	if err != nil {
-		return models.GetTrs, errors.Join(err, controller.Bot.SendMessage(update.Message.From.ID, "Введите TRS"))
+		return 0, errors.Join(err, controller.Bot.SendMessage(update.Message.From.ID, "Введите TRS"))
 	}
 
 	return state, nil
@@ -128,17 +128,22 @@ func (controller *Controller) validateTrs(update tgbotapi.Update) (models.UserSt
 	if update.CallbackQuery != nil && update.CallbackQuery.Data == accpetCallbackData {
 		trs, err := controller.Storage.GetTRS(userID)
 		if err != nil {
-			return models.ValidateTrs, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка интерпретации TRS"))
+			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка интерпретации TRS"))
 		}
 
 		res, err := controller.TrsUseCases.InterpretFormalTrs(trs)
 		if err != nil {
-			return models.ValidateTrs, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка интерпретации TRS"))
+			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка интерпретации TRS"))
 		}
 
 		err = controller.Bot.SendMessage(userID, fmt.Sprintf("Результат интерпретации TRS:\n%s", res))
 		if err != nil {
-			return models.ValidateTrs, err
+			return 0, err
+		}
+
+		err = controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний")
+		if err != nil {
+			return 0, err
 		}
 
 		return models.GetRequest, nil
@@ -147,12 +152,12 @@ func (controller *Controller) validateTrs(update tgbotapi.Update) (models.UserSt
 
 		userRequest, err := controller.Storage.GetRequest(userID)
 		if err != nil {
-			return models.ValidateTrs, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
+			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
 		}
 
 		formalTrs, err := controller.Storage.GetFormalTRS(userID)
 		if err != nil {
-			return models.ValidateTrs, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
+			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
 		}
 
 		trs, formalTrs, err := controller.TrsUseCases.FixFormalTrs(userRequest, formalTrs, errorDescription)
@@ -179,17 +184,17 @@ func (controller *Controller) fixTrs(update tgbotapi.Update) (models.UserState, 
 	if update.CallbackQuery != nil && update.CallbackQuery.Data == fixCallbackData {
 		parseError, err := controller.Storage.GetParseError(userID)
 		if err != nil {
-			return models.ValidateTrs, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
+			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
 		}
 
 		userRequest, err := controller.Storage.GetRequest(userID)
 		if err != nil {
-			return models.ValidateTrs, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
+			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
 		}
 
 		formalTrs, err := controller.Storage.GetFormalTRS(userID)
 		if err != nil {
-			return models.ValidateTrs, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
+			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
 		}
 
 		trs, formalTrs, err := controller.TrsUseCases.FixFormalTrs(userRequest, formalTrs, parseError)

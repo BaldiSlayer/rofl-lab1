@@ -17,7 +17,7 @@ func (controller *Controller) handleKnowledgeBaseRequest(update tgbotapi.Update)
 			update.Message.Chat.ID,
 			"Ошибка при запросе к Базе Знаний, введите новый запрос",
 		))
-		return models.GetRequest, err
+		return 0, err
 	}
 
 	err = controller.Bot.SendMessage(
@@ -25,7 +25,15 @@ func (controller *Controller) handleKnowledgeBaseRequest(update tgbotapi.Update)
 		fmt.Sprintf("Ответ Базы Знаний: %s", answer),
 	)
 	if err != nil {
-		return models.GetRequest, err
+		return 0, err
+	}
+
+	err = controller.Bot.SendMessage(
+		update.Message.Chat.ID,
+		"Введите запрос к Базе Знаний",
+	)
+	if err != nil {
+		return 0, err
 	}
 
 	return models.GetRequest, nil
