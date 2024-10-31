@@ -16,12 +16,7 @@ type BotActionsPool struct {
 	actions map[models.UserState]StateTransition
 }
 
-func New() (*BotActionsPool, error) {
-	storage, err := ustorage.NewMapUserStorage()
-	if err != nil {
-		return nil, err
-	}
-
+func New(storage ustorage.UserDataStorage) (*BotActionsPool, error) {
 	return &BotActionsPool{
 		actions: make(map[models.UserState]StateTransition),
 		storage: storage,

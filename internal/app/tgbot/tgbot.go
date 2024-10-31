@@ -14,6 +14,7 @@ import (
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgcommons"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgconfig"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/ustorage"
 )
 
 type App struct {
@@ -22,6 +23,7 @@ type App struct {
 
 	actionsPooler *actpool.BotActionsPool
 	userLocks map[int64]*sync.Mutex
+	userStorage ustorage.UserDataStorage
 }
 
 type Option func(options *App) error
@@ -53,7 +55,13 @@ func New(opts ...Option) *App {
 
 	tgBot.userLocks = make(map[int64]*sync.Mutex)
 
-	var err error
+	userStorage, err := ustorage.NewMapUserStorage()
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
+
+	tgBot.userStorage = userStorage
 
 	tgBot.bot, err = tgcommons.NewBot(tgBot.config.Token)
 	if err != nil {
@@ -62,7 +70,7 @@ func New(opts ...Option) *App {
 		os.Exit(1)
 	}
 
-	tgBot.actionsPooler, err = actpool.New(/*TODO: pass transitions here*/)
+	tgBot.actionsPooler, err = actpool.New(userStorage, /*TODO: pass transitions here*/)
 	if err != nil {
 		slog.Error("error while creating new actpool", "error", err)
 		os.Exit(1)
@@ -132,6 +140,7 @@ func (bot *App) initControllers() error {
 	controller := controllers.Controller{
 		Bot:         bot.bot,
 		ModelClient: mclient,
+		Storage: bot.userStorage,
 	}
 
 	bot.actionsPooler.AddStateTransition(

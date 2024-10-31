@@ -60,7 +60,9 @@ func (controller *Controller) extractTrs(userRequest string, update tgbotapi.Upd
 	return controller.handleExctractResult(update, trs, formalized, err)
 }
 
-func (controller *Controller) handleExctractResult(update tgbotapi.Update, trs trsparser.Trs, formalized string, extractError error) (models.UserState, error) {
+func (controller *Controller) handleExctractResult(update tgbotapi.Update, trs trsparser.Trs,
+	formalized string, extractError error) (models.UserState, error) {
+
 	userID := update.SentFrom().ID
 
 	err := controller.Storage.SetFormalTRS(userID, formalized)
