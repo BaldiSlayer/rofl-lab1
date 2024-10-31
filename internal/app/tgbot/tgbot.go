@@ -15,6 +15,7 @@ import (
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgcommons"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgconfig"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/ustorage"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
 )
 
 type App struct {
@@ -137,10 +138,16 @@ func (bot *App) initControllers() error {
 		return err
 	}
 
+	uc, err := usecases.New()
+	if err != nil {
+		return err
+	}
+
 	controller := controllers.Controller{
 		Bot:         bot.bot,
 		ModelClient: mclient,
-		Storage: bot.userStorage,
+		TrsUseCases: uc,
+		Storage:     bot.userStorage,
 	}
 
 	bot.actionsPooler.AddStateTransition(

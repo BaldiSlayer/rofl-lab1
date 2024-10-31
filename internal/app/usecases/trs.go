@@ -7,12 +7,30 @@ import (
 )
 
 type TrsUseCases struct {
-	parser    trsparser.Parser
-	interpret interpretclient.Interpreter
-	formalize formalizeclient.Formalizer
+	parser    *trsparser.Parser
+	interpret *interpretclient.Interpreter
+	formalize *formalizeclient.Formalizer
 }
 
-func (uc TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, error) {
+func New() (*TrsUseCases, error) {
+	interpreter, err := interpretclient.NewInterpreter()
+	if err != nil {
+		return nil, err
+	}
+
+	formalizer, err := formalizeclient.NewFormalizer()
+	if err != nil {
+		return nil, err
+	}
+
+	return &TrsUseCases{
+		parser:    trsparser.NewParser(),
+		interpret: interpreter,
+		formalize: formalizer,
+	}, nil
+}
+
+func (uc *TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, error) {
 	formalizedTrs, err := uc.formalize.Formalize(request)
 	if err != nil {
 		return trsparser.Trs{}, "", err
@@ -26,7 +44,7 @@ func (uc TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, e
 	return *trs, formalizedTrs, nil
 }
 
-func (uc TrsUseCases) FixFormalTrs(request, formalTrs, errorDescription string) (trsparser.Trs, string, error) {
+func (uc *TrsUseCases) FixFormalTrs(request, formalTrs, errorDescription string) (trsparser.Trs, string, error) {
 	formalizedTrs, err := uc.formalize.FixFormalized(request, formalTrs, errorDescription)
 	if err != nil {
 		return trsparser.Trs{}, "", err
@@ -40,6 +58,6 @@ func (uc TrsUseCases) FixFormalTrs(request, formalTrs, errorDescription string) 
 	return *trs, formalizedTrs, nil
 }
 
-func (uc TrsUseCases) InterpretFormalTrs(trs trsparser.Trs) (string, error) {
+func (uc *TrsUseCases) InterpretFormalTrs(trs trsparser.Trs) (string, error) {
 	return uc.interpret.Interpret(trs)
 }

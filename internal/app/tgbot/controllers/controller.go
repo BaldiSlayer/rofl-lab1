@@ -11,6 +11,6 @@ import (
 type Controller struct {
 	Bot         *tgcommons.Bot
 	ModelClient mclient.ModelClient
-	TrsUseCases usecases.TrsUseCases
+	TrsUseCases *usecases.TrsUseCases
 	Storage ustorage.UserDataStorage
 }
