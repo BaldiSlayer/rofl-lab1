@@ -19,6 +19,10 @@ type MapUserStorage struct {
 func NewMapUserStorage() (*MapUserStorage, error) {
 	return &MapUserStorage{
 		states: make(map[int64]models.UserState),
+		formalTRS: make(map[int64]string),
+		TRS: make(map[int64]trsparser.Trs),
+		reqeusts: make(map[int64]string),
+		parseErrors: make(map[int64]string),
 	}, nil
 }
 
