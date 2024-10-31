@@ -51,6 +51,8 @@ func New(opts ...Option) *App {
 		}
 	}
 
+	tgBot.userLocks = make(map[int64]*sync.Mutex)
+
 	var err error
 
 	tgBot.bot, err = tgcommons.NewBot(tgBot.config.Token)
