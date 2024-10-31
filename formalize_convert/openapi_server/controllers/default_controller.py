@@ -5,6 +5,8 @@ from typing import Union
 
 from openapi_server.models.formalize_request import FormalizeRequest  # noqa: E501
 from openapi_server.models.formalize_result import FormalizeResult  # noqa: E501
+from openapi_server.models.fix_request import FixRequest  # noqa: E501
+from openapi_server.models.fix_response import FixResponse  # noqa: E501
 from openapi_server import util
 
 import main as logic
@@ -49,7 +51,7 @@ def trs_fix(body):  # noqa: E501
     :param fix_request:
     :type fix_request: dict | bytes
 
-    :rtype: Union[FixResult, Tuple[FixResult, int], Tuple[FixResult, int, Dict[str, str]]
+    :rtype: Union[FixResponse, Tuple[FixResponse, int], Tuple[FixResponse, int, Dict[str, str]]
     """
     if connexion.request.is_json:
         fix_request = FixRequest.from_dict(connexion.request.get_json())  # noqa: E501
@@ -57,6 +59,6 @@ def trs_fix(body):  # noqa: E501
         res = logic.fix_formalized_trs(trs, formalTrs, error)
         if res is None:
             return "Unexpected error", 500, {"Content-Type": "text/plain"}
-        return FixResult(res), 200, {"Content-Type": "application/json"}
+        return FixResponse(res), 200, {"Content-Type": "application/json"}
 
     return "Bad request", 400, {"Content-Type": "text/plain"}
