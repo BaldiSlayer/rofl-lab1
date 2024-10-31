@@ -31,13 +31,19 @@ func New() (*BotActionsPool, error) {
 // AddStateTransition добавляет контроллер. Не использовать "на лету", добавлять контроллеры только
 // при запуске программы. Иначе получите Race Condition. Не добавляю mutex, потому что добавлять
 // контроллеры "на лету" - очень странный кейс
+// FIXME: передавать сразу мапу в конструктор, вместо этой функции
 func (b *BotActionsPool) AddStateTransition(state models.UserState, f StateTransition) {
 	b.actions[state] = f
 }
 
 // Exec находит для юзера его текущий стейт и исполняет соответствующую функцию
 func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
-	userState := b.storage.GetState(update.Message.Chat.ID)
+	// FIXME: брать мьютекс на юзера
+
+	userState, err := b.storage.GetState(update.Message.Chat.ID)
+	if err != nil {
+		return err
+	}
 
 	f, ok := b.actions[userState]
 	if !ok {

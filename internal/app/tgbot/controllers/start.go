@@ -1,26 +1,32 @@
 package controllers
 
 import (
-	"log/slog"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 )
 
 // EmptyState - начальное состояние
-func (controller *Controller) EmptyState(update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) Start(update tgbotapi.Update) (models.UserState, error) {
+	if update.Message == nil {
+		return models.Start, nil
+	}
+
 	chatID := update.Message.Chat.ID
 
 	err := controller.Bot.SendMessage(chatID, "Введите запрос к базе знаний")
 	if err != nil {
-		return models.EmptyState, err
+		return models.Start, err
 	}
 
-	return models.WaitForRequest, err
+	return models.GetRequest, err
 }
 
-func (controller *Controller) WaitForRequest(update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) GetRequest(update tgbotapi.Update) (models.UserState, error) {
+	if update.Message == nil {
+		return models.GetRequest, nil
+	}
+
 	if update.Message.IsCommand() && update.Message.Command() == "trs" {
 		return controller.handleTrsRequest(update)
 	}

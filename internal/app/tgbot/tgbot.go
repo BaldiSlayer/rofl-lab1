@@ -3,6 +3,7 @@ package tgbot
 import (
 	"log/slog"
 	"os"
+	"sync"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
@@ -20,6 +21,7 @@ type App struct {
 	bot    *tgcommons.Bot
 
 	actionsPooler *actpool.BotActionsPool
+	userLocks map[int64]*sync.Mutex
 }
 
 type Option func(options *App) error
@@ -54,17 +56,18 @@ func New(opts ...Option) *App {
 	tgBot.bot, err = tgcommons.NewBot(tgBot.config.Token)
 	if err != nil {
 		slog.Error("error while creating new bot api instance", "error", err)
+		// FIXME: возвращать ошибку, а не выходить
 		os.Exit(1)
 	}
 
-	tgBot.actionsPooler, err = actpool.New()
+	tgBot.actionsPooler, err = actpool.New(/*TODO: pass transitions here*/)
 	if err != nil {
 		slog.Error("error while creating new actpool", "error", err)
 		os.Exit(1)
 	}
 
+	// TODO: remove
 	err = tgBot.initControllers()
-
 	if err != nil {
 		slog.Error("error initializing controllers", "error", err)
 		os.Exit(1)
@@ -84,7 +87,7 @@ func (bot *App) Run() {
 	u.Limit = 100
 	// NOTE: Timeout of long polling requests
 	u.Timeout = 1
-	u.AllowedUpdates = []string{tgbotapi.UpdateTypeMessage}
+	u.AllowedUpdates = []string{tgbotapi.UpdateTypeMessage, tgbotapi.UpdateTypeCallbackQuery}
 
 	updates := bot.bot.GetUpdatesChan(u)
 
@@ -93,9 +96,21 @@ func (bot *App) Run() {
 	for update := range updates {
 		slog.Debug("processing update")
 		go func(update tgbotapi.Update) {
+			userID := update.SentFrom().ID
+			userLock := bot.lockByUserID(userID)
+			defer userLock.Unlock()
+
 			err := bot.actionsPooler.Exec(update)
 			if err != nil {
 				slog.Error("failed to process user action", "error", err)
+				return
+			}
+
+			if update.CallbackQuery != nil {
+				err := bot.bot.SendCallbackResponse(update)
+				if err != nil {
+					slog.Error("failed to send callback response", "error", err)
+				}
 			}
 		}(update)
 	}
@@ -118,14 +133,41 @@ func (bot *App) initControllers() error {
 	}
 
 	bot.actionsPooler.AddStateTransition(
-		models.EmptyState,
-		controller.EmptyState,
+		models.Start,
+		controller.Start,
 	)
 
 	bot.actionsPooler.AddStateTransition(
-		models.WaitForRequest,
-		controller.WaitForRequest,
+		models.GetRequest,
+		controller.GetRequest,
+	)
+
+	bot.actionsPooler.AddStateTransition(
+		models.GetTrs,
+		controller.GetTrs,
+	)
+
+	bot.actionsPooler.AddStateTransition(
+		models.ValidateTrs,
+		controller.ValidateTrs,
+	)
+
+	bot.actionsPooler.AddStateTransition(
+		models.FixTrs,
+		controller.FixTrs,
 	)
 
 	return nil
+}
+
+func (bot *App) lockByUserID(userID int64) *sync.Mutex {
+	if lock, ok := bot.userLocks[userID]; ok {
+		lock.Lock()
+		return lock
+	}
+
+	lock := &sync.Mutex{}
+	lock.Lock()
+	bot.userLocks[userID] = lock
+	return lock
 }

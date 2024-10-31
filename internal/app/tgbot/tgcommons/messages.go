@@ -11,3 +11,12 @@ func (bot *Bot) SendMessage(chatID int64, messageText string) error {
 
 	return err
 }
+
+func (bot *Bot) SendMessageWithKeyboard(chatID int64, messageText string, keyboard tgbotapi.InlineKeyboardMarkup) error {
+	msg := tgbotapi.NewMessage(chatID, messageText)
+	msg.ReplyMarkup = keyboard
+
+	_, err := bot.bot.Send(msg)
+
+	return err
+}
