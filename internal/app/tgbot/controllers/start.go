@@ -22,11 +22,7 @@ func (controller *Controller) EmptyState(update tgbotapi.Update) (models.UserSta
 
 func (controller *Controller) WaitForRequest(update tgbotapi.Update) (models.UserState, error) {
 	if update.Message.IsCommand() && update.Message.Command() == "trs" {
-		slog.Info("Got command trs", "text", update.Message.Text)
-
-		// TODO: trs handler
-
-		return models.EmptyState, nil
+		return controller.handleTrsRequest(update)
 	}
 
 	return controller.handleKnowledgeBaseRequest(update)

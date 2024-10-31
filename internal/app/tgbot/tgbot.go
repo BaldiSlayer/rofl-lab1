@@ -76,10 +76,15 @@ func New(opts ...Option) *App {
 }
 
 func (bot *App) Run() {
-	// FIXME: set last update ID?
+	// NOTE: Offset value set to 0 means that when backend is restarted, updates
+	// received by the last call to getUpdates will be resent by the Telegram
+	// API, whether they're already handled or not.
 	u := tgbotapi.NewUpdate(0)
-	// TODO configure limit
-	u.Timeout = 60
+	// NOTE: Updates per request
+	u.Limit = 100
+	// NOTE: Timeout of long polling requests
+	u.Timeout = 1
+	u.AllowedUpdates = []string{tgbotapi.UpdateTypeMessage}
 
 	updates := bot.bot.GetUpdatesChan(u)
 

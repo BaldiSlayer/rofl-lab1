@@ -10,5 +10,6 @@ const (
 	WaitForRequest
 	// WaitForKBResponse - состояние ожидания ответа от backend
 	WaitForKBResponse
-	TRSState
+	// WaitForTRS - сосояние ожидания ввода TRS от пользователя
+	WaitForTRS
 )
