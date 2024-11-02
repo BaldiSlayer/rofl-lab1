@@ -19,7 +19,6 @@ type Mistral struct {
 	*mistral.ClientWithResponses
 }
 
-// TODO: configure?
 const llmServer = "http://llm:8100"
 
 func NewMistralClient(questions []models.QAPair) (ModelClient, error) {

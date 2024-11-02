@@ -55,9 +55,13 @@ func main() {
 		return
 	}
 
-	app := tgbot.New(
+	app, err := tgbot.New(
 		tgbot.WithConfig(),
 	)
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
 
 	app.Run()
 }

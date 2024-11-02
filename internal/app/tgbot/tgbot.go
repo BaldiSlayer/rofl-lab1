@@ -2,20 +2,16 @@ package tgbot
 
 import (
 	"log/slog"
-	"os"
 	"sync"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
-	appmodels "github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/actpool"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/controllers"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgcommons"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgconfig"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/ustorage"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
 )
 
 type App struct {
@@ -43,14 +39,13 @@ func WithConfig() Option {
 	}
 }
 
-func New(opts ...Option) *App {
+func New(opts ...Option) (*App, error) {
 	tgBot := &App{}
 
 	for _, opt := range opts {
 		err := opt(tgBot)
 		if err != nil {
-			slog.Error("failed to init telegram bot", "error", err)
-			os.Exit(1)
+			return nil, err
 		}
 	}
 
@@ -58,35 +53,30 @@ func New(opts ...Option) *App {
 
 	userStorage, err := ustorage.NewMapUserStorage()
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		return nil, err
 	}
 
 	tgBot.userStorage = userStorage
 
 	tgBot.bot, err = tgcommons.NewBot(tgBot.config.Token)
 	if err != nil {
-		slog.Error("error while creating new bot api instance", "error", err)
-		// FIXME: возвращать ошибку, а не выходить
-		os.Exit(1)
+		return nil, err
 	}
 
-	tgBot.actionsPooler, err = actpool.New(userStorage, /*TODO: pass transitions here*/)
+	controller, err := controllers.New(tgBot.bot, userStorage)
 	if err != nil {
-		slog.Error("error while creating new actpool", "error", err)
-		os.Exit(1)
+		return nil, err
 	}
 
-	// TODO: remove
-	err = tgBot.initControllers()
+	tgBot.actionsPooler, err = actpool.New(userStorage, buildTransitions(controller))
 	if err != nil {
-		slog.Error("error initializing controllers", "error", err)
-		os.Exit(1)
+		return nil, err
 	}
+
 
 	slog.Debug("initialized tgbot api")
 
-	return tgBot
+	return tgBot, nil
 }
 
 func (bot *App) Run() {
@@ -127,55 +117,14 @@ func (bot *App) Run() {
 	}
 }
 
-func (bot *App) initControllers() error {
-	context, err := appmodels.LoadQABase()
-	if err != nil {
-		return err
+func buildTransitions(controller *controllers.Controller) (map[models.UserState]actpool.StateTransition) {
+	return map[models.UserState]actpool.StateTransition{
+		models.Start: controller.Start,
+		models.GetRequest: controller.GetRequest,
+		models.GetTrs: controller.GetTrs,
+		models.ValidateTrs: controller.ValidateTrs,
+		models.FixTrs: controller.FixTrs,
 	}
-
-	mclient, err := mclient.NewMistralClient(context)
-	if err != nil {
-		return err
-	}
-
-	uc, err := usecases.New()
-	if err != nil {
-		return err
-	}
-
-	controller := controllers.Controller{
-		Bot:         bot.bot,
-		ModelClient: mclient,
-		TrsUseCases: uc,
-		Storage:     bot.userStorage,
-	}
-
-	bot.actionsPooler.AddStateTransition(
-		models.Start,
-		controller.Start,
-	)
-
-	bot.actionsPooler.AddStateTransition(
-		models.GetRequest,
-		controller.GetRequest,
-	)
-
-	bot.actionsPooler.AddStateTransition(
-		models.GetTrs,
-		controller.GetTrs,
-	)
-
-	bot.actionsPooler.AddStateTransition(
-		models.ValidateTrs,
-		controller.ValidateTrs,
-	)
-
-	bot.actionsPooler.AddStateTransition(
-		models.FixTrs,
-		controller.FixTrs,
-	)
-
-	return nil
 }
 
 func (bot *App) lockByUserID(userID int64) *sync.Mutex {
