@@ -63,7 +63,7 @@ services:
       - POSTGRESQL_USERNAME=postgresql
     env_file: ".env"
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRESQL_USERNAME} -d postgres'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U $$POSTGRESQL_USERNAME -d postgres'"]
       interval: 1s
       timeout: 5s
       retries: 10
