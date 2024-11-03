@@ -9,19 +9,19 @@ import (
 
 // MapUserStorage хранилище данных о пользователе, которое использует map
 type MapUserStorage struct {
-	states map[int64]models.UserState
-	formalTRS map[int64]string
-	TRS map[int64]trsparser.Trs
-	reqeusts map[int64]string
+	states      map[int64]models.UserState
+	formalTRS   map[int64]string
+	TRS         map[int64]trsparser.Trs
+	reqeusts    map[int64]string
 	parseErrors map[int64]string
 }
 
 func NewMapUserStorage() (*MapUserStorage, error) {
 	return &MapUserStorage{
-		states: make(map[int64]models.UserState),
-		formalTRS: make(map[int64]string),
-		TRS: make(map[int64]trsparser.Trs),
-		reqeusts: make(map[int64]string),
+		states:      make(map[int64]models.UserState),
+		formalTRS:   make(map[int64]string),
+		TRS:         make(map[int64]trsparser.Trs),
+		reqeusts:    make(map[int64]string),
 		parseErrors: make(map[int64]string),
 	}, nil
 }

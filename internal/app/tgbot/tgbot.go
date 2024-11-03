@@ -1,6 +1,8 @@
 package tgbot
 
 import (
+	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
 
@@ -19,8 +21,8 @@ type App struct {
 	bot    *tgcommons.Bot
 
 	actionsPooler *actpool.BotActionsPool
-	userLocks map[int64]*sync.Mutex
-	userStorage ustorage.UserDataStorage
+	userLocks     map[int64]*sync.Mutex
+	userStorage   ustorage.UserDataStorage
 }
 
 type Option func(options *App) error
@@ -73,7 +75,6 @@ func New(opts ...Option) (*App, error) {
 		return nil, err
 	}
 
-
 	slog.Debug("initialized tgbot api")
 
 	return tgBot, nil
@@ -96,34 +97,17 @@ func (bot *App) Run() {
 
 	for update := range updates {
 		slog.Debug("processing update")
-		go func(update tgbotapi.Update) {
-			userID := update.SentFrom().ID
-			userLock := bot.lockByUserID(userID)
-			defer userLock.Unlock()
-
-			err := bot.actionsPooler.Exec(update)
-			if err != nil {
-				slog.Error("failed to process user action", "error", err)
-				return
-			}
-
-			if update.CallbackQuery != nil {
-				err := bot.bot.SendCallbackResponse(update)
-				if err != nil {
-					slog.Error("failed to send callback response", "error", err)
-				}
-			}
-		}(update)
+		go bot.processUpdate(update)
 	}
 }
 
-func buildTransitions(controller *controllers.Controller) (map[models.UserState]actpool.StateTransition) {
+func buildTransitions(controller *controllers.Controller) map[models.UserState]actpool.StateTransition {
 	return map[models.UserState]actpool.StateTransition{
-		models.Start: controller.Start,
-		models.GetRequest: controller.GetRequest,
-		models.GetTrs: controller.GetTrs,
+		models.Start:       controller.Start,
+		models.GetRequest:  controller.GetRequest,
+		models.GetTrs:      controller.GetTrs,
 		models.ValidateTrs: controller.ValidateTrs,
-		models.FixTrs: controller.FixTrs,
+		models.FixTrs:      controller.FixTrs,
 	}
 }
 
@@ -137,4 +121,25 @@ func (bot *App) lockByUserID(userID int64) *sync.Mutex {
 	lock.Lock()
 	bot.userLocks[userID] = lock
 	return lock
+}
+
+func (bot *App) processUpdate(update tgbotapi.Update) {
+	userID := update.SentFrom().ID
+	userLock := bot.lockByUserID(userID)
+	defer userLock.Unlock()
+
+	err := bot.actionsPooler.Exec(update)
+	if err != nil {
+		err = errors.Join(err, bot.bot.SendMessage(userID, fmt.Sprintf("Ошибка при обработке запроса: %s", err)))
+		err = errors.Join(err, bot.bot.SendMessage(userID, "Введите запрос к Базе Знаний"))
+		slog.Error("failed to process user action", "error", err)
+		return
+	}
+
+	if update.CallbackQuery != nil {
+		err := bot.bot.SendCallbackResponse(update)
+		if err != nil {
+			slog.Error("failed to send callback response", "error", err)
+		}
+	}
 }

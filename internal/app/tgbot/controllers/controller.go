@@ -13,7 +13,7 @@ type Controller struct {
 	Bot         *tgcommons.Bot
 	ModelClient mclient.ModelClient
 	TrsUseCases *usecases.TrsUseCases
-	Storage ustorage.UserDataStorage
+	Storage     ustorage.UserDataStorage
 }
 
 func New(bot *tgcommons.Bot, userStorage ustorage.UserDataStorage) (*Controller, error) {

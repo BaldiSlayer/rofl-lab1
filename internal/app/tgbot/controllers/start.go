@@ -14,7 +14,7 @@ func (controller *Controller) Start(update tgbotapi.Update) (models.UserState, e
 
 	chatID := update.Message.Chat.ID
 
-	err := controller.Bot.SendMessage(chatID, "Введите запрос к базе знаний")
+	err := controller.Bot.SendMessage(chatID, "Введите запрос к Базе Знаний")
 	if err != nil {
 		return models.Start, err
 	}

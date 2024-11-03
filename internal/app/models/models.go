@@ -7,6 +7,7 @@ type QAPair struct {
 	Answer   string `json:"answer"`
 }
 
+// TODO: перенести в юзкейсы
 func LoadQABase() ([]QAPair, error) {
 	data := `[
   {"question": "Что такое ТФЯ?", "answer": "теория формальных языков"},

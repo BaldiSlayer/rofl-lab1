@@ -3,7 +3,6 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -13,28 +12,19 @@ import (
 )
 
 const (
-	accpetCallbackData = "ACCEPT"
-	fixCallbackData = "FIX"
+	confirmCallbackData = "Confirm"
+	fixCallbackData     = "Fix"
 )
+
+// TODO: отправлять сообщение об ошибке
 
 func (controller *Controller) handleTrsRequest(update tgbotapi.Update) (models.UserState, error) {
 	args := strings.TrimSpace(update.Message.CommandArguments())
-
 	if args == "" {
-		err := controller.Bot.SendMessage(update.Message.From.ID, "Введите TRS")
-		if err != nil {
-			return models.GetRequest, err
-		}
-
-		return models.GetTrs, nil
+		return models.GetTrs, controller.Bot.SendMessage(update.Message.From.ID, "Введите TRS")
 	}
 
-	state, err := controller.extractTrs(args, update)
-	if err != nil {
-		return 0, errors.Join(err, controller.Bot.SendMessage(update.Message.From.ID, "Введите запрос к Базе Знаний"))
-	}
-
-	return state, nil
+	return controller.extractTrs(args, update)
 }
 
 func (controller *Controller) GetTrs(update tgbotapi.Update) (models.UserState, error) {
@@ -42,17 +32,12 @@ func (controller *Controller) GetTrs(update tgbotapi.Update) (models.UserState, 
 		return models.GetTrs, nil
 	}
 
-	state, err := controller.extractTrs(update.Message.Text, update)
-	if err != nil {
-		return 0, errors.Join(err, controller.Bot.SendMessage(update.Message.From.ID, "Введите TRS"))
-	}
-
-	return state, nil
+	return controller.extractTrs(update.Message.Text, update)
 }
 
 func (controller *Controller) extractTrs(userRequest string, update tgbotapi.Update) (models.UserState, error) {
 	err := controller.Storage.SetRequest(update.SentFrom().ID, update.Message.Text)
-	if err != nil  {
+	if err != nil {
 		return 0, err
 	}
 
@@ -80,28 +65,17 @@ func (controller *Controller) handleExctractResult(update tgbotapi.Update, trs t
 		keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Исправить", fixCallbackData),
 		))
-		err = controller.Bot.SendMessageWithKeyboard(
+		return models.FixTrs, controller.Bot.SendMessageWithKeyboard(
 			userID,
 			fmt.Sprintf("Ошибка при формализации TRS\nРезультат Formalize:\n%s\nРезультат Parse:\n%s\n\n"+
 				"Переформулируйте запрос в новом сообщении, либо запустите процесс автоматического исправления по кнопке ниже",
 				formalized, parseError.LlmMessage),
 			keyboard,
 		)
-		if err != nil {
-			return 0, err
-		}
-
-		return models.FixTrs, nil
 	}
 
 	if extractError != nil {
-		return 0,
-			errors.Join(
-				extractError,
-				controller.Bot.SendMessage(userID,
-					"Неизвестная ошибка при формализации TRS",
-				),
-			)
+		return 0, extractError
 	}
 
 	err = controller.Storage.SetTRS(userID, trs)
@@ -110,54 +84,42 @@ func (controller *Controller) handleExctractResult(update tgbotapi.Update, trs t
 	}
 
 	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("Подтвердить", accpetCallbackData),
+		tgbotapi.NewInlineKeyboardButtonData("Подтвердить", confirmCallbackData),
 	))
-	err = controller.Bot.SendMessageWithKeyboard(userID,
+
+	return models.ValidateTrs, controller.Bot.SendMessageWithKeyboard(userID,
 		fmt.Sprintf("Результат формализации:\n%s\n\n"+
 			"Подтвердите его с помощью кнопки ниже, либо опишите ошибку в новом сообщении", toString(trs)), keyboard)
-	if err != nil {
-		return 0, err
-	}
-
-	return models.ValidateTrs, nil
 }
 
-func (controller *Controller) validateTrs(update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) ValidateTrs(update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 
-	if update.CallbackQuery != nil && update.CallbackQuery.Data == accpetCallbackData {
+	if update.CallbackQuery != nil && update.CallbackQuery.Data == confirmCallbackData {
 		trs, err := controller.Storage.GetTRS(userID)
 		if err != nil {
-			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка интерпретации TRS"))
+			return 0, err
 		}
 
 		res, err := controller.TrsUseCases.InterpretFormalTrs(trs)
 		if err != nil {
-			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка интерпретации TRS"))
-		}
-
-		err = controller.Bot.SendMessage(userID, fmt.Sprintf("Результат интерпретации TRS:\n%s", res))
-		if err != nil {
 			return 0, err
 		}
 
-		err = controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний")
-		if err != nil {
-			return 0, err
-		}
+		_ = controller.Bot.SendMessage(userID, fmt.Sprintf("Результат интерпретации TRS:\n%s", res))
 
-		return models.GetRequest, nil
+		return models.GetRequest, controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний")
 	} else if update.Message != nil {
 		errorDescription := update.Message.Text
 
 		userRequest, err := controller.Storage.GetRequest(userID)
 		if err != nil {
-			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
+			return 0, err
 		}
 
 		formalTrs, err := controller.Storage.GetFormalTRS(userID)
 		if err != nil {
-			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
+			return 0, err
 		}
 
 		trs, formalTrs, err := controller.TrsUseCases.FixFormalTrs(userRequest, formalTrs, errorDescription)
@@ -167,37 +129,17 @@ func (controller *Controller) validateTrs(update tgbotapi.Update) (models.UserSt
 	return models.ValidateTrs, nil
 }
 
-func (controller *Controller) ValidateTrs(update tgbotapi.Update) (models.UserState, error) {
-	state, err := controller.validateTrs(update)
-	if err != nil {
-		err = errors.Join(err, controller.Bot.SendMessage(update.SentFrom().ID, "Введите запрос к Базе Знаний"))
-		slog.Error(err.Error())
-		return models.GetRequest, nil
-	}
-
-	return state, nil
-}
-
-func (controller *Controller) fixTrs(update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) FixTrs(update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 
 	if update.CallbackQuery != nil && update.CallbackQuery.Data == fixCallbackData {
-		parseError, err := controller.Storage.GetParseError(userID)
+		parseError, userRequest, formalTrs, err := controller.getExtractData(userID)
 		if err != nil {
-			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
-		}
-
-		userRequest, err := controller.Storage.GetRequest(userID)
-		if err != nil {
-			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
-		}
-
-		formalTrs, err := controller.Storage.GetFormalTRS(userID)
-		if err != nil {
-			return 0, errors.Join(err, controller.Bot.SendMessage(userID, "Ошибка исправления TRS"))
+			return 0, err
 		}
 
 		trs, formalTrs, err := controller.TrsUseCases.FixFormalTrs(userRequest, formalTrs, parseError)
+
 		return controller.handleExctractResult(update, trs, formalTrs, err)
 	} else if update.Message != nil {
 		userRequest := update.Message.Text
@@ -208,15 +150,23 @@ func (controller *Controller) fixTrs(update tgbotapi.Update) (models.UserState, 
 	return models.FixTrs, nil
 }
 
-func (controller *Controller) FixTrs(update tgbotapi.Update) (models.UserState, error) {
-	state, err := controller.fixTrs(update)
+func (controller *Controller) getExtractData(userID int64) (string, string, string, error) {
+	parseError, err := controller.Storage.GetParseError(userID)
 	if err != nil {
-		err = errors.Join(err, controller.Bot.SendMessage(update.SentFrom().ID, "Введите запрос к Базе Знаний"))
-		slog.Error(err.Error())
-		return models.GetRequest, nil
+		return "", "", "", err
 	}
 
-	return state, nil
+	userRequest, err := controller.Storage.GetRequest(userID)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	formalTrs, err := controller.Storage.GetFormalTRS(userID)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	return parseError, userRequest, formalTrs, nil
 }
 
 func toString(trs trsparser.Trs) string {
