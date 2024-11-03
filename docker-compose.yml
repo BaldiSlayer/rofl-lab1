@@ -29,9 +29,7 @@ services:
         condition: service_healthy
       formalize:
         condition: service_healthy
-      postgresql:
-        condition: service_healthy
-      pgbouncer:
+      postgres:
         condition: service_healthy
     restart: unless-stopped
   interpret:
