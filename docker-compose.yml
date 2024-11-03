@@ -50,3 +50,16 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+  postgresql:
+    image: docker.io/bitnami/postgresql:14
+    volumes:
+      - '/var/tfl-lab1/postgresql:/bitnami/postgresql'
+    environment:
+      - POSTGRESQL_PASSWORD="${POSTGRESQL_PASSWORD}"
+    env_file: ".env"
+  pgbouncer:
+    image: docker.io/bitnami/pgbouncer:1
+    environment:
+      - POSTGRESQL_HOST=postgresql
+      - POSTGRESQL_PASSWORD="${POSTGRESQL_PASSWORD}"
+    env_file: ".env"
