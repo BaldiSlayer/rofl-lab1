@@ -28,6 +28,10 @@ services:
         condition: service_healthy
       formalize:
         condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_healthy
   interpret:
     build:
       dockerfile: ./dockerfiles/interpret.dockerfile
@@ -53,13 +57,32 @@ services:
   postgresql:
     image: docker.io/bitnami/postgresql:14
     volumes:
-      - '/var/tfl-lab1/postgresql:/bitnami/postgresql'
+      - 'postgresql_data:/bitnami/postgresql'
     environment:
       - POSTGRESQL_PASSWORD="${POSTGRESQL_PASSWORD}"
+      - POSTGRESQL_USERNAME=postgresql
     env_file: ".env"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
   pgbouncer:
     image: docker.io/bitnami/pgbouncer:1
     environment:
       - POSTGRESQL_HOST=postgresql
       - POSTGRESQL_PASSWORD="${POSTGRESQL_PASSWORD}"
+      - POSTGRESQL_USERNAME=postgresql
     env_file: ".env"
+    healthcheck:
+      test: 'env PGPASSWORD="$$POSTGRESQL_PASSWORD" psql -p 6432 -U "$$POSTGRESQL_USERNAME" pgbouncer -b -c "SHOW USERS" >/dev/null'
+      interval: 5s
+      timeout: 5s
+      retries: 6
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
+volumes:
+  postgresql_data:
+    driver: local
