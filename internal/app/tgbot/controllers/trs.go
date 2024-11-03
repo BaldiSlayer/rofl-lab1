@@ -16,8 +16,6 @@ const (
 	fixCallbackData     = "Fix"
 )
 
-// TODO: отправлять сообщение об ошибке
-
 func (controller *Controller) handleTrsRequest(update tgbotapi.Update) (models.UserState, error) {
 	args := strings.TrimSpace(update.Message.CommandArguments())
 	if args == "" {
