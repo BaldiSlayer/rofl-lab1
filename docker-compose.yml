@@ -69,6 +69,8 @@ services:
       retries: 10
   pgbouncer:
     image: docker.io/bitnami/pgbouncer:1
+    ports:
+      - 6432:6432
     environment:
       - POSTGRESQL_HOST=postgresql
       - POSTGRESQL_PASSWORD="${POSTGRESQL_PASSWORD}"
