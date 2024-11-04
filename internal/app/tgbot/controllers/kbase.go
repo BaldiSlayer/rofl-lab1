@@ -13,10 +13,6 @@ import (
 func (controller *Controller) handleKnowledgeBaseRequest(update tgbotapi.Update) (models.UserState, error) {
 	answer, err := usecases.AskKnowledgeBase(controller.ModelClient, update.Message.Text)
 	if err != nil {
-		err = errors.Join(err, controller.Bot.SendMessage(
-			update.Message.Chat.ID,
-			"Ошибка при запросе к Базе Знаний, введите новый запрос",
-		))
 		return 0, err
 	}
 
@@ -24,17 +20,8 @@ func (controller *Controller) handleKnowledgeBaseRequest(update tgbotapi.Update)
 		update.Message.Chat.ID,
 		fmt.Sprintf("Ответ Базы Знаний: %s", answer),
 	)
-	if err != nil {
-		return 0, err
-	}
-
-	err = controller.Bot.SendMessage(
+	return models.GetRequest, errors.Join(err, controller.Bot.SendMessage(
 		update.Message.Chat.ID,
 		"Введите запрос к Базе Знаний",
-	)
-	if err != nil {
-		return 0, err
-	}
-
-	return models.GetRequest, nil
+	))
 }
