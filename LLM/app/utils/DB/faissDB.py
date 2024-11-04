@@ -3,20 +3,28 @@ import faiss
 import numpy as np
 import pickle
 import os
+from googletrans import Translator
 
 
 def initialize_model():
     return SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
 
+def translate_text(text, dest_lang='en'):
+    translator = Translator()
+    return translator.translate(text, dest=dest_lang).text
+
+
 def create_embeddings(model, data):
-    texts = [item["question"] + " " + item["answer"] for item in data]
+    texts = [translate_text(item["question"] + " " + item["answer"]) for item in data]
     return model.encode(texts)
 
 
 def create_faiss_index(embeddings):
     dimension = embeddings.shape[1]
-    index = faiss.IndexFlatL2(dimension)
+    index = faiss.IndexFlatIP(dimension)
+    # Нормализуем векторы перед добавлением в индекс
+    faiss.normalize_L2(embeddings)
     index.add(embeddings)
     return index
 
@@ -33,7 +41,7 @@ def search_similar(model, index, query, data, k_max=10, similarity_threshold=0.1
     :return: list of similar objects
     """
     # get the query vector
-    query_embedding = model.encode([query])
+    query_embedding = model.encode([translate_text(query)])
 
     # perform a search with the maximum value of k
     D, I = index.search(np.array(query_embedding), k_max)
@@ -141,24 +149,3 @@ def add_new_questions(new_questions, filename="vectorized_data"):
     print(f"Added {len(new_questions)} new questions to the database.")
 
 
-# # Пример использования функции добавления новых вопросов:
-# new_questions = [
-#     {"question": "Что такое машинное обучение?", "answer": "Это область искусственного интеллекта"},
-#     {"question": "Что такое нейронные сети?", "answer": "Это модель вычислений, имитирующая работу мозга"},
-#     {"question": "Что ML?", "answer": "это область ИИ"},
-#     {"question": "Что НЛП?", "answer": "это область ИИ"}
-# ]
-#
-# add_new_questions(new_questions, filename="vectorized_data")
-#
-# questions = [
-#     {"question": "Что такое ТФЯ?", "answer": "теория формальных языков"},
-#     {"question": "Что такое НЛП?", "answer": "обработка естественного языка"},
-#     {"question": "Что такое МЛ?", "answer": "это область ИИ"},
-# ]
-#
-# results = process_questions(questions, use_saved=True)
-#
-# for result in results:
-#     print(result)
-#     print("-" * 50)
