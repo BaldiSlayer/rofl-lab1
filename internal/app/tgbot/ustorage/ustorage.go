@@ -1,6 +1,8 @@
 package ustorage
 
 import (
+	"errors"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
 )
@@ -17,3 +19,5 @@ type UserDataStorage interface {
 	GetRequest(userID int64) (string, error)
 	GetParseError(userID int64) (string, error)
 }
+
+var ErrNotFound = errors.New("not found")

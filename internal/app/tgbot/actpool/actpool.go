@@ -1,6 +1,7 @@
 package actpool
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
@@ -25,7 +26,16 @@ func New(storage ustorage.UserDataStorage, transitions map[models.UserState]Stat
 
 // Exec находит для юзера его текущий стейт и исполняет соответствующую функцию
 func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
-	userState, err := b.storage.GetState(update.SentFrom().ID)
+	userID := update.SentFrom().ID
+
+	userState, err := b.storage.GetState(userID)
+	if errors.Is(err, ustorage.ErrNotFound) {
+		userState = models.Start
+		err := b.storage.SetState(userID, userState)
+		if err != nil {
+			return err
+		}
+	}
 	if err != nil {
 		return err
 	}
@@ -40,7 +50,7 @@ func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
 		return err
 	}
 
-	err = b.storage.SetState(update.SentFrom().ID, currentState)
+	err = b.storage.SetState(userID, currentState)
 	if err != nil {
 		return err
 	}

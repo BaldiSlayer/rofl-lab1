@@ -53,7 +53,7 @@ func New(opts ...Option) (*App, error) {
 
 	tgBot.userLocks = make(map[int64]*sync.Mutex)
 
-	userStorage, err := ustorage.NewMapUserStorage()
+	userStorage, err := ustorage.NewPostgresUserStorage()
 	if err != nil {
 		return nil, err
 	}
