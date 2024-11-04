@@ -20,7 +20,7 @@ type PostgresUserStorage struct {
 
 func NewPostgresUserStorage() (*PostgresUserStorage, error) {
 	connString := fmt.Sprintf("user=%s password=%s host=postgres "+
-		"port=5432 dbname=%s sslmode=verify-ca pool_max_conns=10",
+		"port=5432 dbname=%s pool_max_conns=10",
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
 		os.Getenv("POSTGRES_DB"),
