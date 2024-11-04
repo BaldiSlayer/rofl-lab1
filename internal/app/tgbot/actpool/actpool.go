@@ -28,14 +28,7 @@ func New(storage ustorage.UserDataStorage, transitions map[models.UserState]Stat
 func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
 	userID := update.SentFrom().ID
 
-	userState, err := b.storage.GetState(userID)
-	if errors.Is(err, ustorage.ErrNotFound) {
-		userState = models.Start
-		err := b.storage.SetState(userID, userState)
-		if err != nil {
-			return err
-		}
-	}
+	userState, err := getUserState(userID, b.storage)
 	if err != nil {
 		return err
 	}
@@ -56,4 +49,13 @@ func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
 	}
 
 	return err
+}
+
+func getUserState(userID int64, storage ustorage.UserDataStorage) (models.UserState, error) {
+	userState, err := storage.GetState(userID)
+	if errors.Is(err, ustorage.ErrNotFound) {
+		userState = models.Start
+		err = storage.SetState(userID, userState)
+	}
+	return userState, err
 }
