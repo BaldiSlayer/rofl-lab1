@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
 )
@@ -22,7 +21,7 @@ func cli() {
 		os.Exit(1)
 	}
 
-	context, err := models.LoadQABase()
+	context, err := usecases.LoadQABase()
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)

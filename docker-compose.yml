@@ -25,6 +25,8 @@ services:
     env_file: ".env"
     container_name: backend
     image: stewkk/tfl-lab1-backend:latest
+    volumes:
+      - ./data:/data
     depends_on:
       llm:
         condition: service_healthy

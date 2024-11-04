@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgcommons"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/ustorage"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
@@ -17,7 +16,7 @@ type Controller struct {
 }
 
 func New(bot *tgcommons.Bot, userStorage ustorage.UserDataStorage) (*Controller, error) {
-	context, err := models.LoadQABase()
+	context, err := usecases.LoadQABase()
 	if err != nil {
 		return nil, err
 	}
