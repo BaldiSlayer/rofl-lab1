@@ -12,7 +12,7 @@ COPY /scripts /app/scripts
 
 ARG LDFLAGS
 
-RUN go build -o /bin/backend -ldflags="${LDFLAGS[*]}" /app/cmd/backend/backend.go
+RUN go build -o /bin/backend -ldflags="$LDFLAGS[*]" /app/cmd/backend/backend.go
 
 FROM ubuntu:20.04
 
