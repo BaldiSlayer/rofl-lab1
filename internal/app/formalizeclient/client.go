@@ -19,7 +19,7 @@ const formalizeServer = "http://formalize:8081"
 
 func NewFormalizer() (*Formalizer, error) {
 	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 3
+	retryClient.RetryMax = 2
 	standardClient := retryClient.StandardClient() // *http.Client
 
 	c, err := NewClientWithResponses(formalizeServer, WithHTTPClient(standardClient))
