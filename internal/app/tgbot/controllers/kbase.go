@@ -10,18 +10,28 @@ import (
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
 )
 
+func (controller *Controller) GetRequest(update tgbotapi.Update) (models.UserState, error) {
+	if update.Message == nil {
+		return models.GetRequest, nil
+	}
+
+	return controller.handleKnowledgeBaseRequest(update)
+}
+
 func (controller *Controller) handleKnowledgeBaseRequest(update tgbotapi.Update) (models.UserState, error) {
 	answer, err := usecases.AskKnowledgeBase(controller.ModelClient, update.Message.Text)
 	if err != nil {
 		return 0, err
 	}
 
-	err = controller.Bot.SendMessage(
-		update.Message.Chat.ID,
-		fmt.Sprintf("Ответ Базы Знаний: %s", answer),
+	return models.GetRequest, errors.Join(
+		controller.Bot.SendMessage(
+			update.Message.Chat.ID,
+			fmt.Sprintf("Ответ Базы Знаний: %s", answer),
+		),
+		controller.Bot.SendMessage(
+			update.Message.Chat.ID,
+			"Введите запрос к Базе Знаний",
+		),
 	)
-	return models.GetRequest, errors.Join(err, controller.Bot.SendMessage(
-		update.Message.Chat.ID,
-		"Введите запрос к Базе Знаний",
-	))
 }

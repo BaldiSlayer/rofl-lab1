@@ -16,15 +16,6 @@ const (
 	fixCallbackData     = "Fix"
 )
 
-func (controller *Controller) handleTrsRequest(update tgbotapi.Update) (models.UserState, error) {
-	args := strings.TrimSpace(update.Message.CommandArguments())
-	if args == "" {
-		return models.GetTrs, controller.Bot.SendMessage(update.Message.From.ID, "Введите TRS")
-	}
-
-	return controller.extractTrs(args, update)
-}
-
 func (controller *Controller) GetTrs(update tgbotapi.Update) (models.UserState, error) {
 	if update.Message == nil {
 		return models.GetTrs, nil
@@ -104,9 +95,10 @@ func (controller *Controller) ValidateTrs(update tgbotapi.Update) (models.UserSt
 			return 0, err
 		}
 
-		_ = controller.Bot.SendMessage(userID, fmt.Sprintf("Результат интерпретации TRS:\n%s", res))
-
-		return models.GetRequest, controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний")
+		return models.GetRequest, errors.Join(
+			controller.Bot.SendMessage(userID, fmt.Sprintf("Результат интерпретации TRS:\n%s", res)),
+			controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний"),
+		)
 	} else if update.Message != nil {
 		errorDescription := update.Message.Text
 

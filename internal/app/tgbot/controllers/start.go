@@ -21,15 +21,3 @@ func (controller *Controller) Start(update tgbotapi.Update) (models.UserState, e
 
 	return models.GetRequest, err
 }
-
-func (controller *Controller) GetRequest(update tgbotapi.Update) (models.UserState, error) {
-	if update.Message == nil {
-		return models.GetRequest, nil
-	}
-
-	if update.Message.IsCommand() && update.Message.Command() == "trs" {
-		return controller.handleTrsRequest(update)
-	}
-
-	return controller.handleKnowledgeBaseRequest(update)
-}

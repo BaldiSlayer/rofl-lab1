@@ -20,6 +20,8 @@ type App struct {
 	config *tgconfig.TGBotConfig
 	bot    *tgcommons.Bot
 
+	controller *controllers.Controller
+
 	actionsPooler *actpool.BotActionsPool
 	userLocks     map[int64]*sync.Mutex
 	userStorage   ustorage.UserDataStorage
@@ -69,8 +71,9 @@ func New(opts ...Option) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	tgBot.controller = controller
 
-	tgBot.actionsPooler, err = actpool.New(userStorage, buildTransitions(controller))
+	tgBot.actionsPooler, err = actpool.New(userStorage, buildTransitions(controller), buildCommands(controller))
 	if err != nil {
 		return nil, err
 	}
@@ -108,6 +111,14 @@ func buildTransitions(controller *controllers.Controller) map[models.UserState]a
 		models.GetTrs:      controller.GetTrs,
 		models.ValidateTrs: controller.ValidateTrs,
 		models.FixTrs:      controller.FixTrs,
+	}
+}
+
+func buildCommands(controller *controllers.Controller) map[string]actpool.StateTransition {
+	return map[models.UserState]actpool.StateTransition{
+		"start":       controller.StartCommand,
+		"help":        controller.HelpCommand,
+		"trs":         contoller.TrsCommand,
 	}
 }
 

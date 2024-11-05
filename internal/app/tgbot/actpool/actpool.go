@@ -15,12 +15,16 @@ type BotActionsPool struct {
 	storage ustorage.UserDataStorage
 
 	actions map[models.UserState]StateTransition
+	commands map[string]StateTransition
 }
 
-func New(storage ustorage.UserDataStorage, transitions map[models.UserState]StateTransition) (*BotActionsPool, error) {
+func New(storage ustorage.UserDataStorage,
+	transitions map[models.UserState]StateTransition,
+    commands map[string]StateTransition) (*BotActionsPool, error) {
 	return &BotActionsPool{
-		actions: transitions,
-		storage: storage,
+		storage:  storage,
+		actions:  transitions,
+		commands: commands,
 	}, nil
 }
 
