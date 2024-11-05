@@ -30,6 +30,10 @@ func New(storage ustorage.UserDataStorage,
 
 // Exec находит для юзера его текущий стейт и исполняет соответствующую функцию
 func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
+	if update.Message != nil && update.Message.IsCommand() {
+		return b.ExecCommand(update)
+	}
+
 	userID := update.SentFrom().ID
 
 	userState, err := getUserState(userID, b.storage)
@@ -47,12 +51,21 @@ func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
 		currentState = models.GetRequest
 	}
 
-	err = errors.Join(err, b.storage.SetState(userID, currentState))
-	if err != nil {
-		return err
+	return errors.Join(err, b.storage.SetState(userID, currentState))
+}
+
+func (b *BotActionsPool) ExecCommand(update tgbotapi.Update) error {
+	f, ok := b.commands[update.Message.Command()]
+	if !ok {
+		return fmt.Errorf("action pooler has no action for this command: %s", update.Message.Command())
 	}
 
-	return err
+	state, err := f(update)
+	if err != nil {
+		state = models.GetRequest
+	}
+
+	return errors.Join(err, b.storage.SetState(update.SentFrom().ID, state))
 }
 
 func getUserState(userID int64, storage ustorage.UserDataStorage) (models.UserState, error) {

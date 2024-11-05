@@ -7,6 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
+	"github.com/BaldiSlayer/rofl-lab1/internal/version"
 )
 
 const helpMessage = `Для запроса к Базе Знаний введите запрос
@@ -37,4 +38,12 @@ func (controller *Controller) TrsCommand(update tgbotapi.Update) (models.UserSta
 	}
 
 	return controller.extractTrs(args, update)
+}
+
+func (controller *Controller) VersionCommand(update tgbotapi.Update) (models.UserState, error) {
+	userID := update.SentFrom().ID
+	return models.GetRequest, errors.Join(
+		controller.Bot.SendMessage(userID, version.BuildVersion()),
+		controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний"),
+	)
 }
