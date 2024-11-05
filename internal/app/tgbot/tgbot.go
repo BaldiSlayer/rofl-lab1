@@ -115,10 +115,10 @@ func buildTransitions(controller *controllers.Controller) map[models.UserState]a
 }
 
 func buildCommands(controller *controllers.Controller) map[string]actpool.StateTransition {
-	return map[models.UserState]actpool.StateTransition{
+	return map[string]actpool.StateTransition{
 		"start":       controller.StartCommand,
 		"help":        controller.HelpCommand,
-		"trs":         contoller.TrsCommand,
+		"trs":         controller.TrsCommand,
 	}
 }
 

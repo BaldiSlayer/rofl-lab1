@@ -6,6 +6,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
+	"github.com/BaldiSlayer/rofl-lab1/internal/version"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
 )
@@ -27,7 +28,7 @@ func (controller *Controller) handleKnowledgeBaseRequest(update tgbotapi.Update)
 	return models.GetRequest, errors.Join(
 		controller.Bot.SendMessage(
 			update.Message.Chat.ID,
-			fmt.Sprintf("Ответ Базы Знаний: %s", answer),
+			fmt.Sprintf("%s\n\n%s", answer, version.BuildVersion()),
 		),
 		controller.Bot.SendMessage(
 			update.Message.Chat.ID,
