@@ -8,8 +8,11 @@ RUN go mod download
 COPY /cmd/backend /app/cmd/backend
 COPY /internal /app/internal
 COPY /pkg /app/pkg
+COPY /scripts /app/scripts
 
-RUN go build -o /bin/backend /app/cmd/backend/backend.go
+ARG LDFLAGS
+
+RUN go build -o /bin/backend -ldflags="${LDFLAGS[*]}" /app/cmd/backend/backend.go
 
 FROM ubuntu:20.04
 

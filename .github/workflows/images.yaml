@@ -3,6 +3,8 @@ name: Build images
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   docker:
@@ -44,6 +46,20 @@ jobs:
           cache-from: type=registry,ref=stewkk/tfl-lab1-llm:latest
           cache-to: type=inline
       -
+        name: Determine version
+        shell: bash
+        run: |
+          PACKAGE="github.com/BaldiSlayer/rofl-lab1"
+          COMMIT_HASH="$(git rev-parse --short HEAD)"
+          BUILD_TIMESTAMP=$(date '+%Y-%m-%dT%H:%M:%S')
+
+          LDFLAGS=(
+            "-X '${PACKAGE}/internal/version.CommitHash=${COMMIT_HASH}'"
+            "-X '${PACKAGE}/internal/version.BuildTime=${BUILD_TIMESTAMP}'"
+          )
+
+          echo "LDFLAGS=$LDFLAGS" >> $GITHUB_ENV
+      -
         name: Build and push backend
         uses: docker/build-push-action@v6
         with:
@@ -51,6 +67,8 @@ jobs:
           push: true
           tags: stewkk/tfl-lab1-backend:latest
           file: ./dockerfiles/backend.dockerfile
+          build-args:
+            - LDFLAGS=${{ env.LDFLAGS }}
           cache-from: type=registry,ref=stewkk/tfl-lab1-backend:latest
           cache-to: type=inline
       -
