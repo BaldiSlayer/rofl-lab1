@@ -1,4 +1,4 @@
-name: Yamllint
+name: JsonYamlLinter
 
 on:
   push:
@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Yamllint
-      uses: karancode/yamllint-github-action@master
-      with:
-        yamllint_config_filepath: .yamllint-config.yaml
+    - name: json-yaml-validate
+      id: json-yaml-validate
+      uses: GrantBirki/json-yaml-validate@v3.2.1
