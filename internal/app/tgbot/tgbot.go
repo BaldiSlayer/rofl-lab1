@@ -113,12 +113,10 @@ func buildTransitions(controller *controllers.Controller) map[models.UserState]a
 
 func (bot *App) lockByUserID(userID int64) *sync.Mutex {
 	if lock, ok := bot.userLocks[userID]; ok {
-		lock.Lock()
 		return lock
 	}
 
 	lock := &sync.Mutex{}
-	lock.Lock()
 	bot.userLocks[userID] = lock
 	return lock
 }
@@ -126,6 +124,13 @@ func (bot *App) lockByUserID(userID int64) *sync.Mutex {
 func (bot *App) processUpdate(update tgbotapi.Update) {
 	userID := update.SentFrom().ID
 	userLock := bot.lockByUserID(userID)
+	if !userLock.TryLock() {
+		err := bot.bot.SendMessage(userID, "Предыдущее сообщение еще обрабатывается")
+		if err != nil {
+			slog.Error(err.Error())
+		}
+		return
+	}
 	defer userLock.Unlock()
 
 	err := bot.actionsPooler.Exec(update)

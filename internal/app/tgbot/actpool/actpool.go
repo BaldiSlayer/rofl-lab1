@@ -40,10 +40,10 @@ func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
 
 	currentState, err := f(update)
 	if err != nil {
-		return err
+		currentState = models.GetRequest
 	}
 
-	err = b.storage.SetState(userID, currentState)
+	err = errors.Join(err, b.storage.SetState(userID, currentState))
 	if err != nil {
 		return err
 	}
