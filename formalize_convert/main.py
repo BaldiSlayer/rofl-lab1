@@ -1,7 +1,7 @@
 import re
 from g4f.client import Client
 
-MAX_ATTEMPTS = 2
+MAX_ATTEMPTS = 1
 client = Client()
 
 
