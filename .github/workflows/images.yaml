@@ -56,7 +56,7 @@ jobs:
             "-X '${PACKAGE}/internal/version.BuildTime=${BUILD_TIMESTAMP}'"
           )
 
-          echo "LDFLAGS=$LDFLAGS" >> $GITHUB_ENV
+          echo "LDFLAGS=${LDFLAGS[*]}" >> $GITHUB_ENV
       -
         name: Build and push backend
         uses: docker/build-push-action@v6
