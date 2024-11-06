@@ -14,13 +14,13 @@ type StateTransition = func(update tgbotapi.Update) (models.UserState, error)
 type BotActionsPool struct {
 	storage ustorage.UserDataStorage
 
-	actions map[models.UserState]StateTransition
+	actions  map[models.UserState]StateTransition
 	commands map[string]StateTransition
 }
 
 func New(storage ustorage.UserDataStorage,
 	transitions map[models.UserState]StateTransition,
-    commands map[string]StateTransition) (*BotActionsPool, error) {
+	commands map[string]StateTransition) (*BotActionsPool, error) {
 	return &BotActionsPool{
 		storage:  storage,
 		actions:  transitions,

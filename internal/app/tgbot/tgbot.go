@@ -116,9 +116,9 @@ func buildTransitions(controller *controllers.Controller) map[models.UserState]a
 
 func buildCommands(controller *controllers.Controller) map[string]actpool.StateTransition {
 	return map[string]actpool.StateTransition{
-		"start":       controller.StartCommand,
-		"help":        controller.HelpCommand,
-		"trs":         controller.TrsCommand,
+		"start": controller.StartCommand,
+		"help":  controller.HelpCommand,
+		"trs":   controller.TrsCommand,
 	}
 }
 

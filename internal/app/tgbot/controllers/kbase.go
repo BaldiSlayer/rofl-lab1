@@ -6,9 +6,9 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
-	"github.com/BaldiSlayer/rofl-lab1/internal/version"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
+	"github.com/BaldiSlayer/rofl-lab1/internal/version"
 )
 
 func (controller *Controller) GetRequest(update tgbotapi.Update) (models.UserState, error) {

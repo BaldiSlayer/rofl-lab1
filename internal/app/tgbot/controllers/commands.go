@@ -13,9 +13,9 @@ import (
 const helpMessage = `Для запроса к Базе Знаний введите запрос
 
 Для проверки завершимости TRS введите:
-`+"```"+`
+` + "```" + `
 /trs [опциональное описание TRS]
-`+ "```"
+` + "```"
 
 func (controller *Controller) StartCommand(update tgbotapi.Update) (models.UserState, error) {
 	return controller.Start(update)
