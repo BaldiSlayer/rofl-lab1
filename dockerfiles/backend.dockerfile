@@ -12,7 +12,7 @@ COPY /scripts /app/scripts
 
 ARG LDFLAGS
 
-RUN bash -c 'go build -o /bin/backend -ldflags="$LDFLAGS[*]" /app/cmd/backend/backend.go'
+RUN bash -c "LDFLAGS=$LDFLAGS scripts/docker-build.sh"
 
 FROM ubuntu:20.04
 
