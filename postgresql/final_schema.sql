@@ -2,7 +2,8 @@
 
 CREATE TABLE tfllab1.user_state (
        user_id BIGINT PRIMARY KEY,
-       state INT NOT NULL
+       state INT NOT NULL,
+       updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
 CREATE TABLE tfllab1.extraction_result (
