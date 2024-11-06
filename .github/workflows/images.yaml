@@ -65,8 +65,7 @@ jobs:
           push: true
           tags: stewkk/tfl-lab1-backend:latest
           file: ./dockerfiles/backend.dockerfile
-          build-args:
-            - LDFLAGS=${{ env.LDFLAGS }}
+          build-args: LDFLAGS=${{ env.LDFLAGS }}
           cache-from: type=registry,ref=stewkk/tfl-lab1-backend:latest
           cache-to: type=inline
       -
