@@ -2,9 +2,7 @@ name: Build images
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "impl-tgbot" ]
 
 jobs:
   docker:
