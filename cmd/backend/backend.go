@@ -2,11 +2,14 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot"
@@ -21,13 +24,13 @@ func cli() {
 		os.Exit(1)
 	}
 
-	context, err := usecases.LoadQABase()
+	QAData, err := usecases.LoadQABase()
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
-	model, err := mclient.NewMistralClient(context)
+	model, err := mclient.NewMistralClient(QAData)
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
@@ -35,7 +38,7 @@ func cli() {
 
 	slog.Info("Executing model request")
 
-	answer, err := usecases.AskKnowledgeBase(model, string(data))
+	answer, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
@@ -62,5 +65,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	app.Run()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	app.Run(ctx)
 }

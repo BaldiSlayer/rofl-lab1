@@ -1,12 +1,14 @@
 package tgbot
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/actpool"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/controllers"
@@ -83,7 +85,7 @@ func New(opts ...Option) (*App, error) {
 	return tgBot, nil
 }
 
-func (bot *App) Run() {
+func (bot *App) Run(ctx context.Context) {
 	// NOTE: Offset value set to 0 means that when backend is restarted, updates
 	// received by the last call to getUpdates will be resent by the Telegram
 	// API, whether they're already handled or not.
@@ -98,9 +100,20 @@ func (bot *App) Run() {
 
 	slog.Info("telegram bot has successfully started")
 
-	for update := range updates {
-		slog.Debug("processing update")
-		go bot.processUpdate(update)
+	var wg sync.WaitGroup
+	for {
+		select {
+		case update := <-updates:
+			slog.Debug("processing update")
+			wg.Add(1)
+			go func() {
+				bot.processUpdate(context.Background(), update)
+				wg.Done()
+			}()
+		case <-ctx.Done():
+			wg.Wait()
+			break
+		}
 	}
 }
 
@@ -132,7 +145,7 @@ func (bot *App) lockByUserID(userID int64) *sync.Mutex {
 	return lock
 }
 
-func (bot *App) processUpdate(update tgbotapi.Update) {
+func (bot *App) processUpdate(ctx context.Context, update tgbotapi.Update) {
 	userID := update.SentFrom().ID
 	userLock := bot.lockByUserID(userID)
 	if !userLock.TryLock() {
@@ -144,7 +157,7 @@ func (bot *App) processUpdate(update tgbotapi.Update) {
 	}
 	defer userLock.Unlock()
 
-	err := bot.actionsPooler.Exec(update)
+	err := bot.actionsPooler.Exec(ctx, update)
 	if err != nil {
 		err = errors.Join(err, bot.bot.SendMessage(userID, fmt.Sprintf("Ошибка при обработке запроса: %s", err)))
 		err = errors.Join(err, bot.bot.SendMessage(userID, "Введите запрос к Базе Знаний"))

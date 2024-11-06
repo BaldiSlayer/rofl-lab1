@@ -36,9 +36,9 @@ func NewPostgresUserStorage() (*PostgresUserStorage, error) {
 	}, nil
 }
 
-func (s *PostgresUserStorage) GetState(userID int64) (models.UserState, error) {
+func (s *PostgresUserStorage) GetState(ctx context.Context, userID int64) (models.UserState, error) {
 	var state int
-	err := s.pg.QueryRow(context.TODO(), "SELECT state FROM tfllab1.user_state WHERE user_id = $1", userID).Scan(&state)
+	err := s.pg.QueryRow(ctx, "SELECT state FROM tfllab1.user_state WHERE user_id = $1", userID).Scan(&state)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return 0, ErrNotFound
 	}
@@ -49,9 +49,9 @@ func (s *PostgresUserStorage) GetState(userID int64) (models.UserState, error) {
 	return models.UserState(state), nil
 }
 
-func (s *PostgresUserStorage) GetTRS(userID int64) (trsparser.Trs, error) {
+func (s *PostgresUserStorage) GetTRS(ctx context.Context, userID int64) (trsparser.Trs, error) {
 	var trs trsparser.Trs
-	err := s.pg.QueryRow(context.TODO(), "SELECT parse_result FROM tfllab1.extraction_result WHERE user_id = $1", userID).Scan(&trs)
+	err := s.pg.QueryRow(ctx, "SELECT parse_result FROM tfllab1.extraction_result WHERE user_id = $1", userID).Scan(&trs)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return trsparser.Trs{}, ErrNotFound
 	}
@@ -62,9 +62,9 @@ func (s *PostgresUserStorage) GetTRS(userID int64) (trsparser.Trs, error) {
 	return trs, nil
 }
 
-func (s *PostgresUserStorage) GetFormalTRS(userID int64) (string, error) {
+func (s *PostgresUserStorage) GetFormalTRS(ctx context.Context, userID int64) (string, error) {
 	var trs string
-	err := s.pg.QueryRow(context.TODO(), "SELECT formalize_result FROM tfllab1.extraction_result WHERE user_id = $1", userID).Scan(&trs)
+	err := s.pg.QueryRow(ctx, "SELECT formalize_result FROM tfllab1.extraction_result WHERE user_id = $1", userID).Scan(&trs)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return "", ErrNotFound
 	}
@@ -75,9 +75,9 @@ func (s *PostgresUserStorage) GetFormalTRS(userID int64) (string, error) {
 	return trs, nil
 }
 
-func (s *PostgresUserStorage) GetRequest(userID int64) (string, error) {
+func (s *PostgresUserStorage) GetRequest(ctx context.Context, userID int64) (string, error) {
 	var userRequest string
-	err := s.pg.QueryRow(context.TODO(), "SELECT user_request FROM tfllab1.extraction_result WHERE user_id = $1", userID).Scan(&userRequest)
+	err := s.pg.QueryRow(ctx, "SELECT user_request FROM tfllab1.extraction_result WHERE user_id = $1", userID).Scan(&userRequest)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return "", ErrNotFound
 	}
@@ -88,9 +88,9 @@ func (s *PostgresUserStorage) GetRequest(userID int64) (string, error) {
 	return userRequest, nil
 }
 
-func (s *PostgresUserStorage) GetParseError(userID int64) (string, error) {
+func (s *PostgresUserStorage) GetParseError(ctx context.Context, userID int64) (string, error) {
 	var parseError string
-	err := s.pg.QueryRow(context.TODO(), "SELECT parse_error FROM tfllab1.extraction_result WHERE user_id = $1", userID).Scan(&parseError)
+	err := s.pg.QueryRow(ctx, "SELECT parse_error FROM tfllab1.extraction_result WHERE user_id = $1", userID).Scan(&parseError)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return "", ErrNotFound
 	}
@@ -101,27 +101,27 @@ func (s *PostgresUserStorage) GetParseError(userID int64) (string, error) {
 	return parseError, nil
 }
 
-func (s *PostgresUserStorage) SetState(userID int64, state models.UserState) error {
-	_, err := s.pg.Exec(context.TODO(), "INSERT INTO tfllab1.user_state(user_id, state) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET state=excluded.state", userID, state)
+func (s *PostgresUserStorage) SetState(ctx context.Context, userID int64, state models.UserState) error {
+	_, err := s.pg.Exec(ctx, "INSERT INTO tfllab1.user_state(user_id, state) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET state=excluded.state", userID, state)
 	return err
 }
 
-func (s *PostgresUserStorage) SetTRS(userID int64, trs trsparser.Trs) error {
-	_, err := s.pg.Exec(context.TODO(), "INSERT INTO tfllab1.extraction_result(user_id, parse_result) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET parse_result=EXCLUDED.parse_result", userID, trs)
+func (s *PostgresUserStorage) SetTRS(ctx context.Context, userID int64, trs trsparser.Trs) error {
+	_, err := s.pg.Exec(ctx, "INSERT INTO tfllab1.extraction_result(user_id, parse_result) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET parse_result=EXCLUDED.parse_result", userID, trs)
 	return err
 }
 
-func (s *PostgresUserStorage) SetFormalTRS(userID int64, formalTrs string) error {
-	_, err := s.pg.Exec(context.TODO(), "INSERT INTO tfllab1.extraction_result(user_id, formalize_result) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET formalize_result=EXCLUDED.formalize_result", userID, formalTrs)
+func (s *PostgresUserStorage) SetFormalTRS(ctx context.Context, userID int64, formalTrs string) error {
+	_, err := s.pg.Exec(ctx, "INSERT INTO tfllab1.extraction_result(user_id, formalize_result) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET formalize_result=EXCLUDED.formalize_result", userID, formalTrs)
 	return err
 }
 
-func (s *PostgresUserStorage) SetRequest(userID int64, request string) error {
-	_, err := s.pg.Exec(context.TODO(), "INSERT INTO tfllab1.extraction_result(user_id, user_request) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET user_request=EXCLUDED.user_request", userID, request)
+func (s *PostgresUserStorage) SetRequest(ctx context.Context, userID int64, request string) error {
+	_, err := s.pg.Exec(ctx, "INSERT INTO tfllab1.extraction_result(user_id, user_request) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET user_request=EXCLUDED.user_request", userID, request)
 	return err
 }
 
-func (s *PostgresUserStorage) SetParseError(userID int64, parseError string) error {
-	_, err := s.pg.Exec(context.TODO(), "INSERT INTO tfllab1.extraction_result(user_id, parse_error) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET parse_error=EXCLUDED.parse_error", userID, parseError)
+func (s *PostgresUserStorage) SetParseError(ctx context.Context, userID int64, parseError string) error {
+	_, err := s.pg.Exec(ctx, "INSERT INTO tfllab1.extraction_result(user_id, parse_error) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET parse_error=EXCLUDED.parse_error", userID, parseError)
 	return err
 }

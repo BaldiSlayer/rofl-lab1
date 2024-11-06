@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -17,11 +18,11 @@ const helpMessage = `Для запроса к Базе Знаний введит
 /trs [опциональное описание TRS]
 ` + "```"
 
-func (controller *Controller) StartCommand(update tgbotapi.Update) (models.UserState, error) {
-	return controller.Start(update)
+func (controller *Controller) StartCommand(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
+	return controller.Start(ctx, update)
 }
 
-func (controller *Controller) HelpCommand(update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) HelpCommand(_ context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 	return models.GetRequest, errors.Join(
 		controller.Bot.SendMessage(userID, helpMessage),
@@ -29,7 +30,7 @@ func (controller *Controller) HelpCommand(update tgbotapi.Update) (models.UserSt
 	)
 }
 
-func (controller *Controller) TrsCommand(update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) TrsCommand(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 
 	args := strings.TrimSpace(update.Message.CommandArguments())
@@ -37,7 +38,7 @@ func (controller *Controller) TrsCommand(update tgbotapi.Update) (models.UserSta
 		return models.GetTrs, controller.Bot.SendMessage(userID, "Введите TRS")
 	}
 
-	return controller.extractTrs(args, update)
+	return controller.extractTrs(ctx, args, update)
 }
 
 func (controller *Controller) VersionCommand(update tgbotapi.Update) (models.UserState, error) {

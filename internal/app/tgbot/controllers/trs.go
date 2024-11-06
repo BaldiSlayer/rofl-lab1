@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -16,37 +17,37 @@ const (
 	fixCallbackData     = "Fix"
 )
 
-func (controller *Controller) GetTrs(update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) GetTrs(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
 	if update.Message == nil {
 		return models.GetTrs, nil
 	}
 
-	return controller.extractTrs(update.Message.Text, update)
+	return controller.extractTrs(ctx, update.Message.Text, update)
 }
 
-func (controller *Controller) extractTrs(userRequest string, update tgbotapi.Update) (models.UserState, error) {
-	err := controller.Storage.SetRequest(update.SentFrom().ID, update.Message.Text)
+func (controller *Controller) extractTrs(ctx context.Context, userRequest string, update tgbotapi.Update) (models.UserState, error) {
+	err := controller.Storage.SetRequest(ctx, update.SentFrom().ID, update.Message.Text)
 	if err != nil {
 		return 0, err
 	}
 
-	trs, formalized, err := controller.TrsUseCases.ExtractFormalTrs(userRequest)
-	return controller.handleExctractResult(update, trs, formalized, err)
+	trs, formalized, err := controller.TrsUseCases.ExtractFormalTrs(ctx, userRequest)
+	return controller.handleExctractResult(ctx, update, trs, formalized, err)
 }
 
-func (controller *Controller) handleExctractResult(update tgbotapi.Update, trs trsparser.Trs,
+func (controller *Controller) handleExctractResult(ctx context.Context, update tgbotapi.Update, trs trsparser.Trs,
 	formalized string, extractError error) (models.UserState, error) {
 
 	userID := update.SentFrom().ID
 
-	err := controller.Storage.SetFormalTRS(userID, formalized)
+	err := controller.Storage.SetFormalTRS(ctx, userID, formalized)
 	if err != nil {
 		return 0, err
 	}
 
 	var parseError *trsparser.ParseError
 	if errors.As(extractError, &parseError) {
-		err := controller.Storage.SetParseError(userID, parseError.LlmMessage)
+		err := controller.Storage.SetParseError(ctx, userID, parseError.LlmMessage)
 		if err != nil {
 			return 0, err
 		}
@@ -67,7 +68,7 @@ func (controller *Controller) handleExctractResult(update tgbotapi.Update, trs t
 		return 0, extractError
 	}
 
-	err = controller.Storage.SetTRS(userID, trs)
+	err = controller.Storage.SetTRS(ctx, userID, trs)
 	if err != nil {
 		return 0, err
 	}
@@ -81,16 +82,16 @@ func (controller *Controller) handleExctractResult(update tgbotapi.Update, trs t
 			"Подтвердите его с помощью кнопки ниже, либо опишите ошибку в новом сообщении", toString(trs)), keyboard)
 }
 
-func (controller *Controller) ValidateTrs(update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) ValidateTrs(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 
 	if update.CallbackQuery != nil && update.CallbackQuery.Data == confirmCallbackData {
-		trs, err := controller.Storage.GetTRS(userID)
+		trs, err := controller.Storage.GetTRS(ctx, userID)
 		if err != nil {
 			return 0, err
 		}
 
-		res, err := controller.TrsUseCases.InterpretFormalTrs(trs)
+		res, err := controller.TrsUseCases.InterpretFormalTrs(ctx, trs)
 		if err != nil {
 			return 0, err
 		}
@@ -102,56 +103,56 @@ func (controller *Controller) ValidateTrs(update tgbotapi.Update) (models.UserSt
 	} else if update.Message != nil {
 		errorDescription := update.Message.Text
 
-		userRequest, err := controller.Storage.GetRequest(userID)
+		userRequest, err := controller.Storage.GetRequest(ctx, userID)
 		if err != nil {
 			return 0, err
 		}
 
-		formalTrs, err := controller.Storage.GetFormalTRS(userID)
+		formalTrs, err := controller.Storage.GetFormalTRS(ctx, userID)
 		if err != nil {
 			return 0, err
 		}
 
-		trs, formalTrs, err := controller.TrsUseCases.FixFormalTrs(userRequest, formalTrs, errorDescription)
-		return controller.handleExctractResult(update, trs, formalTrs, err)
+		trs, formalTrs, err := controller.TrsUseCases.FixFormalTrs(ctx, userRequest, formalTrs, errorDescription)
+		return controller.handleExctractResult(ctx, update, trs, formalTrs, err)
 	}
 
 	return models.ValidateTrs, nil
 }
 
-func (controller *Controller) FixTrs(update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) FixTrs(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 
 	if update.CallbackQuery != nil && update.CallbackQuery.Data == fixCallbackData {
-		parseError, userRequest, formalTrs, err := controller.getExtractData(userID)
+		parseError, userRequest, formalTrs, err := controller.getExtractData(ctx, userID)
 		if err != nil {
 			return 0, err
 		}
 
-		trs, formalTrs, err := controller.TrsUseCases.FixFormalTrs(userRequest, formalTrs, parseError)
+		trs, formalTrs, err := controller.TrsUseCases.FixFormalTrs(ctx, userRequest, formalTrs, parseError)
 
-		return controller.handleExctractResult(update, trs, formalTrs, err)
+		return controller.handleExctractResult(ctx, update, trs, formalTrs, err)
 	} else if update.Message != nil {
 		userRequest := update.Message.Text
 
-		return controller.extractTrs(userRequest, update)
+		return controller.extractTrs(ctx, userRequest, update)
 	}
 
 	return models.FixTrs, nil
 }
 
-func (controller *Controller) getExtractData(userID int64) (string, string, string, error) {
-	parseError, err := controller.Storage.GetParseError(userID)
+func (controller *Controller) getExtractData(ctx context.Context, userID int64) (string, string, string, error) {
+	parseError, err := controller.Storage.GetParseError(ctx, userID)
 	if err != nil {
 		return "", "", "", err
 	}
 
-	userRequest, err := controller.Storage.GetRequest(userID)
+	userRequest, err := controller.Storage.GetRequest(ctx, userID)
 	if err != nil {
 		return "", "", "", err
 	}
 
-	formalTrs, err := controller.Storage.GetFormalTRS(userID)
+	formalTrs, err := controller.Storage.GetFormalTRS(ctx, userID)
 	if err != nil {
 		return "", "", "", err
 	}

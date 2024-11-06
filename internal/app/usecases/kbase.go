@@ -1,13 +1,15 @@
 package usecases
 
 import (
+	"context"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/kbdatastorage"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 )
 
-func AskKnowledgeBase(modelClient mclient.ModelClient, question string) (string, error) {
-	return modelClient.AskWithContext(question)
+func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, question string) (string, error) {
+	return modelClient.AskWithContext(ctx, question)
 }
 
 func LoadQABase() ([]models.QAPair, error) {

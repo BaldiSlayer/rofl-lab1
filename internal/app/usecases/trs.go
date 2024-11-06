@@ -1,6 +1,8 @@
 package usecases
 
 import (
+	"context"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/formalizeclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/interpretclient"
 	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
@@ -30,8 +32,8 @@ func New() (*TrsUseCases, error) {
 	}, nil
 }
 
-func (uc *TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, error) {
-	formalizedTrs, err := uc.formalize.Formalize(request)
+func (uc *TrsUseCases) ExtractFormalTrs(ctx context.Context, request string) (trsparser.Trs, string, error) {
+	formalizedTrs, err := uc.formalize.Formalize(ctx, request)
 	if err != nil {
 		return trsparser.Trs{}, "", err
 	}
@@ -44,8 +46,8 @@ func (uc *TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, 
 	return *trs, formalizedTrs, nil
 }
 
-func (uc *TrsUseCases) FixFormalTrs(request, formalTrs, errorDescription string) (trsparser.Trs, string, error) {
-	formalizedTrs, err := uc.formalize.FixFormalized(request, formalTrs, errorDescription)
+func (uc *TrsUseCases) FixFormalTrs(ctx context.Context, request, formalTrs, errorDescription string) (trsparser.Trs, string, error) {
+	formalizedTrs, err := uc.formalize.FixFormalized(ctx, request, formalTrs, errorDescription)
 	if err != nil {
 		return trsparser.Trs{}, "", err
 	}
@@ -58,6 +60,6 @@ func (uc *TrsUseCases) FixFormalTrs(request, formalTrs, errorDescription string)
 	return *trs, formalizedTrs, nil
 }
 
-func (uc *TrsUseCases) InterpretFormalTrs(trs trsparser.Trs) (string, error) {
-	return uc.interpret.Interpret(trs)
+func (uc *TrsUseCases) InterpretFormalTrs(ctx context.Context, trs trsparser.Trs) (string, error) {
+	return uc.interpret.Interpret(ctx, trs)
 }

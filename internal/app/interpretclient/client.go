@@ -36,8 +36,8 @@ func NewInterpreter() (*Interpreter, error) {
 	}, nil
 }
 
-func (i *Interpreter) Interpret(trs trsparser.Trs) (string, error) {
-	res, err := i.TrsInterpretWithResponse(context.TODO(), TrsInterpretJSONRequestBody{
+func (i *Interpreter) Interpret(ctx context.Context, trs trsparser.Trs) (string, error) {
+	res, err := i.TrsInterpretWithResponse(ctx, TrsInterpretJSONRequestBody{
 		Interpretations: trs.Interpretations,
 		Rules:           trs.Rules,
 		Variables:       trs.Variables,
