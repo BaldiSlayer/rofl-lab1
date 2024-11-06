@@ -3,6 +3,7 @@ package ustorage
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
@@ -82,4 +83,13 @@ func (s *MapUserStorage) SetRequest(_ context.Context, userID int64, request str
 func (s *MapUserStorage) SetParseError(_ context.Context, userID int64, parseError string) error {
 	s.parseErrors[userID] = parseError
 	return nil
+}
+
+
+func (s *MapUserStorage) GetUserStatesUpdatedAfter(ctx context.Context, after time.Time) ([]int64, error) {
+	userIDs := []int64{}
+	for userID := range s.states {
+		userIDs = append(userIDs, userID)
+	}
+	return userIDs, nil
 }

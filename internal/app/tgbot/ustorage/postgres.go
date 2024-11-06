@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -124,4 +125,26 @@ func (s *PostgresUserStorage) SetRequest(ctx context.Context, userID int64, requ
 func (s *PostgresUserStorage) SetParseError(ctx context.Context, userID int64, parseError string) error {
 	_, err := s.pg.Exec(ctx, "INSERT INTO tfllab1.extraction_result(user_id, parse_error) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET parse_error=EXCLUDED.parse_error", userID, parseError)
 	return err
+}
+
+func (s *PostgresUserStorage) GetUserStatesUpdatedAfter(ctx context.Context, after time.Time) ([]int64, error) {
+	rows, err := s.pg.Query(ctx, "SELECT user_id FROM tfllab1.user_state WHERE updated_at > $1", after)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	userIDs := []int64{}
+
+	for rows.Next() {
+		var userID int64
+		err = rows.Scan(&userID)
+		if err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, userID)
+	}
+
+	return userIDs, nil
 }

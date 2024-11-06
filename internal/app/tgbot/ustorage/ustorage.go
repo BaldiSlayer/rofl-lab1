@@ -3,6 +3,7 @@ package ustorage
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
@@ -19,6 +20,7 @@ type UserDataStorage interface {
 	GetFormalTRS(ctx context.Context, userID int64) (string, error)
 	GetRequest(ctx context.Context, userID int64) (string, error)
 	GetParseError(ctx context.Context, userID int64) (string, error)
+	GetUserStatesUpdatedAfter(ctx context.Context, after time.Time) ([]int64, error)
 }
 
 var ErrNotFound = errors.New("not found")
