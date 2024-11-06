@@ -108,30 +108,32 @@ func (bot *App) Run(ctx context.Context) {
 
 	slog.Info("telegram bot has successfully started")
 
-	var wg sync.WaitGroup
-	for {
-		select {
-		case update := <-updates:
-			slog.Debug("processing update")
-			wg.Add(1)
-			go func() {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*90)
-				defer cancel()
+	func () {
+		var wg sync.WaitGroup
+		for {
+			select {
+			case update := <-updates:
+				slog.Debug("processing update")
+				wg.Add(1)
+				go func() {
+					ctx, cancel := context.WithTimeout(context.Background(), time.Second*90)
+					defer cancel()
 
-				bot.processUpdate(ctx, update)
-				wg.Done()
-			}()
-		case <-ctx.Done():
-			slog.Info("Gracefully shutting down")
-			err := bot.controller.SendRestartMessages(context.Background())
-			if err != nil {
-				slog.Error("failed to send restart messages", "error", err)
+					bot.processUpdate(ctx, update)
+					wg.Done()
+				}()
+			case <-ctx.Done():
+				slog.Info("Gracefully shutting down")
+				err := bot.controller.SendRestartMessages(context.Background())
+				if err != nil {
+					slog.Error("failed to send restart messages", "error", err)
+				}
+
+				wg.Wait()
+				return
 			}
-
-			wg.Wait()
-			break
 		}
-	}
+	}()
 }
 
 func buildTransitions(controller *controllers.Controller) map[models.UserState]actpool.StateTransition {

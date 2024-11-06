@@ -35,7 +35,7 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    restart: no
+    restart: unless-stopped
   interpret:
     build:
       dockerfile: ./dockerfiles/interpret.dockerfile
