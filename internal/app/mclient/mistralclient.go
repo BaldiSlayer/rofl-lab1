@@ -21,7 +21,7 @@ type Mistral struct {
 
 const llmServer = "http://llm:8100"
 
-func NewMistralClient(questions []models.QAPair) (ModelClient, error) {
+func NewMistralClient() (ModelClient, error) {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = 5
 	standardClient := retryClient.StandardClient() // *http.Client

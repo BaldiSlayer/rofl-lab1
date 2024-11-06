@@ -45,7 +45,7 @@ func WithConfig() Option {
 	}
 }
 
-func New(opts ...Option) (*App, error) {
+func New(ctx context.Context, opts ...Option) (*App, error) {
 	tgBot := &App{}
 
 	for _, opt := range opts {
@@ -95,6 +95,8 @@ func (bot *App) Run(ctx context.Context) {
 	// NOTE: Timeout of long polling requests
 	u.Timeout = 1
 	u.AllowedUpdates = []string{tgbotapi.UpdateTypeMessage, tgbotapi.UpdateTypeCallbackQuery}
+
+	bot.controller.InitContext(ctx)
 
 	updates := bot.bot.GetUpdatesChan(u)
 

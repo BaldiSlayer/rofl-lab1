@@ -16,12 +16,7 @@ type Controller struct {
 }
 
 func New(bot *tgcommons.Bot, userStorage ustorage.UserDataStorage) (*Controller, error) {
-	context, err := usecases.LoadQABase()
-	if err != nil {
-		return nil, err
-	}
-
-	mclient, err := mclient.NewMistralClient(context)
+	mclient, err := mclient.NewMistralClient()
 	if err != nil {
 		return nil, err
 	}

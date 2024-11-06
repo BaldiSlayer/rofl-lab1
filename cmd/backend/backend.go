@@ -24,13 +24,18 @@ func cli() {
 		os.Exit(1)
 	}
 
-	QAData, err := usecases.LoadQABase()
+	model, err := mclient.NewMistralClient()
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
-	model, err := mclient.NewMistralClient(QAData)
+	qa, err := usecases.LoadQABase()
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
+	err = model.InitContext(context.Background(), qa)
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
@@ -57,16 +62,17 @@ func main() {
 		return
 	}
 
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	app, err := tgbot.New(
+		ctx,
 		tgbot.WithConfig(),
 	)
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
-
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
 
 	app.Run(ctx)
 }
