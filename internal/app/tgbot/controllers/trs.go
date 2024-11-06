@@ -58,7 +58,7 @@ func (controller *Controller) handleExctractResult(ctx context.Context, update t
 		return models.FixTrs, controller.Bot.SendMessageWithKeyboard(
 			userID,
 			fmt.Sprintf("Ошибка при формализации TRS\nРезультат Formalize:\n%s\nРезультат Parse:\n%s\n\n"+
-				"Переформулируйте запрос в новом сообщении, либо запустите процесс автоматического исправления по кнопке ниже",
+				"Переформулируйте запрос в новом сообщении, либо запустите процесс автоматического исправления с помощью кнопки под этим сообщением",
 				formalized, parseError.LlmMessage),
 			keyboard,
 		)
@@ -79,7 +79,7 @@ func (controller *Controller) handleExctractResult(ctx context.Context, update t
 
 	return models.ValidateTrs, controller.Bot.SendMessageWithKeyboard(userID,
 		fmt.Sprintf("Результат формализации:\n%s\n\n"+
-			"Подтвердите его с помощью кнопки ниже, либо опишите ошибку в новом сообщении", toString(trs)), keyboard)
+			"Подтвердите его с помощью кнопки под этим сообщением, либо опишите ошибку в новом сообщении", toString(trs)), keyboard)
 }
 
 func (controller *Controller) ValidateTrs(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
