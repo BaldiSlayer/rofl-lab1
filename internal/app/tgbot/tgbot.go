@@ -135,6 +135,7 @@ func buildCommands(controller *controllers.Controller) map[string]actpool.StateT
 		"start": controller.StartCommand,
 		"help":  controller.HelpCommand,
 		"trs":   controller.TrsCommand,
+		"version":   controller.VersionCommand,
 	}
 }
 

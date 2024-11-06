@@ -41,7 +41,7 @@ func (controller *Controller) TrsCommand(ctx context.Context, update tgbotapi.Up
 	return controller.extractTrs(ctx, args, update)
 }
 
-func (controller *Controller) VersionCommand(update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) VersionCommand(_ context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 	return models.GetRequest, errors.Join(
 		controller.Bot.SendMessage(userID, version.BuildVersion()),
