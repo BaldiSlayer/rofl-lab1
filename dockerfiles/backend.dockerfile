@@ -8,7 +8,6 @@ RUN go mod download
 COPY /cmd/backend /app/cmd/backend
 COPY /internal /app/internal
 COPY /pkg /app/pkg
-COPY /scripts /app/scripts
 
 ARG LDFLAGS
 
