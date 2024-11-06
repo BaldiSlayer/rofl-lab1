@@ -53,7 +53,7 @@ jobs:
 
           LDFLAGS=(
             "-X '${PACKAGE}/internal/version.CommitHash=${COMMIT_HASH}'"
-            "-X '${PACKAGE}/internal/version.BuildTime=${BUILD_TIMESTAMP}'"
+            "-X '${PACKAGE}/internal/version.BuildTimestamp=${BUILD_TIMESTAMP}'"
           )
 
           echo "LDFLAGS=${LDFLAGS[*]}" >> $GITHUB_ENV
