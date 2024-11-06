@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/actpool"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/controllers"
@@ -107,7 +107,10 @@ func (bot *App) Run(ctx context.Context) {
 			slog.Debug("processing update")
 			wg.Add(1)
 			go func() {
-				bot.processUpdate(context.Background(), update)
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*90)
+				defer cancel()
+
+				bot.processUpdate(ctx, update)
 				wg.Done()
 			}()
 		case <-ctx.Done():
