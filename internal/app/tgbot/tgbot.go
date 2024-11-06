@@ -108,7 +108,6 @@ func (bot *App) Run(ctx context.Context) {
 
 	slog.Info("telegram bot has successfully started")
 
-
 	var wg sync.WaitGroup
 	for {
 		select {
@@ -146,10 +145,10 @@ func buildTransitions(controller *controllers.Controller) map[models.UserState]a
 
 func buildCommands(controller *controllers.Controller) map[string]actpool.StateTransition {
 	return map[string]actpool.StateTransition{
-		"start": controller.StartCommand,
-		"help":  controller.HelpCommand,
-		"trs":   controller.TrsCommand,
-		"version":   controller.VersionCommand,
+		"start":   controller.StartCommand,
+		"help":    controller.HelpCommand,
+		"trs":     controller.TrsCommand,
+		"version": controller.VersionCommand,
 	}
 }
 

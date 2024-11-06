@@ -85,7 +85,6 @@ func (s *MapUserStorage) SetParseError(_ context.Context, userID int64, parseErr
 	return nil
 }
 
-
 func (s *MapUserStorage) GetUserStatesUpdatedAfter(ctx context.Context, after time.Time) ([]int64, error) {
 	userIDs := []int64{}
 	for userID := range s.states {

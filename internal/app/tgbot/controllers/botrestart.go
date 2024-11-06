@@ -5,9 +5,8 @@ import (
 	"time"
 )
 
-
 func (controller *Controller) SendStartupMessages(ctx context.Context) error {
-	userIDs, err := controller.Storage.GetUserStatesUpdatedAfter(ctx, time.Now().Add(time.Minute * -10))
+	userIDs, err := controller.Storage.GetUserStatesUpdatedAfter(ctx, time.Now().Add(time.Minute*-10))
 	if err != nil {
 		return err
 	}
@@ -23,7 +22,7 @@ func (controller *Controller) SendStartupMessages(ctx context.Context) error {
 }
 
 func (controller *Controller) SendRestartMessages(ctx context.Context) error {
-	userIDs, err := controller.Storage.GetUserStatesUpdatedAfter(ctx, time.Now().Add(time.Minute * -10))
+	userIDs, err := controller.Storage.GetUserStatesUpdatedAfter(ctx, time.Now().Add(time.Minute*-10))
 	if err != nil {
 		return err
 	}
