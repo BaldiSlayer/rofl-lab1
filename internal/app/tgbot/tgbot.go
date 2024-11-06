@@ -100,7 +100,7 @@ func (bot *App) Run(ctx context.Context) {
 
 	updates := bot.bot.GetUpdatesChan(u)
 
-	err := bot.controller.SendStartupMessages(ctx)
+	err := bot.controller.SendStartupMessages(context.Background())
 	if err != nil {
 		slog.Error("failed to send startup messages", "error", err)
 		return
@@ -123,7 +123,7 @@ func (bot *App) Run(ctx context.Context) {
 			}()
 		case <-ctx.Done():
 			slog.Info("Gracefully shutting down")
-			err := bot.controller.SendRestartMessages(ctx)
+			err := bot.controller.SendRestartMessages(context.Background())
 			if err != nil {
 				slog.Error("failed to send restart messages", "error", err)
 			}
