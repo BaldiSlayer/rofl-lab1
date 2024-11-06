@@ -108,7 +108,7 @@ func (bot *App) Run(ctx context.Context) {
 
 	slog.Info("telegram bot has successfully started")
 
-	func () {
+	func() {
 		var wg sync.WaitGroup
 		for {
 			select {
