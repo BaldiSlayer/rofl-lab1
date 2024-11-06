@@ -98,7 +98,14 @@ func (bot *App) Run(ctx context.Context) {
 
 	updates := bot.bot.GetUpdatesChan(u)
 
+	err := bot.controller.SendStartupMessages(ctx)
+	if err != nil {
+		slog.Error("failed to send startup messages", "error", err)
+		return
+	}
+
 	slog.Info("telegram bot has successfully started")
+
 
 	var wg sync.WaitGroup
 	for {
@@ -114,6 +121,11 @@ func (bot *App) Run(ctx context.Context) {
 				wg.Done()
 			}()
 		case <-ctx.Done():
+			err := bot.controller.SendRestartMessages(ctx)
+			if err != nil {
+				slog.Error("failed to send restart messages", "error", err)
+			}
+
 			wg.Wait()
 			break
 		}

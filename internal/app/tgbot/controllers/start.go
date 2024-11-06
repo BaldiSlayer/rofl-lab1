@@ -8,7 +8,6 @@ import (
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 )
 
-// EmptyState - начальное состояние
 func (controller *Controller) Start(_ context.Context, update tgbotapi.Update) (models.UserState, error) {
 	if update.Message == nil {
 		return models.Start, nil
