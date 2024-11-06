@@ -1,4 +1,4 @@
--- export $(cat .env | xargs) && docker run -it --rm --network rofl-lab1_default -v $(pwd)/postgresql/migrations/:/migrations/migrations urbica/pgmigrate -d /migrations -t latest migrate -t 2 -c "port=5432 host=postgres dbname=$POSTGRES_DB user=$POSTGRES_USER password=$POSTGRES_PASSWORD"
+-- export $(cat .env | xargs) && docker run -it --rm --network rofl-lab1_default -v $(pwd)/postgresql/migrations/:/migrations/migrations urbica/pgmigrate -d /migrations -t latest migrate -t 3 -c "port=5432 host=postgres dbname=$POSTGRES_DB user=$POSTGRES_USER password=$POSTGRES_PASSWORD"
 
 CREATE TABLE tfllab1.user_state (
        user_id BIGINT PRIMARY KEY,
@@ -24,3 +24,5 @@ $$ language 'plpgsql';
 
 CREATE TRIGGER set_user_state_updated_at BEFORE UPDATE ON tfllab1.user_state
        FOR EACH ROW EXECUTE PROCEDURE set_updated_at_column();
+
+CREATE INDEX CONCURRENTLY user_state_updated_at_index ON tfllab1.user_state (updated_at);
