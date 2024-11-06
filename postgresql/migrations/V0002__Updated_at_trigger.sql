@@ -9,4 +9,4 @@ END;
 $$ language 'plpgsql';
 
 CREATE TRIGGER set_user_state_updated_at BEFORE UPDATE ON tfllab1.user_state
-       FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+       FOR EACH ROW EXECUTE PROCEDURE set_updated_at_column();
