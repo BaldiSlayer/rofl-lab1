@@ -49,7 +49,7 @@ jobs:
         run: |
           PACKAGE="github.com/BaldiSlayer/rofl-lab1"
           COMMIT_HASH="$(git rev-parse --short HEAD)"
-          BUILD_TIMESTAMP=$(date '+%Y-%m-%dT%H:%M:%S')
+          BUILD_TIMESTAMP=$(TZ=Europe/Moscow date --rfc-3339 s)
 
           LDFLAGS=(
             "-X '${PACKAGE}/internal/version.CommitHash=${COMMIT_HASH}'"
