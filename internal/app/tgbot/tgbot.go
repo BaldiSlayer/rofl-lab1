@@ -57,19 +57,19 @@ func New(ctx context.Context, opts ...Option) (*App, error) {
 
 	tgBot.userLocks = make(map[int64]*sync.Mutex)
 
-	userStorage, err := ustorage.NewPostgresUserStorage()
+	userStorage, err := ustorage.NewPostgresUserStorage(tgBot.config.PgUser, tgBot.config.PgPassword, tgBot.config.PgDBName)
 	if err != nil {
 		return nil, err
 	}
 
 	tgBot.userStorage = userStorage
 
-	tgBot.bot, err = tgcommons.NewBot(tgBot.config.Token)
+	tgBot.bot, err = tgcommons.NewBot(tgBot.config.TgToken)
 	if err != nil {
 		return nil, err
 	}
 
-	controller, err := controllers.New(tgBot.bot, userStorage)
+	controller, err := controllers.New(tgBot.bot, userStorage, tgBot.config.GhToken)
 	if err != nil {
 		return nil, err
 	}

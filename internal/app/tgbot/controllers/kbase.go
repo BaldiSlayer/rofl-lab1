@@ -21,7 +21,14 @@ func (controller *Controller) GetRequest(ctx context.Context, update tgbotapi.Up
 }
 
 func (controller *Controller) handleKnowledgeBaseRequest(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
-	answer, err := usecases.AskKnowledgeBase(ctx, controller.ModelClient, update.Message.Text)
+	userRequest := update.Message.Text
+
+	answer, usedContext, err := usecases.AskKnowledgeBase(ctx, controller.ModelClient, userRequest)
+	if err != nil {
+		return 0, err
+	}
+
+	gistLink, err := usecases.UploadKnowledgeBaseAnswer(ctx, controller.GihubClient, userRequest, usedContext, answer)
 	if err != nil {
 		return 0, err
 	}
@@ -29,7 +36,7 @@ func (controller *Controller) handleKnowledgeBaseRequest(ctx context.Context, up
 	return models.GetRequest, errors.Join(
 		controller.Bot.SendMessage(
 			update.Message.Chat.ID,
-			fmt.Sprintf("%s\n\n%s", answer, version.BuildVersion()),
+			fmt.Sprintf("%s\n\n[ссылка на использованный контекст](%s)\n\n%s", answer, gistLink, version.BuildVersion()),
 		),
 		controller.Bot.SendMessage(
 			update.Message.Chat.ID,

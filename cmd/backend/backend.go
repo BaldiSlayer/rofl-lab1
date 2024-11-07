@@ -43,12 +43,13 @@ func cli() {
 
 	slog.Info("Executing model request")
 
-	answer, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
+	answer, usedContext, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
+	fmt.Println(usedContext)
 	fmt.Println(answer)
 }
 

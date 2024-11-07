@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/githubclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/tgcommons"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/ustorage"
@@ -13,9 +14,10 @@ type Controller struct {
 	ModelClient mclient.ModelClient
 	TrsUseCases *usecases.TrsUseCases
 	Storage     ustorage.UserDataStorage
+	GihubClient *githubclient.Client
 }
 
-func New(bot *tgcommons.Bot, userStorage ustorage.UserDataStorage) (*Controller, error) {
+func New(bot *tgcommons.Bot, userStorage ustorage.UserDataStorage, ghToken string) (*Controller, error) {
 	mclient, err := mclient.NewMistralClient()
 	if err != nil {
 		return nil, err
@@ -26,10 +28,13 @@ func New(bot *tgcommons.Bot, userStorage ustorage.UserDataStorage) (*Controller,
 		return nil, err
 	}
 
+	ghClient := githubclient.New(ghToken)
+
 	return &Controller{
 		Bot:         bot,
 		ModelClient: mclient,
 		TrsUseCases: uc,
 		Storage:     userStorage,
+		GihubClient: ghClient,
 	}, nil
 }

@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/caarlos0/env/v11 v11.2.2
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
+	github.com/google/go-github/v66 v66.0.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/oapi-codegen/oapi-codegen/v2 v2.3.0
@@ -19,6 +20,7 @@ require (
 	github.com/getkin/kin-openapi v0.125.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/invopop/yaml v0.3.1 // indirect

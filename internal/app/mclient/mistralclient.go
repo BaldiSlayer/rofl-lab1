@@ -47,24 +47,25 @@ func (mc *Mistral) Ask(ctx context.Context, question string) (string, error) {
 	return mc.ask(ctx, question, nil)
 }
 
-func (mc *Mistral) AskWithContext(ctx context.Context, question string) (string, error) {
+func (mc *Mistral) AskWithContext(ctx context.Context, question string) (answer string, context string, err error) {
 	contexts, err := mc.processQuestionsRequest(ctx, []models.QAPair{{
 		Question: question,
 		Answer:   "",
 	}}, true)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	if len(contexts) != 1 {
-		return "", fmt.Errorf("expected single answer from process_questions endpoint, got %d", len(contexts))
+		return "", "", fmt.Errorf("expected single answer from process_questions endpoint, got %d", len(contexts))
 	}
 
-	context := contexts[0]
+	context = contexts[0]
 
 	slog.Info("executing model request", "question", question, "context", context)
 
-	return mc.ask(ctx, question, &context)
+	answer, err = mc.ask(ctx, question, &context)
+	return answer, context, err
 }
 
 func (mc *Mistral) ask(ctx context.Context, question string, contextStr *string) (string, error) {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -19,12 +18,12 @@ type PostgresUserStorage struct {
 	pg *pgxpool.Pool
 }
 
-func NewPostgresUserStorage() (*PostgresUserStorage, error) {
+func NewPostgresUserStorage(user, password, db string) (*PostgresUserStorage, error) {
 	connString := fmt.Sprintf("user=%s password=%s host=postgres "+
 		"port=5432 dbname=%s pool_max_conns=10",
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_DB"),
+		user,
+		password,
+		db,
 	)
 
 	dbpool, err := pgxpool.New(context.Background(), connString)
