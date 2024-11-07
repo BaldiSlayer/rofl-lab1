@@ -31,7 +31,8 @@ func (c *Client) GistCreate(ctx context.Context, gist Gist) (string, error) {
 		Public:      &isPublic,
 		Files: func() map[github.GistFilename]github.GistFile {
 			res := make(map[github.GistFilename]github.GistFile)
-			for _, file := range gist.Files {
+			for i := range gist.Files {
+				file := gist.Files[i]
 				res[github.GistFilename(file.Name)] = github.GistFile{
 					Size:     nil,
 					Filename: nil,
