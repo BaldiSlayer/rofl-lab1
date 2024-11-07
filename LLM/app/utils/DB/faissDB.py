@@ -47,10 +47,13 @@ def search_similar(model, index, query, data, k_max=10, similarity_threshold=0.1
     # perform a search with the maximum value of k
     D, I = index.search(np.array(query_embedding), k_max)
 
+    # Find the closest distance
+    closest_distance = D[0][0]
+
     # Dynamically determine k depending on the distances
     dynamic_k = 1  # At least one result is always returned
     for i in range(1, k_max):
-        if D[0][i] - D[0][i - 1] > similarity_threshold:
+        if D[0][i] - closest_distance > similarity_threshold:
             break
         dynamic_k += 1
 
