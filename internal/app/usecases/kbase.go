@@ -118,7 +118,7 @@ func UploadKnowledgeBaseAnswers(ctx context.Context, ghClient *githubclient.Clie
 		}
 
 		files = append(files, githubclient.GistFile{
-			Name:    fmt.Sprintf("%d-%s", i+2, answer.Model),
+			Name:    fmt.Sprintf("%d-%s.md", i+2, answer.Model),
 			Content: content,
 		})
 	}
