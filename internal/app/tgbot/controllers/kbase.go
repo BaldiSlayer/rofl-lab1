@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
@@ -37,10 +38,12 @@ func (controller *Controller) handleKnowledgeBaseRequest(ctx context.Context, up
 	gistLink = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, gistLink)
 	buildVersion := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, version.BuildVersion())
 
+	message := fmt.Sprintf("%s\n\n[ссылка на использованный контекст](%s)\n\n%s", answer, gistLink, buildVersion)
+	slog.Info(message)
 	return models.GetRequest, errors.Join(
 		controller.Bot.SendMarkdownMessage(
 			update.Message.Chat.ID,
-			fmt.Sprintf("%s\n\n[ссылка на использованный контекст](%s)\n\n%s", answer, gistLink, buildVersion),
+			message,
 		),
 		controller.Bot.SendMessage(
 			update.Message.Chat.ID,
