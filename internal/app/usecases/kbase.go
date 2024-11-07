@@ -13,15 +13,15 @@ import (
 )
 
 type KBAnswer struct {
-	Model string
-	Answer string
+	Model   string
+	Answer  string
 	Context *string
 }
 
 func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, question string) ([]KBAnswer, error) {
 	res := []KBAnswer{}
-	requests := []struct{
-		model string
+	requests := []struct {
+		model      string
 		useContext bool
 	}{
 		{
@@ -125,7 +125,7 @@ func UploadKnowledgeBaseAnswers(ctx context.Context, ghClient *githubclient.Clie
 
 	gist := githubclient.Gist{
 		Description: version.BuildVersion(),
-		Files: files,
+		Files:       files,
 	}
 
 	return ghClient.GistCreate(ctx, gist)
