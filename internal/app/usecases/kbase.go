@@ -36,6 +36,8 @@ func LoadQABase() ([]models.QAPair, error) {
 		return nil, err
 	}
 
+	jsonData = []models.QAPair{} // NOTE: omit context from json temporarily
+
 	slog.Info("Loaded context", "json", len(jsonData), "yaml", len(yamlData))
 
 	return append(jsonData, yamlData...), nil
