@@ -10,7 +10,7 @@ type ModelClient interface {
 	// InitContext отправляет запрос инициализации контекста
 	InitContext(ctx context.Context, data []models.QAPair) error
 	// Ask отправляет запрос к модели
-	Ask(ctx context.Context, question string) (string, error)
+	Ask(ctx context.Context, question string, model string) (string, error)
 	// AskWithContext отправляет запрос к модели с использованием контекста
-	AskWithContext(ctx context.Context, question string) (answer string, context string, err error)
+	AskWithContext(ctx context.Context, question string, model string) (answer string, context string, err error)
 }

@@ -12,7 +12,7 @@ import (
 )
 
 func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, question string) (string, string, error) {
-	return modelClient.AskWithContext(ctx, question)
+	return modelClient.AskWithContext(ctx, question, "open-mistral-7b")
 }
 
 func LoadQABase() ([]models.QAPair, error) {

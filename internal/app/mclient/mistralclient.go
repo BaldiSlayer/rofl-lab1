@@ -43,11 +43,11 @@ func (mc *Mistral) InitContext(ctx context.Context, questions []models.QAPair) e
 	return err
 }
 
-func (mc *Mistral) Ask(ctx context.Context, question string) (string, error) {
-	return mc.ask(ctx, question, nil)
+func (mc *Mistral) Ask(ctx context.Context, question string, model string) (string, error) {
+	return mc.ask(ctx, question, nil, model)
 }
 
-func (mc *Mistral) AskWithContext(ctx context.Context, question string) (answer string, context string, err error) {
+func (mc *Mistral) AskWithContext(ctx context.Context, question string, model string) (answer string, context string, err error) {
 	contexts, err := mc.processQuestionsRequest(ctx, []models.QAPair{{
 		Question: question,
 		Answer:   "",
@@ -64,14 +64,14 @@ func (mc *Mistral) AskWithContext(ctx context.Context, question string) (answer 
 
 	slog.Info("executing model request", "question", question, "context", context)
 
-	answer, err = mc.ask(ctx, question, &context)
+	answer, err = mc.ask(ctx, question, &context, model)
 	return answer, context, err
 }
 
-func (mc *Mistral) ask(ctx context.Context, question string, contextStr *string) (string, error) {
+func (mc *Mistral) ask(ctx context.Context, question string, contextStr *string, model string) (string, error) {
 	resp, err := mc.ApiGetChatResponseGetChatResponsePostWithResponse(ctx, mistral.GetChatResponseRequest{
 		Context: contextStr,
-		Model:   nil,
+		Model:   &model,
 		Prompt:  question,
 	})
 	if err != nil {
