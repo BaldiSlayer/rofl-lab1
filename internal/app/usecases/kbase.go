@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/kbdatastorage"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
@@ -32,6 +33,8 @@ func LoadQABase() ([]models.QAPair, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	slog.Info("Loaded context", "json", len(jsonData), "yaml", len(yamlData))
 
 	return append(jsonData, yamlData...), nil
 }
