@@ -60,7 +60,7 @@ services:
       start_period: 5s
     restart: unless-stopped
   postgres:
-    image: postgres:17
+    image: public.ecr.aws/docker/library/postgres:17
     container_name: postgres
     volumes:
       - 'postgres_data:/data/postgres'
