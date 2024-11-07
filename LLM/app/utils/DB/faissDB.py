@@ -5,13 +5,13 @@ import pickle
 import os
 from googletrans import Translator
 
+translator = Translator()
 
 def initialize_model():
     return SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
 
 def translate_text(text, dest_lang='en'):
-    translator = Translator()
     return translator.translate(text, dest=dest_lang).text
 
 
