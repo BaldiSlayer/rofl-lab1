@@ -13,7 +13,7 @@ import (
 	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
 )
 
-// PostgresUserStorage хранилище данных о пользователе, которое использует map
+// PostgresUserStorage хранилище данных о пользователе, которое использует Postgres
 type PostgresUserStorage struct {
 	pg *pgxpool.Pool
 }
