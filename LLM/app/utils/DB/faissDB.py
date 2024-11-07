@@ -7,6 +7,7 @@ from googletrans import Translator
 
 translator = Translator()
 
+
 def initialize_model():
     return SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
@@ -147,5 +148,3 @@ def add_new_questions(new_questions, filename="vectorized_data"):
     save_vectorized_data(updated_data, updated_embeddings, index, filename)
 
     print(f"Added {len(new_questions)} new questions to the database.")
-
-
