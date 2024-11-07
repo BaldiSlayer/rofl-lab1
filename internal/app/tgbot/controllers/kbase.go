@@ -35,7 +35,6 @@ func (controller *Controller) handleKnowledgeBaseRequest(ctx context.Context, up
 	}
 
 	answer := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, answers[0].Answer)
-	gistLink = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, gistLink)
 	buildVersion := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, version.BuildVersion())
 
 	message := fmt.Sprintf("%s\n\n[ссылка на использованный контекст](%s)\n\n%s", answer, gistLink, buildVersion)
