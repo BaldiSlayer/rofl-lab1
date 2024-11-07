@@ -14,7 +14,7 @@ func (bot *Bot) SendMessage(chatID int64, messageText string) error {
 
 func (bot *Bot) SendMarkdownMessage(chatID int64, messageText string) error {
 	msg := tgbotapi.NewMessage(chatID, messageText)
-	msg.ParseMode = tgbotapi.ModeMarkdownV2
+	msg.ParseMode = tgbotapi.ModeMarkdown
 
 	_, err := bot.bot.Send(msg)
 
@@ -24,7 +24,7 @@ func (bot *Bot) SendMarkdownMessage(chatID int64, messageText string) error {
 func (bot *Bot) SendMarkdownMessageWithKeyboard(chatID int64, messageText string, keyboard tgbotapi.InlineKeyboardMarkup) error {
 	msg := tgbotapi.NewMessage(chatID, messageText)
 	msg.ReplyMarkup = keyboard
-	msg.ParseMode = tgbotapi.ModeMarkdownV2
+	msg.ParseMode = tgbotapi.ModeMarkdown
 
 	_, err := bot.bot.Send(msg)
 

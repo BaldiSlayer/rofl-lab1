@@ -55,8 +55,8 @@ func (controller *Controller) handleExctractResult(ctx context.Context, update t
 		keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Исправить", fixCallbackData),
 		))
-		formalized = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, formalized)
-		llmErrorMessage := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, parseError.LlmMessage)
+		formalized = tgbotapi.EscapeText(tgbotapi.ModeMarkdown, formalized)
+		llmErrorMessage := tgbotapi.EscapeText(tgbotapi.ModeMarkdown, parseError.LlmMessage)
 		return models.FixTrs, controller.Bot.SendMarkdownMessageWithKeyboard(
 			userID,
 			fmt.Sprintf("Ошибка при формализации TRS\nРезультат Formalize\\:\n```\n%s\n```\nРезультат Parse:\n```\n%s\n```\n\n"+
@@ -98,7 +98,7 @@ func (controller *Controller) ValidateTrs(ctx context.Context, update tgbotapi.U
 			return 0, err
 		}
 
-		res = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, res)
+		res = tgbotapi.EscapeText(tgbotapi.ModeMarkdown, res)
 
 		return models.GetRequest, errors.Join(
 			controller.Bot.SendMarkdownMessage(userID, fmt.Sprintf("Результат интерпретации TRS\\:\n```\n%s\n```", res)),

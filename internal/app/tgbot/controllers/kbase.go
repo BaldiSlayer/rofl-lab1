@@ -36,10 +36,8 @@ func (controller *Controller) handleKnowledgeBaseRequest(ctx context.Context, up
 	}
 
 	answer := answers[0].Answer
-	answer = strings.Replace(answer, `\(`, `\\\(`, -1)
-	answer = strings.Replace(answer, `\)`, `\\\)`, -1)
-	answer = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, answers[0].Answer)
-	buildVersion := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, version.BuildVersion())
+	answer = tgbotapi.EscapeText(tgbotapi.ModeMarkdown, answers[0].Answer)
+	buildVersion := tgbotapi.EscapeText(tgbotapi.ModeMarkdown, version.BuildVersion())
 
 	message := fmt.Sprintf("%s\n\n[ссылка на использованный контекст](%s)\n\n%s", answer, gistLink, buildVersion)
 	slog.Info(message)
