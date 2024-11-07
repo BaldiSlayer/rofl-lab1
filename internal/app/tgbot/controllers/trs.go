@@ -55,11 +55,13 @@ func (controller *Controller) handleExctractResult(ctx context.Context, update t
 		keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Исправить", fixCallbackData),
 		))
-		return models.FixTrs, controller.Bot.SendMessageWithKeyboard(
+		formalized = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, formalized)
+		llmErrorMessage := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, parseError.LlmMessage)
+		return models.FixTrs, controller.Bot.SendMarkdownMessageWithKeyboard(
 			userID,
-			fmt.Sprintf("Ошибка при формализации TRS\nРезультат Formalize:\n%s\nРезультат Parse:\n%s\n\n"+
-				"Переформулируйте запрос в новом сообщении, либо запустите процесс автоматического исправления с помощью кнопки под этим сообщением",
-				formalized, parseError.LlmMessage),
+			fmt.Sprintf("Ошибка при формализации TRS\nРезультат Formalize\\:\n```\n%s\n```\nРезультат Parse:\n```\n%s\n```\n\n"+
+				"Переформулируйте запрос в новом сообщении\\, либо запустите процесс автоматического исправления с помощью кнопки под этим сообщением",
+				formalized, llmErrorMessage),
 			keyboard,
 		)
 	}
@@ -77,9 +79,9 @@ func (controller *Controller) handleExctractResult(ctx context.Context, update t
 		tgbotapi.NewInlineKeyboardButtonData("Подтвердить", confirmCallbackData),
 	))
 
-	return models.ValidateTrs, controller.Bot.SendMessageWithKeyboard(userID,
-		fmt.Sprintf("Результат формализации:\n%s\n\n"+
-			"Подтвердите его с помощью кнопки под этим сообщением, либо опишите ошибку в новом сообщении", toString(trs)), keyboard)
+	return models.ValidateTrs, controller.Bot.SendMarkdownMessageWithKeyboard(userID,
+		fmt.Sprintf("Результат формализации\\:\n```\n%s\n```\n\n"+
+			"Подтвердите его с помощью кнопки под этим сообщением\\, либо опишите ошибку в новом сообщении", toString(trs)), keyboard)
 }
 
 func (controller *Controller) ValidateTrs(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
@@ -96,8 +98,10 @@ func (controller *Controller) ValidateTrs(ctx context.Context, update tgbotapi.U
 			return 0, err
 		}
 
+		res = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, res)
+
 		return models.GetRequest, errors.Join(
-			controller.Bot.SendMessage(userID, fmt.Sprintf("Результат интерпретации TRS:\n%s", res)),
+			controller.Bot.SendMarkdownMessage(userID, fmt.Sprintf("Результат интерпретации TRS\\:\n```\n%s\n```", res)),
 			controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний"),
 		)
 	} else if update.Message != nil {
