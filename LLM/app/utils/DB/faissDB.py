@@ -5,20 +5,29 @@ import pickle
 import os
 from googletrans import Translator
 
-translator = Translator()
+
+class TextTranslator:
+    def __init__(self):
+        self.translator = Translator()
+
+    def translate_text(self, text, dest_lang='en'):
+        return self.translator.translate(text, dest=dest_lang).text
+
+
+# Создаем экземпляр класса TextTranslator
+translator = TextTranslator()
 
 
 def initialize_model():
     return SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
 
-def translate_text(text, dest_lang='en'):
-    return translator.translate(text, dest=dest_lang).text
-
-
 def create_embeddings(model, data):
-    texts = [translate_text(item["question"] + " " + item["answer"]) for item in data]
-    return model.encode(texts)
+    texts = [translator.translate_text(item["question"] + " " + item["answer"]) for item in data]
+    embeddings = model.encode(texts)
+    # Нормализуем векторы
+    faiss.normalize_L2(embeddings)
+    return embeddings
 
 
 def create_faiss_index(embeddings):
@@ -42,7 +51,9 @@ def search_similar(model, index, query, data, k_max=10, similarity_threshold=0.1
     :return: list of similar objects
     """
     # get the query vector
-    query_embedding = model.encode([translate_text(query)])
+    query_embedding = model.encode([translator.translate_text(query)])
+    # Нормализуем вектор запроса
+    faiss.normalize_L2(query_embedding)
 
     # perform a search with the maximum value of k
     D, I = index.search(np.array(query_embedding), k_max)
