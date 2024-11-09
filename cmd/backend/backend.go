@@ -2,14 +2,16 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
 )
@@ -22,13 +24,18 @@ func cli() {
 		os.Exit(1)
 	}
 
-	context, err := models.LoadQABase()
+	model, err := mclient.NewMistralClient()
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
-	model, err := mclient.NewMistralClient(context)
+	qa, err := usecases.LoadQABase()
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
+	err = model.InitContext(context.Background(), qa)
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
@@ -36,13 +43,15 @@ func cli() {
 
 	slog.Info("Executing model request")
 
-	answer, err := usecases.AskKnowledgeBase(model, string(data))
+	answers, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
-	fmt.Println(answer)
+	for _, answer := range answers {
+		fmt.Printf("model=%s question=%s\ncontext=%v", answer.Model, answer.Answer, answer.Context)
+	}
 }
 
 func main() {
@@ -55,9 +64,17 @@ func main() {
 		return
 	}
 
-	app := tgbot.New(
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	app, err := tgbot.New(
+		ctx,
 		tgbot.WithConfig(),
 	)
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
 
-	app.Run()
+	app.Run(ctx)
 }

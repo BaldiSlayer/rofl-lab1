@@ -1,0 +1,16 @@
+name: JsonYamlLinter
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: json-yaml-validate
+      id: json-yaml-validate
+      uses: GrantBirki/json-yaml-validate@v3.2.1

@@ -1,19 +1,39 @@
 package usecases
 
 import (
+	"context"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/formalizeclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/interpretclient"
 	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
 )
 
 type TrsUseCases struct {
-	parser    trsparser.Parser
-	interpret interpretclient.Interpreter
-	formalize formalizeclient.Formalizer
+	parser    *trsparser.Parser
+	interpret *interpretclient.Interpreter
+	formalize *formalizeclient.Formalizer
 }
 
-func (uc TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, error) {
-	formalizedTrs, err := uc.formalize.Formalize(request)
+func New() (*TrsUseCases, error) {
+	interpreter, err := interpretclient.NewInterpreter()
+	if err != nil {
+		return nil, err
+	}
+
+	formalizer, err := formalizeclient.NewFormalizer()
+	if err != nil {
+		return nil, err
+	}
+
+	return &TrsUseCases{
+		parser:    trsparser.NewParser(),
+		interpret: interpreter,
+		formalize: formalizer,
+	}, nil
+}
+
+func (uc *TrsUseCases) ExtractFormalTrs(ctx context.Context, request string) (trsparser.Trs, string, error) {
+	formalizedTrs, err := uc.formalize.Formalize(ctx, request)
 	if err != nil {
 		return trsparser.Trs{}, "", err
 	}
@@ -26,8 +46,8 @@ func (uc TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, e
 	return *trs, formalizedTrs, nil
 }
 
-func (uc TrsUseCases) FixFormalTrs(request, formalTrs string, parseError trsparser.ParseError) (trsparser.Trs, string, error) {
-	formalizedTrs, err := uc.formalize.FixFormalized(request, formalTrs, parseError.LlmMessage)
+func (uc *TrsUseCases) FixFormalTrs(ctx context.Context, request, formalTrs, errorDescription string) (trsparser.Trs, string, error) {
+	formalizedTrs, err := uc.formalize.FixFormalized(ctx, request, formalTrs, errorDescription)
 	if err != nil {
 		return trsparser.Trs{}, "", err
 	}
@@ -40,6 +60,6 @@ func (uc TrsUseCases) FixFormalTrs(request, formalTrs string, parseError trspars
 	return *trs, formalizedTrs, nil
 }
 
-func (uc TrsUseCases) InterpretFormalTrs(trs trsparser.Trs) (string, error) {
-	return uc.interpret.Interpret(trs)
+func (uc *TrsUseCases) InterpretFormalTrs(ctx context.Context, trs trsparser.Trs) (string, error) {
+	return uc.interpret.Interpret(ctx, trs)
 }

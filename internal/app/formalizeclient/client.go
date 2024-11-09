@@ -15,12 +15,11 @@ type Formalizer struct {
 	*ClientWithResponses
 }
 
-// TODO: configure?
 const formalizeServer = "http://formalize:8081"
 
 func NewFormalizer() (*Formalizer, error) {
 	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 5
+	retryClient.RetryMax = 2
 	standardClient := retryClient.StandardClient() // *http.Client
 
 	c, err := NewClientWithResponses(formalizeServer, WithHTTPClient(standardClient))
@@ -35,8 +34,8 @@ func NewFormalizer() (*Formalizer, error) {
 	}, nil
 }
 
-func (client *Formalizer) Formalize(trs string) (string, error) {
-	res, err := client.TrsFormalizeWithResponse(context.TODO(), TrsFormalizeJSONRequestBody{
+func (client *Formalizer) Formalize(ctx context.Context, trs string) (string, error) {
+	res, err := client.TrsFormalizeWithResponse(ctx, TrsFormalizeJSONRequestBody{
 		Trs: trs,
 	})
 	if err != nil {
@@ -50,8 +49,8 @@ func (client *Formalizer) Formalize(trs string) (string, error) {
 	return res.JSON200.FormalTrs, nil
 }
 
-func (client *Formalizer) FixFormalized(trs string, formalTrs string, errorStr string) (string, error) {
-	res, err := client.TrsFixWithResponse(context.TODO(), TrsFixJSONRequestBody{
+func (client *Formalizer) FixFormalized(ctx context.Context, trs string, formalTrs string, errorStr string) (string, error) {
+	res, err := client.TrsFixWithResponse(ctx, TrsFixJSONRequestBody{
 		Error:     errorStr,
 		FormalTrs: formalTrs,
 		Trs:       trs,

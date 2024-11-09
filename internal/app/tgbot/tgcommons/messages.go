@@ -5,10 +5,26 @@ import (
 )
 
 func (bot *Bot) SendMessage(chatID int64, messageText string) error {
-	bot.mu.Lock()
-	defer bot.mu.Unlock()
-
 	msg := tgbotapi.NewMessage(chatID, messageText)
+
+	_, err := bot.bot.Send(msg)
+
+	return err
+}
+
+func (bot *Bot) SendMarkdownMessage(chatID int64, messageText string) error {
+	msg := tgbotapi.NewMessage(chatID, messageText)
+	msg.ParseMode = tgbotapi.ModeMarkdown
+
+	_, err := bot.bot.Send(msg)
+
+	return err
+}
+
+func (bot *Bot) SendMarkdownMessageWithKeyboard(chatID int64, messageText string, keyboard tgbotapi.InlineKeyboardMarkup) error {
+	msg := tgbotapi.NewMessage(chatID, messageText)
+	msg.ReplyMarkup = keyboard
+	msg.ParseMode = tgbotapi.ModeMarkdown
 
 	_, err := bot.bot.Send(msg)
 
