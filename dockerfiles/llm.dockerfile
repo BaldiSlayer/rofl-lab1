@@ -9,6 +9,8 @@ RUN apt update && apt install -y curl
 
 COPY /LLM/requirements.txt .
 
+
+RUN pip install --no-cache-dir googletrans==4.0.0rc1
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY /LLM .
