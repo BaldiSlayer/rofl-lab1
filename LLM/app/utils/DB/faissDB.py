@@ -3,6 +3,19 @@ import faiss
 import numpy as np
 import pickle
 import os
+from googletrans import Translator
+
+
+class TextTranslator:
+    def __init__(self):
+        self.translator = Translator()
+
+    def translate_text(self, text, dest_lang='en'):
+        return self.translator.translate(text, dest=dest_lang).text
+
+
+# Создаем экземпляр класса TextTranslator
+translator = TextTranslator()
 
 
 def initialize_model():
@@ -10,13 +23,18 @@ def initialize_model():
 
 
 def create_embeddings(model, data):
-    texts = [item["question"] + " " + item["answer"] for item in data]
-    return model.encode(texts)
+    texts = [translator.translate_text(item["question"] + " " + item["answer"]) for item in data]
+    embeddings = model.encode(texts)
+    # Нормализуем векторы
+    faiss.normalize_L2(embeddings)
+    return embeddings
 
 
 def create_faiss_index(embeddings):
     dimension = embeddings.shape[1]
-    index = faiss.IndexFlatL2(dimension)
+    index = faiss.IndexFlatIP(dimension)
+    # Нормализуем векторы перед добавлением в индекс
+    faiss.normalize_L2(embeddings)
     index.add(embeddings)
     return index
 
@@ -33,15 +51,20 @@ def search_similar(model, index, query, data, k_max=10, similarity_threshold=0.1
     :return: list of similar objects
     """
     # get the query vector
-    query_embedding = model.encode([query])
+    query_embedding = model.encode([translator.translate_text(query)])
+    # Нормализуем вектор запроса
+    faiss.normalize_L2(query_embedding)
 
     # perform a search with the maximum value of k
     D, I = index.search(np.array(query_embedding), k_max)
 
+    # Find the closest distance
+    closest_distance = D[0][0]
+
     # Dynamically determine k depending on the distances
     dynamic_k = 1  # At least one result is always returned
     for i in range(1, k_max):
-        if D[0][i] - D[0][i - 1] > similarity_threshold:
+        if D[0][i] - closest_distance > similarity_threshold:
             break
         dynamic_k += 1
 
@@ -139,26 +162,3 @@ def add_new_questions(new_questions, filename="vectorized_data"):
     save_vectorized_data(updated_data, updated_embeddings, index, filename)
 
     print(f"Added {len(new_questions)} new questions to the database.")
-
-
-# # Пример использования функции добавления новых вопросов:
-# new_questions = [
-#     {"question": "Что такое машинное обучение?", "answer": "Это область искусственного интеллекта"},
-#     {"question": "Что такое нейронные сети?", "answer": "Это модель вычислений, имитирующая работу мозга"},
-#     {"question": "Что ML?", "answer": "это область ИИ"},
-#     {"question": "Что НЛП?", "answer": "это область ИИ"}
-# ]
-#
-# add_new_questions(new_questions, filename="vectorized_data")
-#
-# questions = [
-#     {"question": "Что такое ТФЯ?", "answer": "теория формальных языков"},
-#     {"question": "Что такое НЛП?", "answer": "обработка естественного языка"},
-#     {"question": "Что такое МЛ?", "answer": "это область ИИ"},
-# ]
-#
-# results = process_questions(questions, use_saved=True)
-#
-# for result in results:
-#     print(result)
-#     print("-" * 50)

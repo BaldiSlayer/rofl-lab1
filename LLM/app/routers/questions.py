@@ -57,9 +57,13 @@ def api_save_vectorized_data(request: SaveVectorizedDataRequest):
     data = request.data
     embeddings = np.array(request.embeddings)
 
-    # Восстанавливаем FAISS индекс
-    index = faiss.IndexFlatL2(embeddings.shape[1])
-    index.add(np.array(request.embeddings))
+    # Нормализуем векторы
+    faiss.normalize_L2(embeddings)
+
+    # Восстанавливаем FAISS индекс с использованием косинусной близости
+    dimension = embeddings.shape[1]
+    index = faiss.IndexFlatIP(dimension)
+    index.add(embeddings)
 
     # Сохраняем векторные данные
     save_vectorized_data(
