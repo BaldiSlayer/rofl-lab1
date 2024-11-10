@@ -245,19 +245,7 @@ if __name__ == "__main__":
     -------------------------
     '''
 
-    user_query = '''variables=x,y
-    f(x)=a
-    g(x)=f(f(x))
-    u(x,y)=c(g(x),f(y))
-    -------------------------
-    a=1
-    f(x)=x{2}+2*x+1
-    g(x)=x{3}
-    u(x,y)=x*y
-    c(x,y)=x+y
-    '''
-
     err = 'система должна содержать хотя бы одну интерпретацию'
-    print(formalize(user_query))
+
     # возвращает trs и интерпретацию
-    #print(fix_formalized_trs(user_query, llm, err))
+    print(fix_formalized_trs(user_query, llm, err))
