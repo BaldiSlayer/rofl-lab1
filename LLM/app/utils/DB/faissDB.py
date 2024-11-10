@@ -3,15 +3,15 @@ import faiss
 import numpy as np
 import pickle
 import os
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 
 
 class TextTranslator:
     def __init__(self):
-        self.translator = Translator()
+        self.translator = GoogleTranslator(source='auto', target='en')
 
     def translate_text(self, text, dest_lang='en'):
-        return self.translator.translate(text, dest=dest_lang).text
+        return self.translator.translate(text)
 
 
 # Создаем экземпляр класса TextTranslator

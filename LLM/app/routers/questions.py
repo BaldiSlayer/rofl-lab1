@@ -1,8 +1,9 @@
 from fastapi import APIRouter
 from ..utils.DB.faissDB import process_questions, add_new_questions, save_vectorized_data
 from ..schemas.questions import ProcessQuestionsRequest, GetChatResponseRequest, AddQuestionsRequest, \
-    SaveVectorizedDataRequest
+    SaveVectorizedDataRequest, FormalizeRequest  # Добавляем новую модель запроса
 from ..utils.Mistral.mistral import get_chat_response
+from ..utils.formalize.formalize import formalize  # Импортируем функцию formalize
 import numpy as np
 import faiss
 
@@ -74,3 +75,12 @@ def api_save_vectorized_data(request: SaveVectorizedDataRequest):
     )
 
     return {"message": f"Data saved successfully to {request.filename}"}
+
+
+# Маршрут для formalize
+@router.post("/formalize")
+def api_formalize(request: FormalizeRequest):
+    response = formalize(
+        question=request.question
+    )
+    return {"response": response}
