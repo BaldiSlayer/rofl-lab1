@@ -67,20 +67,20 @@ def fix_formalized_trs(user_query: str, ans_llm: str,  parse_error: str):
     )
 
     try:
-        formalized_query = False
-        trs = False
+        formalized_query = None
+        trs = None
 
         attempt = 0
 
         while (not formalized_query and attempt < MAX_ATTEMPTS) or (not trs and attempt < MAX_ATTEMPTS):
-            formalized_query = generate_response(user_query, context)
-            trs = convert(user_query, formalized_query)
             attempt += 1
-            if not trs:
+            formalized_query = generate_response(user_query, context)
+            if trs is None:
                 print('GPT_error, trying again.')
+                continue
+            trs = convert(user_query, formalized_query)
 
         return trs
-
 
     except Exception as e:
         print(f"Произошла ошибка: {e}")
@@ -138,20 +138,20 @@ def formalize(user_query: str):
     )
 
     try:
-        formalized_query = False
-        trs = False
+        formalized_query = None
+        trs = None
 
         attempt = 0
 
         while (not formalized_query and attempt < MAX_ATTEMPTS) or (not trs and attempt < MAX_ATTEMPTS):
-            formalized_query = generate_response(user_query, context)
-            trs = convert(user_query, formalized_query)
             attempt += 1
-            if not trs:
+            formalized_query = generate_response(user_query, context)
+            if trs is None:
                 print('GPT_error, trying again.')
+                continue
+            trs = convert(user_query, formalized_query)
 
         return trs
-
 
     except Exception as e:
         print(f"Произошла ошибка: {e}")
@@ -191,16 +191,16 @@ def convert(user_query: str, formalized_query: str):
             if query_line[i].replace('*', '').replace('{', '').replace('}', '') in user_query:
                 if bool(re.match(only_variables_pattern, s)):
                     return {
-                        "formalTrs": "",
+                        "formalTrs": formalized_query,
                         "error": f"В строке TRS {query_line[i]} после равно НЕ может быть выражения, которое состоит только из переменных, оно должно обязательно включать хотя бы один конструктор."
                     }
                 else:
                     trs += query_line[i] + '\n'
             else:
                 return {
-                        "formalTrs": "",
-                        "error": f"{query_line[i]} не присутсвует в начальном запросе"
-                    }
+                    "formalTrs": formalized_query,
+                    "error": f"{query_line[i]} не присутсвует в начальном запросе"
+                }
 
         trs += '-------------------------\n'
         for i in range(separate + 1, len(query_line)):
@@ -212,26 +212,26 @@ def convert(user_query: str, formalized_query: str):
             if query_line[i].replace('*', '').replace('{', '').replace('}', '') in user_query:
                 if not bool(re.match(only_variables_pattern, s)):
                     return {
-                        "formalTrs": "",
+                        "formalTrs": formalized_query,
                         "error": f"В строке интерпретации {query_line[i]} после равно НЕ может быть выражения, которое содержит конструкторы."
                     }
                 else:
                     trs += query_line[i] + '\n'
             else:
                 return {
-                    "formalTrs": "",
+                    "formalTrs": formalized_query,
                     "error": f"{query_line[i]} не присутсвует в начальном запросе"
                 }
 
     else:
         return {
-            "formalTrs": "",
+            "formalTrs": formalized_query,
             "error": f"Не определены переменные (нет variables)"
         }
 
     return {
         "formalTrs": trs,
-        "error": ""
+        "error": None
     }
 
 
