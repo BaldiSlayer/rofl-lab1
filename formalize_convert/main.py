@@ -75,7 +75,7 @@ def fix_formalized_trs(user_query: str, ans_llm: str,  parse_error: str):
         while (not formalized_query and attempt < MAX_ATTEMPTS) or (not trs and attempt < MAX_ATTEMPTS):
             attempt += 1
             formalized_query = generate_response(user_query, context)
-            if trs is None:
+            if formalized_query is None or formalized_query == "":
                 print('GPT_error, trying again.')
                 continue
             trs = convert(user_query, formalized_query)
@@ -146,7 +146,7 @@ def formalize(user_query: str):
         while (not formalized_query and attempt < MAX_ATTEMPTS) or (not trs and attempt < MAX_ATTEMPTS):
             attempt += 1
             formalized_query = generate_response(user_query, context)
-            if trs is None:
+            if formalized_query is None or formalized_query == "":
                 print('GPT_error, trying again.')
                 continue
             trs = convert(user_query, formalized_query)
