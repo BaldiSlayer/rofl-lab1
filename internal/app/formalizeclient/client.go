@@ -38,34 +38,45 @@ func NewFormalizer() (*Formalizer, error) {
 	}, nil
 }
 
-func (client *Formalizer) Formalize(ctx context.Context, trs string) (string, error) {
+type FormalizeResultDTO struct {
+	FormalizedTrs string
+	ErrorDescription *string
+}
+
+func (client *Formalizer) Formalize(ctx context.Context, trs string) (FormalizeResultDTO, error) {
 	res, err := client.TrsFormalizeWithResponse(ctx, TrsFormalizeJSONRequestBody{
 		Trs: trs,
 	})
 	if err != nil {
-		return "", err
+		return FormalizeResultDTO{}, err
 	}
 	if res.StatusCode() != http.StatusOK {
 		slog.Error("error requesting Formalize", "code", res.StatusCode())
-		return "", errors.New("error requesting Formalize")
+		return FormalizeResultDTO{}, errors.New("error requesting Formalize")
 	}
 
-	return res.JSON200.FormalTrs, nil
+	return FormalizeResultDTO{
+		FormalizedTrs:    res.JSON200.FormalTrs,
+		ErrorDescription: res.JSON200.Error,
+	}, nil
 }
 
-func (client *Formalizer) FixFormalized(ctx context.Context, trs string, formalTrs string, errorStr string) (string, error) {
+func (client *Formalizer) FixFormalized(ctx context.Context, trs string, formalTrs string, errorStr string) (FormalizeResultDTO, error) {
 	res, err := client.TrsFixWithResponse(ctx, TrsFixJSONRequestBody{
 		Error:     errorStr,
 		FormalTrs: formalTrs,
 		Trs:       trs,
 	})
 	if err != nil {
-		return "", err
+		return FormalizeResultDTO{}, err
 	}
 	if res.StatusCode() != http.StatusOK {
 		slog.Error("error requesting Formalize", "code", res.StatusCode())
-		return "", errors.New("error requesting Formalize")
+		return FormalizeResultDTO{}, errors.New("error requesting Formalize")
 	}
 
-	return res.JSON200.FormalTrs, nil
+	return FormalizeResultDTO{
+		FormalizedTrs:    res.JSON200.FormalTrs,
+		ErrorDescription: res.JSON200.Error,
+	}, nil
 }
