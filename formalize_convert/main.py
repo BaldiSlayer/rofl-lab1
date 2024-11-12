@@ -78,8 +78,8 @@ def fix_formalized_trs(user_query: str, ans_llm: str,  parse_error: str):
             if formalized_query is None or formalized_query == "":
                 print('GPT_error, trying again.')
                 continue
-            print(user_query)
-            print(formalized_query)
+            print("user query:", user_query, sep='\n')
+            print("formalized:", formalized_query, sep='\n')
             trs = convert(user_query, formalized_query)
 
         return trs
@@ -151,8 +151,8 @@ def formalize(user_query: str):
             if formalized_query is None or formalized_query == "":
                 print('GPT_error, trying again.')
                 continue
-            print(user_query)
-            print(formalized_query)
+            print("user query:", user_query, sep='\n')
+            print("formalized:", formalized_query, sep='\n')
             trs = convert(user_query, formalized_query)
 
         return trs

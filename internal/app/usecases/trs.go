@@ -74,7 +74,7 @@ func (uc *TrsUseCases) ExtractFormalTrs(ctx context.Context, request string) (Ex
 func (uc *TrsUseCases) ExtractFormalTrs(ctx context.Context, request string) (ExtractData, error) {
 	formalizedTrs, err := uc.formalize.Formalize(ctx, request)
 	for i := 0; i < retryMax && result.ErrorDescription != nil; i++ {
-		slog.Info("got error from formalize", "error", err)
+		slog.Info("got error from formalize", "error", *result.ErrorDescription)
 		result, err = uc.formalize.FixFormalized(ctx, request, result.FormalizedTrs, *result.ErrorDescription)
 	}
 	if err != nil {
