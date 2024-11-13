@@ -2,6 +2,7 @@ from mistralai import Mistral
 import os
 
 from ...utils.Mistral.config import api_key
+import app.logic.prompt as prompt_logic
 
 
 # from getAPIkey import make_api_key
@@ -25,7 +26,7 @@ def initialize_client():
         return None
 
 
-def get_chat_response(prompt, context=None, model="open-mistral-7b"):
+def get_chat_response(prompt: str, context: str | None = None, model="open-mistral-7b"):
     """
     Получает ответ от LLM на основе предоставленного промпта и контекста.
 
@@ -37,9 +38,11 @@ def get_chat_response(prompt, context=None, model="open-mistral-7b"):
     if not client:
         return "Ошибка: Клиент не инициализирован."
 
-    messages = []
-    if context:
-        messages.append({"role": "system", "content": context})
+    messages = list()
+
+    if context is not None:
+        system_prompt = prompt_logic.form_system_prompt(context)
+        messages.append({"role": "system", "content": system_prompt})
 
     messages.append({"role": "user", "content": prompt})
 
@@ -48,9 +51,3 @@ def get_chat_response(prompt, context=None, model="open-mistral-7b"):
         messages=messages
     )
     return chat_response.choices[0].message.content
-
-
-# prompt = "напиши предыдущее сообщение"
-# context = "это предыдущее сообщение: ахахахахах"
-# response = get_chat_response(prompt, context)
-# print(response)
