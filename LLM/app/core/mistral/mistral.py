@@ -1,6 +1,8 @@
 from mistralai import Mistral
 import os
 
+import app.config.config as config
+
 
 class SingletonTextTranslator:
     _instance = None
@@ -8,9 +10,9 @@ class SingletonTextTranslator:
     @classmethod
     def get_instance(cls):
         if cls._instance is None:
-            api_key = os.environ.get("MISTRAL_API_KEY")
+            conf = config.SingletonConfig.get_instance()
 
-            cls._instance = Mistral(api_key=api_key)
+            cls._instance = Mistral(api_key=conf.get_mistral_api_key())
 
         return cls._instance
 

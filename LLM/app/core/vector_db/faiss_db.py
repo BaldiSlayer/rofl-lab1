@@ -1,5 +1,4 @@
 import faiss
-import pickle
 from sentence_transformers import SentenceTransformer
 import numpy as np
 
@@ -76,23 +75,11 @@ def search_similar(model, index, query, data, k_max=10, similarity_threshold=0.1
     return [data[idx] for idx in indices[0][:dynamic_k]]
 
 
-def save_vectorized_data(data, embeddings, index, filename):
-    """
-    Save vectorized data, embeddings, and FAISS index
-    :param data: original data
-    :param embeddings: embeddings of the data
-    :param index: FAISS index
-    :param filename: base filename to save the data
-    """
-    with open(f"{filename}_data.pkl", "wb") as f:
-        pickle.dump(data, f)
-
-    np.save(f"{filename}_embeddings.npy", embeddings)
-
-    faiss.write_index(index, f"{filename}.faiss")
+def make_question_answer(qa_item: dict) -> schemas.QuestionAnswer:
+    return schemas.QuestionAnswer(question=qa_item["question"], answer=qa_item["answer"])
 
 
-def process_questions(question: str):
+def process_questions(question: str) -> list[schemas.QuestionAnswer]:
     """
     Process the questions, optionally using saved vectorized data
     :param question:
@@ -109,9 +96,4 @@ def process_questions(question: str):
         conf.get_data(),
     )
 
-    result = list()
-
-    for qa_item in similar_objects:
-        result.append(schemas.QuestionAnswer(question=qa_item["question"], answer=qa_item["answer"]))
-
-    return result
+    return [make_question_answer(qa_item) for qa_item in similar_objects]

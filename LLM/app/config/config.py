@@ -1,5 +1,6 @@
 import faiss
 import yaml
+import os
 
 from app.core.readiness_probe.readiness_probe import ReadinessProbe
 
@@ -17,11 +18,16 @@ class Config:
 
         self.index = faiss.read_index('vectorized_data.faiss')
 
+        self.mistral_api_key = os.environ.get("MISTRAL_API_KEY")
+
     def get_data(self):
         return self.data
 
     def get_index(self):
         return self.index
+
+    def get_mistral_api_key(self):
+        return self.mistral_api_key
 
 
 class SingletonConfig:
