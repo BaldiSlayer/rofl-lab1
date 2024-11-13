@@ -1,17 +1,18 @@
-FROM public.ecr.aws/docker/library/python:3.12-slim
+FROM public.ecr.aws/docker/library/python:3.9-slim AS create-embeddings
 
-WORKDIR /api
-
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 RUN apt update && apt install -y curl
 
-COPY /LLM/requirements.txt .
+COPY /LLM/requirements.txt /LLM/requirements.txt
+RUN pip install --no-cache-dir -r /LLM/requirements.txt
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY /LLM /LLM
+COPY /data/data.yaml /LLM/app/utils/data.yaml
 
-COPY /LLM .
+WORKDIR /LLM
 
+RUN chmod +x /LLM/app/utils/entrypoint.sh
 
-CMD gunicorn main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8100 --timeout 240
+ENTRYPOINT ["/LLM/app/utils/entrypoint.sh"]

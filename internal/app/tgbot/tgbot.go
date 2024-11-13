@@ -96,8 +96,6 @@ func (bot *App) Run(ctx context.Context) {
 	u.Timeout = 1
 	u.AllowedUpdates = []string{tgbotapi.UpdateTypeMessage, tgbotapi.UpdateTypeCallbackQuery}
 
-	bot.controller.InitContext(ctx)
-
 	updates := bot.bot.GetUpdatesChan(u)
 
 	err := bot.controller.SendStartupMessages(context.Background())

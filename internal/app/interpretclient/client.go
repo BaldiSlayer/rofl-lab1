@@ -17,7 +17,8 @@ type Interpreter struct {
 	*ClientWithResponses
 }
 
-const interpretServer = "http://interpret:8081"
+// TODO вынести в конфиг, хардкодить неудобно
+const interpretServer = "http://interpret-service:8081"
 
 func NewInterpreter() (*Interpreter, error) {
 	retryClient := retryablehttp.NewClient()

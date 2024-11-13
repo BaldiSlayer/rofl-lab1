@@ -15,7 +15,8 @@ type Formalizer struct {
 	*ClientWithResponses
 }
 
-const formalizeServer = "http://formalize:8081"
+// TODO вынести в конфиг, хардкодить неудобно
+const formalizeServer = "http://formalize-service:8000"
 
 func NewFormalizer() (*Formalizer, error) {
 	retryClient := retryablehttp.NewClient()

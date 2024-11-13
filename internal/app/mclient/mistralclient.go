@@ -19,7 +19,8 @@ type Mistral struct {
 	*mistral.ClientWithResponses
 }
 
-const llmServer = "http://llm:8100"
+// TODO вынести в конфиг, хардкодить неудобно
+const llmServer = "http://llm-service:8100"
 
 func NewMistralClient() (ModelClient, error) {
 	retryClient := retryablehttp.NewClient()
@@ -38,29 +39,27 @@ func NewMistralClient() (ModelClient, error) {
 	return mc, nil
 }
 
-func (mc *Mistral) InitContext(ctx context.Context, questions []models.QAPair) error {
-	_, err := mc.processQuestionsRequest(ctx, questions, false)
-	return err
-}
-
 func (mc *Mistral) Ask(ctx context.Context, question string, model string) (string, error) {
 	return mc.ask(ctx, question, nil, model)
 }
 
+func getContextFromQASlice(contextQASlice []mistral.QuestionAnswer) string {
+	result := ""
+
+	for _, item := range contextQASlice {
+		result = result + fmt.Sprintf("\nВопрос: %s Ответ: %s", item.Question, item.Answer)
+	}
+
+	return result
+}
+
 func (mc *Mistral) AskWithContext(ctx context.Context, question string, model string) (answer string, context string, err error) {
-	contexts, err := mc.processQuestionsRequest(ctx, []models.QAPair{{
-		Question: question,
-		Answer:   "",
-	}}, true)
+	contextQASlice, err := mc.processQuestionsRequest(ctx, question)
 	if err != nil {
 		return "", "", err
 	}
 
-	if len(contexts) != 1 {
-		return "", "", fmt.Errorf("expected single answer from process_questions endpoint, got %d", len(contexts))
-	}
-
-	context = contexts[0]
+	context = getContextFromQASlice(contextQASlice)
 
 	slog.Info("executing model request", "question", question, "context", context)
 
@@ -96,11 +95,9 @@ func toQuestionsList(QAPairs []models.QAPair) []mistral.QuestionAnswer {
 	return res
 }
 
-func (mc *Mistral) processQuestionsRequest(ctx context.Context, QAPairs []models.QAPair, useSaved bool) ([]string, error) {
-	resp, err := mc.ApiProcessQuestionsProcessQuestionsPostWithResponse(ctx, mistral.ProcessQuestionsRequest{
-		Filename:      nil,
-		QuestionsList: toQuestionsList(QAPairs),
-		UseSaved:      &useSaved,
+func (mc *Mistral) processQuestionsRequest(ctx context.Context, question string) ([]mistral.QuestionAnswer, error) {
+	resp, err := mc.ApiProcessQuestionsProcessQuestionsPostWithResponse(ctx, mistral.SearchSimilarRequest{
+		Question: question,
 	})
 	if err != nil {
 		return nil, err

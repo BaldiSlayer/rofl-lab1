@@ -30,17 +30,6 @@ func cli() {
 		os.Exit(1)
 	}
 
-	qa, err := usecases.LoadQABase()
-	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
-	}
-	err = model.InitContext(context.Background(), qa)
-	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
-	}
-
 	slog.Info("Executing model request")
 
 	answers, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
