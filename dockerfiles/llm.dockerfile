@@ -2,6 +2,7 @@ FROM public.ecr.aws/docker/library/python:3.9-slim AS create-embeddings
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH="/LLM"
 
 RUN apt update && apt install -y curl
 
@@ -9,10 +10,11 @@ COPY /LLM/requirements.txt /LLM/requirements.txt
 RUN pip install --no-cache-dir -r /LLM/requirements.txt
 
 COPY /LLM /LLM
-COPY /data/data.yaml /LLM/app/utils/data.yaml
+COPY /data/data.yaml /LLM/app/init_embeddings/data.yaml
 
 WORKDIR /LLM
 
-RUN chmod +x /LLM/app/utils/entrypoint.sh
+RUN python /LLM/app/init_embeddings/init_embeddings.py /LLM/app/init_embeddings/data.yaml /LLM/vectorized_data.faiss && \
+    mv /LLM/app/init_embeddings/data.yaml /LLM/data.yaml
 
-ENTRYPOINT ["/LLM/app/utils/entrypoint.sh"]
+CMD gunicorn app.main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8100 --timeout 240

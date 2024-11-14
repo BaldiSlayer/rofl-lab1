@@ -20,7 +20,7 @@ type Mistral struct {
 }
 
 // TODO вынести в конфиг, хардкодить неудобно
-const llmServer = "http://llm-service:8100"
+const llmServer = "http://llm:8100"
 
 func NewMistralClient() (ModelClient, error) {
 	retryClient := retryablehttp.NewClient()

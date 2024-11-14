@@ -1,5 +1,4 @@
 from mistralai import Mistral
-import os
 
 import app.config.config as config
 

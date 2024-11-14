@@ -9,12 +9,4 @@ class TextTranslator:
         return self.translator.translate(text)
 
 
-class SingletonTextTranslator:
-    _instance = None
-
-    @classmethod
-    def get_instance(cls):
-        if cls._instance is None:
-            cls._instance = TextTranslator()
-
-        return cls._instance
+translator = TextTranslator()

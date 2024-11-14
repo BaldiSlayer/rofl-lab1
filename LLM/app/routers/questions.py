@@ -31,7 +31,7 @@ def api_search_similar(request: schemas.SearchSimilarRequest):
     Ищет для вопроса похожие из базы знаний
     """
 
-    result = faiss_db.process_questions(
+    result = faiss_db.process_question(
         question=request.question,
     )
 

@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: llm-container-config-configmap
-data:
-  config.py: |-
-    {{- .Files.Get "files/config.py" | indent 4 }}
