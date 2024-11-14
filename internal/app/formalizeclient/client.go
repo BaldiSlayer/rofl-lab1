@@ -39,7 +39,7 @@ func NewFormalizer() (*Formalizer, error) {
 }
 
 type FormalizeResultDTO struct {
-	FormalizedTrs string
+	FormalizedTrs    string
 	ErrorDescription *string
 }
 
