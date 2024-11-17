@@ -20,19 +20,19 @@ func cli() {
 	r := bufio.NewReader(os.Stdin)
 	data, err := io.ReadAll(r)
 	if err != nil {
-		ExitWithError(fmt.Errorf("error reading request from stdin: %w", err))
+		ExitWithError("error reading request from stdin", "error", err)
 	}
 
 	model, err := mclient.NewMistralClient()
 	if err != nil {
-		ExitWithError(fmt.Errorf("failed to init llm client: %w", err))
+		ExitWithError("failed to init llm client", "error", err)
 	}
 
 	slog.Info("Executing model request")
 
 	answers, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
 	if err != nil {
-		ExitWithError(fmt.Errorf("failed to load QA base: %w", err))
+		ExitWithError("failed to load QA base", "error", err)
 	}
 
 	for _, answer := range answers {
@@ -58,13 +58,13 @@ func main() {
 		tgbot.WithConfig(),
 	)
 	if err != nil {
-		ExitWithError(fmt.Errorf("failed to init telegram client: %w", err))
+		ExitWithError("failed to init telegram client", "error", err.Error())
 	}
 
 	app.Run(ctx)
 }
 
-func ExitWithError(err error) {
-	slog.Error(err.Error())
+func ExitWithError(msg string, args ...any) {
+	slog.Error(msg, args...)
 	os.Exit(1)
 }
