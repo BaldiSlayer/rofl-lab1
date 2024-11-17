@@ -51,15 +51,15 @@ func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, ques
 
 func ask(ctx context.Context, modelClient mclient.ModelClient, question, model string, useContext bool) (KBAnswer, error) {
 	if useContext {
-		answer, context, err := modelClient.AskWithContext(ctx, question, model)
+		res, err := modelClient.AskWithContext(ctx, question, model)
 		if err != nil {
 			return KBAnswer{}, err
 		}
 
 		return KBAnswer{
 			Model:   model,
-			Answer:  answer,
-			Context: &context,
+			Answer:  res.Answer,
+			Context: &res.Context,
 		}, nil
 	}
 
@@ -128,5 +128,10 @@ func UploadKnowledgeBaseAnswers(ctx context.Context, ghClient *githubclient.Clie
 		Files:       files,
 	}
 
-	return ghClient.GistCreate(ctx, gist)
+	link, err := ghClient.GistCreate(ctx, gist)
+	if err != nil {
+		return "", fmt.Errorf("failed to create gist: %w", err)
+	}
+
+	return link, nil
 }

@@ -20,11 +20,14 @@ type Mistral struct {
 }
 
 // TODO вынести в конфиг, хардкодить неудобно
-const llmServer = "http://llm:8100"
+const (
+	llmServer = "http://llm:8100"
+	retryMax  = 5
+)
 
 func NewMistralClient() (ModelClient, error) {
 	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 5
+	retryClient.RetryMax = retryMax
 	standardClient := retryClient.StandardClient() // *http.Client
 
 	c, err := mistral.NewClientWithResponses(llmServer, mistral.WithHTTPClient(standardClient))
@@ -53,18 +56,21 @@ func getContextFromQASlice(contextQASlice []mistral.QuestionAnswer) string {
 	return result
 }
 
-func (mc *Mistral) AskWithContext(ctx context.Context, question string, model string) (answer string, context string, err error) {
+func (mc *Mistral) AskWithContext(ctx context.Context, question string, model string) (ResponseWithContext, error) {
 	contextQASlice, err := mc.processQuestionsRequest(ctx, question)
 	if err != nil {
-		return "", "", err
+		return ResponseWithContext{}, err
 	}
 
-	context = getContextFromQASlice(contextQASlice)
+	formattedContext := getContextFromQASlice(contextQASlice)
 
-	slog.Info("executing model request", "question", question, "context", context)
+	slog.Info("executing model request", "question", question, "context", formattedContext)
 
-	answer, err = mc.ask(ctx, question, &context, model)
-	return answer, context, err
+	answer, err := mc.ask(ctx, question, &formattedContext, model)
+	return ResponseWithContext{
+		Answer:  answer,
+		Context: formattedContext,
+	}, err
 }
 
 func (mc *Mistral) ask(ctx context.Context, question string, contextStr *string, model string) (string, error) {
