@@ -32,7 +32,7 @@ func cli() {
 
 	answers, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
 	if err != nil {
-		ExitWithError("failed to load QA base", "error", err)
+		ExitWithError("error requesting knowledge base", "error", err)
 	}
 
 	for _, answer := range answers {
