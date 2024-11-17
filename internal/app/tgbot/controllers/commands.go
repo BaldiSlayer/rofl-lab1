@@ -52,7 +52,7 @@ func (controller *Controller) TrsCommand(ctx context.Context, update tgbotapi.Up
 func (controller *Controller) VersionCommand(_ context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 	return models.GetRequest, errors.Join(
-		controller.Bot.SendMessage(userID, version.BuildVersion()),
+		controller.Bot.SendMessage(userID, version.BuildVersionWithLink()),
 		controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний"),
 	)
 }
