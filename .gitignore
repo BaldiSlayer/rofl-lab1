@@ -164,7 +164,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
-LLM/app/utils/Mistral/config.py
+LLM/app/core/mistral/config.py
 
 #macOS system file
 .DS_Store

@@ -17,6 +17,7 @@ type Interpreter struct {
 	*ClientWithResponses
 }
 
+// TODO вынести в конфиг, хардкодить неудобно
 const interpretServer = "http://interpret:8081"
 
 func NewInterpreter() (*Interpreter, error) {

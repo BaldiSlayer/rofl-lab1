@@ -14,3 +14,5 @@ jobs:
     - name: json-yaml-validate
       id: json-yaml-validate
       uses: GrantBirki/json-yaml-validate@v3.2.1
+      with:
+        exclude_file: yaml-lint-ignores

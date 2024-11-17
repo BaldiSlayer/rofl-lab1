@@ -1,6 +1,6 @@
 import time
 import logging
-from app.utils.Mistral.mistral import get_chat_response  # Используем абсолютный импорт
+from app.core.mistral.mistral import get_chat_response
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
