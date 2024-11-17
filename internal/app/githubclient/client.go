@@ -9,13 +9,17 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
+const (
+	retryMax = 3
+)
+
 type Client struct {
 	gh *github.Client
 }
 
 func New(ghToken string) *Client {
 	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 3
+	retryClient.RetryMax = retryMax
 	standardClient := retryClient.StandardClient() // *http.Client
 
 	return &Client{
@@ -48,7 +52,7 @@ func (c *Client) GistCreate(ctx context.Context, gist Gist) (string, error) {
 
 	createdGist, resp, err := c.gh.Gists.Create(ctx, *&input)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error requesting POST /gists: %w", err)
 	}
 	if resp.StatusCode != http.StatusCreated {
 		return "", fmt.Errorf("github POST /gists request returned non-201 code: %d", resp.StatusCode)

@@ -23,6 +23,7 @@ func (s *YamlKBDataStorage) GetQAPairs() ([]models.QAPair, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	var res []models.QAPair
 
