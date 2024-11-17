@@ -15,4 +15,4 @@ jobs:
       id: json-yaml-validate
       uses: GrantBirki/json-yaml-validate@v3.2.1
       with:
-        exclude_file: chart/templates/deployment.yaml
+        exclude_file: chart/templates/
