@@ -1,13 +1,14 @@
 import re
 from g4f.client import Client
-
+# import asyncio
+# asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 MAX_ATTEMPTS = 1
 client = Client()
 
 
 def generate_response(question: str, context: str) -> str:
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4o",
         messages=[{"role": "user", "content": question},
                   {"role": "system", "content": context}]
     )
@@ -31,7 +32,7 @@ def fix_formalized_trs(user_query: str, ans_llm: str,  parse_error: str):
         "   - Далее следует пример, как НЕ может выглядеть TRS:\n"
         "f(x) = 4*x{2} + 2*x\n"
         "g(y) = 3*y + 3\n"
-        "(здесь x,y - переменные, значит выражения `4*x{2} + 2*x` и `3*y + 3` НЕ могут быть в TSR!)\n"
+        "(здесь x,y - переменные, значит выражения `4*x{2} + 2*x` и `3*y + 3` НЕ могут быть в TRS!)\n"
         "3. Добавь разделительную линию: `------------------------`\n"
         "4. Степень записывай в фигурных скобочках. Например, x в квадрате это x{2}."
         "5. Далее, запиши интерпретацию, используя следующие правила:\n"
@@ -107,7 +108,7 @@ def formalize(user_query: str):
         "g(y) = 3*y + 3\n"
         "(здесь x,y - переменные, значит выражения `4*x{2} + 2*x` и `3*y + 3` НЕ могут быть в TSR!)\n"
         "3. Добавь разделительную линию: `------------------------`\n"
-        "4. Степень записывай в фиугрных скобочках. Например, x в квадрате это x{2}."
+        "4. Степень записывай в фигурных скобочках. Например, x в квадрате это x{2}."
         "5. Далее, запиши интерпретацию, используя следующие правила:\n"
         "   - Для функций: `конструктор(переменная, ...) = ...`\n"
         "   - Для констант: `константа = значение`\n"
@@ -192,7 +193,7 @@ def convert(user_query: str, formalized_query: str):
 
             s = query_line[i].split('=')[1]
 
-            if query_line[i].replace('*', '').replace('{', '').replace('}', '') in user_query:
+            if re.sub(r'[\*{}]', '', query_line[i]) in user_query:
                 if bool(re.match(only_variables_pattern, s)):
                     return {
                         "formalTrs": formalized_query,
