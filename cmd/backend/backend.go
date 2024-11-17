@@ -20,22 +20,19 @@ func cli() {
 	r := bufio.NewReader(os.Stdin)
 	data, err := io.ReadAll(r)
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		ExitWithError(err)
 	}
 
 	model, err := mclient.NewMistralClient()
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		ExitWithError(err)
 	}
 
 	slog.Info("Executing model request")
 
 	answers, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		ExitWithError(err)
 	}
 
 	for _, answer := range answers {
@@ -61,9 +58,13 @@ func main() {
 		tgbot.WithConfig(),
 	)
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		ExitWithError(err)
 	}
 
 	app.Run(ctx)
+}
+
+func ExitWithError(err error) {
+	slog.Error(err.Error())
+	os.Exit(1)
 }
