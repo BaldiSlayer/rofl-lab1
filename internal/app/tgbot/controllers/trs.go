@@ -132,9 +132,10 @@ func (controller *Controller) FixTrs(ctx context.Context, update tgbotapi.Update
 		trs, formalTrs, err := controller.TrsUseCases.FixFormalTrs(ctx, userRequest, formalTrs, parseError)
 
 		return controller.handleExctractResult(ctx, update, trs, formalTrs, err)
-	} else if update.Message != nil {
-		userRequest := update.Message.Text
+	}
 
+	if update.Message != nil {
+		userRequest := update.Message.Text
 		return controller.extractTrs(ctx, userRequest, update)
 	}
 
