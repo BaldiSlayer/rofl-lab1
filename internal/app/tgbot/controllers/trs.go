@@ -161,7 +161,7 @@ func (controller *Controller) getExtractData(ctx context.Context, userID int64) 
 }
 
 func toString(trs trsparser.Trs) string {
-	var lines []string
+	lines := make([]string, 0, len(trs.Interpretations)+len(trs.Rules)+1)
 
 	variables := fmt.Sprintf("variables = %s", strings.Join(trs.Variables, ", "))
 	lines = append(lines, variables)
