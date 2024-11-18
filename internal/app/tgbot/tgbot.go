@@ -122,6 +122,7 @@ func (bot *App) Run(ctx context.Context) {
 				}()
 			case <-ctx.Done():
 				slog.Info("Gracefully shutting down")
+				bot.bot.StopReceivingUpdates()
 				err := bot.controller.SendRestartMessages(context.Background())
 				if err != nil {
 					slog.Error("failed to send restart messages", "error", err)
