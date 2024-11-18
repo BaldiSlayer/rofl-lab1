@@ -28,13 +28,9 @@ func NewBot(token string) (*Bot, error) {
 		return nil, err
 	}
 
-	info, err := bot.GetWebhookInfo()
+	_, err = bot.GetWebhookInfo()
 	if err != nil {
 		slog.Error("failed to get webhook info", "error", err)
-	}
-
-	if info.LastErrorDate != 0 {
-		slog.Error("telegram callback failed", "error", info.LastErrorMessage)
 	}
 
 	return &Bot{
