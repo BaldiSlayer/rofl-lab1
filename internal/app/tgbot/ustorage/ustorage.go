@@ -23,4 +23,14 @@ type UserDataStorage interface {
 	GetUserStatesUpdatedAfter(ctx context.Context, after time.Time) ([]int64, error)
 }
 
+type UserLockStorage interface {
+	TryLock(ctx context.Context, userID int64) error
+	Unlock(ctx context.Context, userID int64) error
+}
+
+type Closer interface {
+	// Block until cleanup is completed
+	Close()
+}
+
 var ErrNotFound = errors.New("not found")

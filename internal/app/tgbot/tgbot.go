@@ -24,9 +24,10 @@ type App struct {
 
 	controller *controllers.Controller
 
-	actionsPooler *actpool.BotActionsPool
-	userLocks     map[int64]*sync.Mutex
-	userStorage   ustorage.UserDataStorage
+	actionsPooler  *actpool.BotActionsPool
+	userLocks      map[int64]*sync.Mutex
+	userStorage    ustorage.UserDataStorage
+	ustorageCloser ustorage.Closer
 }
 
 type Option func(options *App) error
@@ -57,25 +58,26 @@ func New(ctx context.Context, opts ...Option) (*App, error) {
 
 	tgBot.userLocks = make(map[int64]*sync.Mutex)
 
-	userStorage, err := ustorage.NewPostgresUserStorage(tgBot.config.PgUser, tgBot.config.PgPassword, tgBot.config.PgDBName)
+	postgres, err := ustorage.NewPostgresStorage(tgBot.config.PgUser, tgBot.config.PgPassword, tgBot.config.PgDBName)
 	if err != nil {
 		return nil, err
 	}
 
-	tgBot.userStorage = userStorage
+	tgBot.ustorageCloser = postgres
+	tgBot.userStorage = postgres
 
 	tgBot.bot, err = tgcommons.NewBot(tgBot.config.TgToken)
 	if err != nil {
 		return nil, err
 	}
 
-	controller, err := controllers.New(tgBot.bot, userStorage, tgBot.config.GhToken)
+	controller, err := controllers.New(tgBot.bot, postgres, tgBot.config.GhToken)
 	if err != nil {
 		return nil, err
 	}
 	tgBot.controller = controller
 
-	tgBot.actionsPooler, err = actpool.New(userStorage, buildTransitions(controller), buildCommands(controller))
+	tgBot.actionsPooler, err = actpool.New(postgres, buildTransitions(controller), buildCommands(controller))
 	if err != nil {
 		return nil, err
 	}
@@ -129,6 +131,7 @@ func (bot *App) Run(ctx context.Context) {
 				}
 
 				wg.Wait()
+				bot.ustorageCloser.Close()
 				return
 			}
 		}
