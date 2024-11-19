@@ -25,7 +25,7 @@ type App struct {
 	controller *controllers.Controller
 
 	actionsPooler  *actpool.BotActionsPool
-	userLocks      map[int64]*sync.Mutex
+	userLocks      ustorage.UserLockStorage
 	userStorage    ustorage.UserDataStorage
 	ustorageCloser ustorage.Closer
 }
@@ -56,13 +56,12 @@ func New(ctx context.Context, opts ...Option) (*App, error) {
 		}
 	}
 
-	tgBot.userLocks = make(map[int64]*sync.Mutex)
-
 	postgres, err := ustorage.NewPostgresStorage(tgBot.config.PgUser, tgBot.config.PgPassword, tgBot.config.PgDBName)
 	if err != nil {
 		return nil, err
 	}
 
+	tgBot.userLocks = postgres
 	tgBot.ustorageCloser = postgres
 	tgBot.userStorage = postgres
 
@@ -88,23 +87,7 @@ func New(ctx context.Context, opts ...Option) (*App, error) {
 }
 
 func (bot *App) Run(ctx context.Context) {
-	// NOTE: Offset value set to 0 means that when backend is restarted, updates
-	// received by the last call to getUpdates will be resent by the Telegram
-	// API, whether they're already handled or not.
-	u := tgbotapi.NewUpdate(0)
-	// NOTE: Updates per request
-	u.Limit = 100
-	// NOTE: Timeout of long polling requests
-	u.Timeout = 1
-	u.AllowedUpdates = []string{tgbotapi.UpdateTypeMessage, tgbotapi.UpdateTypeCallbackQuery}
-
-	updates := bot.bot.GetUpdatesChan(u)
-
-	err := bot.controller.SendStartupMessages(context.Background())
-	if err != nil {
-		slog.Error("failed to send startup messages", "error", err)
-		return
-	}
+	updates := bot.bot.GetUpdatesChan()
 
 	slog.Info("telegram bot has successfully started")
 
@@ -125,10 +108,6 @@ func (bot *App) Run(ctx context.Context) {
 			case <-ctx.Done():
 				slog.Info("Gracefully shutting down")
 				bot.bot.StopReceivingUpdates()
-				err := bot.controller.SendRestartMessages(context.Background())
-				if err != nil {
-					slog.Error("failed to send restart messages", "error", err)
-				}
 
 				wg.Wait()
 				bot.ustorageCloser.Close()
@@ -157,27 +136,17 @@ func buildCommands(controller *controllers.Controller) map[string]actpool.StateT
 	}
 }
 
-func (bot *App) lockByUserID(userID int64) *sync.Mutex {
-	if lock, ok := bot.userLocks[userID]; ok {
-		return lock
-	}
-
-	lock := &sync.Mutex{}
-	bot.userLocks[userID] = lock
-	return lock
-}
-
 func (bot *App) processUpdate(ctx context.Context, update tgbotapi.Update) {
 	userID := update.SentFrom().ID
-	userLock := bot.lockByUserID(userID)
-	if !userLock.TryLock() {
-		err := bot.bot.SendMessage(userID, "Предыдущее сообщение еще обрабатывается")
-		if err != nil {
-			slog.Error(err.Error())
-		}
-		return
-	}
-	defer userLock.Unlock()
+	// TODO: userLock := bot.lockByUserID(userID)
+	// if !userLock.TryLock() {
+	// 	err := bot.bot.SendMessage(userID, "Предыдущее сообщение еще обрабатывается")
+	// 	if err != nil {
+	// 		slog.Error(err.Error())
+	// 	}
+	// 	return
+	// }
+	// defer userLock.Unlock()
 
 	err := bot.actionsPooler.Exec(ctx, update)
 	if err != nil {

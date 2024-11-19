@@ -26,3 +26,12 @@ CREATE TRIGGER set_user_state_updated_at BEFORE UPDATE ON tfllab1.user_state
        FOR EACH ROW EXECUTE PROCEDURE set_updated_at_column();
 
 CREATE INDEX CONCURRENTLY user_state_updated_at_index ON tfllab1.user_state (updated_at);
+
+CREATE TABLE tfllab1.user_lock (
+       user_id BIGINT PRIMARY KEY,
+       instance_id TEXT NOT NULL,
+       expires_at TIMESTAMP NOT NULL
+);
+
+CREATE INDEX CONCURRENTLY user_lock_expires_at_index ON tfllab1.user_lock (expires_at);
+CREATE INDEX CONCURRENTLY user_lock_instance_id_index ON tfllab1.user_lock (instance_id);

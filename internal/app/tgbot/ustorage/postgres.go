@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -150,4 +151,34 @@ func (s *PostgresStorage) GetUserStatesUpdatedAfter(ctx context.Context, after t
 	}
 
 	return userIDs, nil
+}
+
+func (s *PostgresStorage) TryLock(ctx context.Context, userID int64, instanceID uuid.UUID, duration time.Duration) (bool, error) {
+	var ok bool
+	err := s.pg.QueryRow(ctx, `
+INSERT INTO tfllab1.user_lock AS lock (user_id, instance_id, expires_at) VALUES ($1, $2, now()+$3)
+    ON CONFLICT (user_id) DO UPDATE
+        SET (expires_at, instance_id) = (excluded.expires_at, excluded.instance_id)
+        WHERE expires_at > now()
+    RETURNING true;
+`,
+		userID, instanceID, duration).Scan(&ok)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (s *PostgresStorage) Unlock(ctx context.Context, userID int64, instanceID uuid.UUID) error {
+	_, err := s.pg.Exec(ctx, "DELETE FROM tfllab1.user_lock WHERE user_id = $1 AND instance_id = $2", userID, instanceID)
+	return err
+}
+
+func (s *PostgresStorage) ForceUnlock(ctx context.Context, userID int64) error {
+	_, err := s.pg.Exec(ctx, "DELETE FROM tfllab1.user_lock WHERE user_id = $1", userID)
+	return err
 }

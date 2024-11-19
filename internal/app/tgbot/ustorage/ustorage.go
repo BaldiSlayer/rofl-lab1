@@ -7,6 +7,7 @@ import (
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
+	"github.com/google/uuid"
 )
 
 type UserDataStorage interface {
@@ -24,8 +25,9 @@ type UserDataStorage interface {
 }
 
 type UserLockStorage interface {
-	TryLock(ctx context.Context, userID int64) error
-	Unlock(ctx context.Context, userID int64) error
+	TryLock(ctx context.Context, userID int64, instanceID uuid.UUID, duration time.Duration) (bool, error)
+	Unlock(ctx context.Context, userID int64, instanceID uuid.UUID) error
+	ForceUnlock(ctx context.Context, userID int64) error
 }
 
 type Closer interface {

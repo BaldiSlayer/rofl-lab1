@@ -23,6 +23,9 @@ func NewBot(token string) (*Bot, error) {
 		return nil, err
 	}
 
+	wh.AllowedUpdates = []string{tgbotapi.UpdateTypeMessage, tgbotapi.UpdateTypeCallbackQuery}
+	wh.MaxConnections = 40
+
 	_, err = bot.Request(wh)
 	if err != nil {
 		return nil, err
@@ -38,7 +41,7 @@ func NewBot(token string) (*Bot, error) {
 	}, err
 }
 
-func (bot *Bot) GetUpdatesChan(config tgbotapi.UpdateConfig) tgbotapi.UpdatesChannel {
+func (bot *Bot) GetUpdatesChan() tgbotapi.UpdatesChannel {
 	updates := bot.bot.ListenForWebhook("/" + bot.bot.Token)
 	go http.ListenAndServe("0.0.0.0:8443", nil)
 
