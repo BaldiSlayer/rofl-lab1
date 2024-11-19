@@ -4,6 +4,8 @@ services:
       dockerfile: dockerfiles/llm.dockerfile
     container_name: llm
     image: stewkk/tfl-lab1-llm:latest
+    environment:
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
     healthcheck:
       test: curl --fail 'http://llm:8100/ping' || exit 1
       interval: 30s
