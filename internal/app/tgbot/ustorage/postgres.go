@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -181,4 +182,18 @@ func (s *PostgresStorage) Unlock(ctx context.Context, userID int64, instanceID u
 func (s *PostgresStorage) ForceUnlock(ctx context.Context, userID int64) error {
 	_, err := s.pg.Exec(ctx, "DELETE FROM tfllab1.user_lock WHERE user_id = $1", userID)
 	return err
+}
+
+func (s *PostgresStorage) IsLocked(ctx context.Context, userID int64, instanceID uuid.UUID) bool {
+	var ok bool
+	err := s.pg.QueryRow(ctx, "SELECT true FROM tfllab1.user_lock WHERE user_id = $1 AND instance_id = $2 AND expires_at > now()",
+		userID, instanceID).Scan(&ok)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false
+	}
+	if err != nil {
+		slog.Error("IsLocked request failed", "error", err)
+		return false
+	}
+	return ok
 }

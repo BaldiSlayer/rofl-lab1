@@ -9,6 +9,7 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/google/uuid"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/actpool"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/controllers"
@@ -91,30 +92,51 @@ func (bot *App) Run(ctx context.Context) {
 
 	slog.Info("telegram bot has successfully started")
 
-	func() {
-		var wg sync.WaitGroup
-		for {
-			select {
-			case update := <-updates:
-				slog.Debug("processing update")
-				wg.Add(1)
-				go func() {
-					ctx, cancel := context.WithTimeout(context.Background(), time.Minute*15)
-					defer cancel()
+	var wg sync.WaitGroup
+	for {
+		select {
+		case <-ctx.Done():
+			slog.Info("Gracefully shutting down")
+			bot.bot.StopReceivingUpdates()
 
-					bot.processUpdate(ctx, update)
+			wg.Wait()
+			bot.ustorageCloser.Close()
+			return
+		case update := <-updates:
+			slog.Debug("processing update")
+			wg.Add(1)
+			go func() {
+				timeout := time.Minute*6
+				ctx, cancel := context.WithTimeout(context.Background(), timeout)
+				defer cancel()
+
+				instanceID, err := uuid.NewUUID()
+				if err != nil {
+					slog.Error("failed to generage UUID", "error", err)
+					return
+				}
+
+				go func() {
+					bot.processUpdate(ctx, update, timeout, instanceID)
 					wg.Done()
 				}()
-			case <-ctx.Done():
-				slog.Info("Gracefully shutting down")
-				bot.bot.StopReceivingUpdates()
 
-				wg.Wait()
-				bot.ustorageCloser.Close()
-				return
-			}
+				func() {
+					for {
+						select {
+						case <-ctx.Done():
+							return
+						case <-time.After(time.Second):
+							if !bot.userLocks.IsLocked(ctx, update.SentFrom().ID, instanceID) {
+								cancel()
+								return
+							}
+						}
+					}
+				}()
+			}()
 		}
-	}()
+	}
 }
 
 func buildTransitions(controller *controllers.Controller) map[models.UserState]actpool.StateTransition {
@@ -136,19 +158,37 @@ func buildCommands(controller *controllers.Controller) map[string]actpool.StateT
 	}
 }
 
-func (bot *App) processUpdate(ctx context.Context, update tgbotapi.Update) {
+func (bot *App) processUpdate(ctx context.Context, update tgbotapi.Update, timeout time.Duration, instanceID uuid.UUID) {
 	userID := update.SentFrom().ID
-	// TODO: userLock := bot.lockByUserID(userID)
-	// if !userLock.TryLock() {
-	// 	err := bot.bot.SendMessage(userID, "Предыдущее сообщение еще обрабатывается")
-	// 	if err != nil {
-	// 		slog.Error(err.Error())
-	// 	}
-	// 	return
-	// }
-	// defer userLock.Unlock()
 
-	err := bot.actionsPooler.Exec(ctx, update)
+	if update.Message != nil && update.Message.Command() == "/cancel" {
+		err := bot.userLocks.ForceUnlock(ctx, userID)
+		if err != nil {
+			slog.Error("failed to force unlock user", "userID", userID, "error", err)
+		}
+		return
+	}
+
+	ok, err := bot.userLocks.TryLock(ctx, userID, instanceID, timeout)
+	if err != nil {
+		slog.Error("failed to acquire user lock", "error", err)
+		return
+	}
+	if !ok {
+		err := bot.bot.SendMessage(userID, "Предыдущее сообщение еще обрабатывается\n\nВы можете отменить его обработку командой /cancel")
+		if err != nil {
+			slog.Error("failed to send message", "error", err)
+		}
+		return
+	}
+	defer func() {
+		err := bot.userLocks.Unlock(ctx, userID, instanceID)
+		if err != nil {
+			slog.Error("failed to unlock user", "error", err)
+		}
+	}()
+
+	err = bot.actionsPooler.Exec(ctx, update)
 	if err != nil {
 		err = errors.Join(err, bot.bot.SendMessage(userID, fmt.Sprintf("Ошибка при обработке запроса: %s", err)))
 		err = errors.Join(err, bot.bot.SendMessage(userID, "Введите запрос к Базе Знаний"))
