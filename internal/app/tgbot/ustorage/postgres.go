@@ -160,7 +160,7 @@ func (s *PostgresStorage) TryLock(ctx context.Context, userID int64, instanceID 
 INSERT INTO tfllab1.user_lock AS lock (user_id, instance_id, expires_at) VALUES ($1, $2, now()+$3)
     ON CONFLICT (user_id) DO UPDATE
         SET (expires_at, instance_id) = (excluded.expires_at, excluded.instance_id)
-        WHERE lock.expires_at > now()
+        WHERE lock.expires_at <= now()
     RETURNING true;
 `,
 		userID, instanceID, duration).Scan(&ok)

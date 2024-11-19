@@ -161,7 +161,7 @@ func buildCommands(controller *controllers.Controller) map[string]actpool.StateT
 func (bot *App) processUpdate(ctx context.Context, update tgbotapi.Update, timeout time.Duration, instanceID uuid.UUID) {
 	userID := update.SentFrom().ID
 
-	if update.Message != nil && update.Message.Command() == "/cancel" {
+	if update.Message != nil && update.Message.Command() == "cancel" {
 		err := bot.userLocks.ForceUnlock(ctx, userID)
 		if err != nil {
 			slog.Error("failed to force unlock user", "userID", userID, "error", err)
@@ -182,14 +182,14 @@ func (bot *App) processUpdate(ctx context.Context, update tgbotapi.Update, timeo
 		return
 	}
 	defer func() {
-		err := bot.userLocks.Unlock(ctx, userID, instanceID)
+		err := bot.userLocks.Unlock(context.Background(), userID, instanceID)
 		if err != nil {
 			slog.Error("failed to unlock user", "error", err)
 		}
 	}()
 
 	err = bot.actionsPooler.Exec(ctx, update)
-	if err != nil {
+	if err != nil && !errors.Is(ctx.Err(), context.Canceled) {
 		err = errors.Join(err, bot.bot.SendMessage(userID, fmt.Sprintf("Ошибка при обработке запроса: %s", err)))
 		err = errors.Join(err, bot.bot.SendMessage(userID, "Введите запрос к Базе Знаний"))
 		slog.Error("failed to process user action", "error", err)

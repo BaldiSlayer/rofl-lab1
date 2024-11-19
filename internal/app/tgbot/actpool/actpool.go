@@ -48,12 +48,11 @@ func (b *BotActionsPool) Exec(ctx context.Context, update tgbotapi.Update) error
 	}
 
 	currentState, err := f(ctx, update)
-	// FIXME:
-	if err != nil && errors.Is(ctx.Err(), context.Canceled) {
-		return nil
-	}
 	if err != nil {
 		currentState = models.GetRequest
+	}
+	if errors.Is(ctx.Err(), context.Canceled) {
+		return nil
 	}
 
 	return errors.Join(err, b.storage.SetState(ctx, userID, currentState))
