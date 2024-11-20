@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - '*'
-  workflow_dispatch:
 
 jobs:
   docker:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       -
