@@ -32,32 +32,49 @@ func New() (*TrsUseCases, error) {
 	}, nil
 }
 
-func (uc *TrsUseCases) ExtractFormalTrs(ctx context.Context, request string) (trsparser.Trs, string, error) {
-	formalizedTrs, err := uc.formalize.Formalize(ctx, request)
-	if err != nil {
-		return trsparser.Trs{}, "", err
-	}
-
-	trs, err := uc.parser.Parse(formalizedTrs)
-	if err != nil {
-		return trsparser.Trs{}, formalizedTrs, err
-	}
-
-	return *trs, formalizedTrs, nil
+type ExtractData struct {
+	Trs           trsparser.Trs
+	FormalizedTrs string
 }
 
-func (uc *TrsUseCases) FixFormalTrs(ctx context.Context, request, formalTrs, errorDescription string) (trsparser.Trs, string, error) {
-	formalizedTrs, err := uc.formalize.FixFormalized(ctx, request, formalTrs, errorDescription)
+func (uc *TrsUseCases) ExtractFormalTrs(ctx context.Context, request string) (ExtractData, error) {
+	formalizedTrs, err := uc.formalize.Formalize(ctx, request)
 	if err != nil {
-		return trsparser.Trs{}, "", err
+		return ExtractData{}, err
 	}
 
 	trs, err := uc.parser.Parse(formalizedTrs)
 	if err != nil {
-		return trsparser.Trs{}, formalizedTrs, err
+		return ExtractData{
+			Trs:           trsparser.Trs{},
+			FormalizedTrs: formalizedTrs,
+		}, err
 	}
 
-	return *trs, formalizedTrs, nil
+	return ExtractData{
+		Trs:           *trs,
+		FormalizedTrs: formalizedTrs,
+	}, nil
+}
+
+func (uc *TrsUseCases) FixFormalTrs(ctx context.Context, request, formalTrs, errorDescription string) (ExtractData, error) {
+	formalizedTrs, err := uc.formalize.FixFormalized(ctx, request, formalTrs, errorDescription)
+	if err != nil {
+		return ExtractData{}, err
+	}
+
+	trs, err := uc.parser.Parse(formalizedTrs)
+	if err != nil {
+		return ExtractData{
+			Trs:           trsparser.Trs{},
+			FormalizedTrs: formalizedTrs,
+		}, err
+	}
+
+	return ExtractData{
+		Trs:           *trs,
+		FormalizedTrs: formalizedTrs,
+	}, nil
 }
 
 func (uc *TrsUseCases) InterpretFormalTrs(ctx context.Context, trs trsparser.Trs) (string, error) {
