@@ -210,6 +210,17 @@ spec:
 
 ---
 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-balancer
+data:
+  {{ range $path, $_ :=  .Files.Glob  "files/llm-balancer/**.conf.template" }}
+      {{ $.Files.Get $path }}
+  {{ end }}
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -239,8 +250,14 @@ spec:
             - containerPort: 80
           volumeMounts:
             - mountPath: /etc/nginx/templates
+              readOnly: true
               name: llm-balancer-templates
       volumes:
         - name: llm-balancer-templates
-          persistentVolumeClaim:
-            claimName: llm-balancer-pv-claim
+          configMap:
+            name: llm-balancer
+            items:
+              - key: "files/llm-balancer/default.conf.template"
+                path: "default.conf.template"
+              - key: "files/llm-balancer/get_chat_response.conf.template"
+                path: "get_chat_response.conf.template"
