@@ -1,0 +1,10 @@
+server {
+    listen ${NGINX_PORT};
+
+    location / {
+             set $upstream_app llm;
+             set $upstream_port 8100;
+             set $upstream_proto http;
+             proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+    }
+}

@@ -21,7 +21,7 @@ type Mistral struct {
 
 // TODO вынести в конфиг, хардкодить неудобно
 const (
-	llmServer = "http://llm:8100"
+	llmServer = "http://llm-balancer"
 	retryMax  = 5
 )
 
