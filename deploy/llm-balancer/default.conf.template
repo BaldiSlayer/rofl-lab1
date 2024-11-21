@@ -1,4 +1,5 @@
 server {
+    resolver 127.0.0.11 ipv6=off;
     listen ${NGINX_PORT};
 
     location / {

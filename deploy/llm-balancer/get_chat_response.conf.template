@@ -2,6 +2,7 @@ limit_req_zone $server_name zone=perserver:10m rate=1r/s;
 limit_req_status 429;
 
 server {
+    resolver 127.0.0.11 ipv6=off;
     listen ${NGINX_PORT};
 
     location /get_chat_response {
