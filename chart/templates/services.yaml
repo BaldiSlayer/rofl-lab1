@@ -65,3 +65,17 @@ spec:
     - port: 8081
       targetPort: 8081
   type: ClusterIP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-balancer
+spec:
+  selector:
+    app: llm-balancer
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

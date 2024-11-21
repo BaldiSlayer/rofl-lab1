@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: backend
 spec:
-  replicas: 1
+  replicas: 2
   revisionHistoryLimit: 4
   strategy:
     type: RollingUpdate
@@ -181,7 +181,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:latest
+          image: public.ecr.aws/docker/library/postgres:17
           env:
             - name: POSTGRES_USER
               valueFrom:
@@ -207,3 +207,40 @@ spec:
         - name: postgres-data
           persistentVolumeClaim:
             claimName: postgres-pv-claim
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: llm-balancer
+  name: llm-balancer-deployment
+spec:
+  replicas: 1
+  revisionHistoryLimit: 4
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: llm-balancer
+  template:
+    metadata:
+      labels:
+        app: llm-balancer
+    spec:
+      containers:
+        - name: llm-balancer
+          image: public.ecr.aws/nginx/nginx:stable-alpine
+          env:
+            - name: NGINX_PORT
+              value: 80
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /etc/nginx/templates
+              name: llm-balancer-templates
+      volumes:
+        - name: llm-balancer-templates
+          persistentVolumeClaim:
+            claimName: llm-balancer-pv-claim
