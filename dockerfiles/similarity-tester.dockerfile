@@ -17,4 +17,8 @@ WORKDIR /LLM
 RUN python /LLM/app/init_embeddings/init_embeddings.py /LLM/app/init_embeddings/data.yaml /LLM/vectorized_data.faiss && \
     mv /LLM/app/init_embeddings/data.yaml /LLM/data.yaml
 
-CMD gunicorn app.main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8100 --timeout 240
+COPY /similarity-tester /similarity-tester
+
+RUN chmod +x /similarity-tester/start.sh
+
+ENTRYPOINT ["/bin/bash", "/similarity-tester/start.sh"]
