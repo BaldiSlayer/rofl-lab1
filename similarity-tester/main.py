@@ -1,4 +1,5 @@
 from typing import List
+import yaml
 import openapi_client
 from openapi_client.models.search_similar_request import SearchSimilarRequest
 
@@ -22,14 +23,15 @@ def get_similar(question: str):
 
 
 def should_include_wrapper(inclusion_list: List[str]):
-    def should_include(contexts: List[str]):
-        contexts_set = {c for c in contexts}
+    def should_include(contexts: List[dict]):
+        contexts_questions = [i["question"] for i in contexts]
+        contexts_set = {c for c in contexts_questions}
 
         nonlocal inclusion_list
 
         for question in inclusion_list:
             if question not in contexts_set:
-                raise Exception(f"There is no question {question} in context {contexts}")
+                raise Exception(f"There is no question \"{question}\" in context {contexts_questions}")
 
         return True
 
@@ -54,30 +56,37 @@ class Test:
         try:
             return self._checker(answer)
         except Exception as e:
-            raise e
+            raise Exception(f"Error in test \"{self.question}\": {str(e)}")
 
+
+def create_test(test_data: dict) -> Test:
+    if 'should_include' in test_data:
+        return Test(
+            test_data["question"],
+            should_include_wrapper(test_data["should_include"]),
+        )
+
+    raise Exception("There is no such test type")
 
 
 def create_tests() -> List[Test]:
-    return [
-        Test("Регулярен ли язык Дика", should_include_wrapper(["что-то"]))
-    ]
+    with open("tests.yaml", 'r') as file:
+        tests_data = yaml.safe_load(file)
+
+    return [create_test(test_data) for test_data in tests_data]
 
 
 def main():
-    tests = create_tests()
+    try:
+        tests = create_tests()
 
-    for i, test in enumerate(tests):
-        try:
+        for i, test in enumerate(tests):
             test.check()
-        except Exception as e:
-            raise e
+            print(f"Test {i + 1}/{len(tests)} passed")
 
-        print(f"Пройден тест {i + 1}/{len(tests)}")
-
-
-
-    print("Все тесты пройдены успешно")
+        print("All tests passed successfully")
+    except Exception as e:
+        raise e
 
 
 if __name__ == "__main__":
