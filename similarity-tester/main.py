@@ -38,6 +38,7 @@ class Test:
         return self._checker(answer)
 
 
+# пустышка
 def h(a: dict):
     if a == {}:
         raise Exception("ожидался пустой словарь")
