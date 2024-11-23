@@ -21,6 +21,22 @@ def get_similar(question: str):
             print("Exception when calling QuestionsApi->api_process_questions_process_questions_post: %s\n" % e)
 
 
+def should_include_wrapper(inclusion_list: List[str]):
+    def should_include(contexts: List[str]):
+        contexts_set = {c for c in contexts}
+
+        nonlocal inclusion_list
+
+        for question in inclusion_list:
+            if question not in contexts_set:
+                raise Exception(f"There is no question {question} in context {contexts}")
+
+        return True
+
+    return should_include
+
+
+
 class Test:
     def __init__(self, question: str, checker: callable):
         """
@@ -35,20 +51,16 @@ class Test:
     def check(self) -> bool:
         answer = get_similar(self.question)
 
-        return self._checker(answer)
+        try:
+            return self._checker(answer)
+        except Exception as e:
+            raise e
 
-
-# пустышка
-def h(a: dict):
-    if a == {}:
-        raise Exception("ожидался пустой словарь")
-
-    return True
 
 
 def create_tests() -> List[Test]:
     return [
-        Test("Регулярен ли язык Дика", h)
+        Test("Регулярен ли язык Дика", should_include_wrapper(["что-то"]))
     ]
 
 
@@ -59,7 +71,7 @@ def main():
         try:
             test.check()
         except Exception as e:
-            raise Exception(f'Тест с вопросом "{test.question}" не пройден: {str(e)}') from e
+            raise e
 
         print(f"Пройден тест {i + 1}/{len(tests)}")
 
