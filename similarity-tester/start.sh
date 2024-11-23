@@ -19,3 +19,4 @@ done
 cd ../similarity-tester || exit 1
 
 python3 main.py
+

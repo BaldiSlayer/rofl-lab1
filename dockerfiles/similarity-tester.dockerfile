@@ -21,4 +21,4 @@ COPY /similarity-tester /similarity-tester
 
 RUN chmod +x /similarity-tester/start.sh
 
-ENTRYPOINT ["/bin/bash", "/similarity-tester/start.sh"]
+CMD ["/bin/bash", "/similarity-tester/start.sh"]
