@@ -38,3 +38,6 @@ openapi_server/controllers/
 openapi_server/test/
 pyproject.toml
 setup.cfg
+.gitlab-ci.yml
+.github
+test/
