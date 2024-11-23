@@ -1,4 +1,4 @@
-import sys
+from typing import List
 import openapi_client
 from openapi_client.models.search_similar_request import SearchSimilarRequest
 
@@ -44,10 +44,15 @@ def h(a: dict):
 
     return True
 
-def main():
-    tests = [
+
+def create_tests() -> List[Test]:
+    return [
         Test("Регулярен ли язык Дика", h)
     ]
+
+
+def main():
+    tests = create_tests()
 
     for i, test in enumerate(tests):
         try:
