@@ -39,5 +39,5 @@ openapi_server/test/
 pyproject.toml
 setup.cfg
 .gitlab-ci.yml
-.github
+.github/
 test/
