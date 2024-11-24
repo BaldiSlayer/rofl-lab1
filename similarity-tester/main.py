@@ -24,13 +24,13 @@ def get_similar(question: str):
 
 def should_include_wrapper(inclusion_list: List[str]):
     def should_include(contexts: List[dict]):
-        contexts_questions = [i["question"] for i in contexts]
+        contexts_questions = [i["question"].strip() for i in contexts]
         contexts_set = {c for c in contexts_questions}
 
         nonlocal inclusion_list
 
         for question in inclusion_list:
-            if question not in contexts_set:
+            if question.strip() not in contexts_set:
                 raise Exception(f"There is no question \"{question}\" in context {contexts_questions}")
 
         return True
