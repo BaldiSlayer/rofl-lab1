@@ -19,12 +19,15 @@ type Mistral struct {
 	*mistral.ClientWithResponses
 }
 
-// TODO: configure?
-const llmServer = "http://llm:8100"
+// TODO вынести в конфиг, хардкодить неудобно
+const (
+	llmServer = "http://llm:8100"
+	retryMax  = 5
+)
 
-func NewMistralClient(questions []models.QAPair) (ModelClient, error) {
+func NewMistralClient() (ModelClient, error) {
 	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 5
+	retryClient.RetryMax = retryMax
 	standardClient := retryClient.StandardClient() // *http.Client
 
 	c, err := mistral.NewClientWithResponses(llmServer, mistral.WithHTTPClient(standardClient))
@@ -36,44 +39,44 @@ func NewMistralClient(questions []models.QAPair) (ModelClient, error) {
 		ClientWithResponses: c,
 	}
 
-	_, err = mc.processQuestionsRequest(questions, false)
-	if err != nil {
-		return nil, err
-	}
-
-	slog.Info("initialized llm context")
-
 	return mc, nil
 }
 
-func (mc *Mistral) Ask(question string) (string, error) {
-	return mc.ask(question, nil)
+func (mc *Mistral) Ask(ctx context.Context, question string, model string) (string, error) {
+	return mc.ask(ctx, question, nil, model)
 }
 
-func (mc *Mistral) AskWithContext(question string) (string, error) {
-	contexts, err := mc.processQuestionsRequest([]models.QAPair{{
-		Question: question,
-		Answer:   "",
-	}}, true)
+func getContextFromQASlice(contextQASlice []mistral.QuestionAnswer) string {
+	result := ""
+
+	for _, item := range contextQASlice {
+		result = result + fmt.Sprintf("\nВопрос: %s Ответ: %s", item.Question, item.Answer)
+	}
+
+	return result
+}
+
+func (mc *Mistral) AskWithContext(ctx context.Context, question string, model string) (ResponseWithContext, error) {
+	contextQASlice, err := mc.processQuestionsRequest(ctx, question)
 	if err != nil {
-		return "", err
+		return ResponseWithContext{}, err
 	}
 
-	if len(contexts) != 1 {
-		return "", fmt.Errorf("expected single answer from process_questions endpoint, got %d", len(contexts))
-	}
+	formattedContext := getContextFromQASlice(contextQASlice)
 
-	context := contexts[0]
+	slog.Info("executing model request", "question", question, "context", formattedContext)
 
-	slog.Info("executing model request", "question", question, "context", context)
-
-	return mc.ask(question, &context)
+	answer, err := mc.ask(ctx, question, &formattedContext, model)
+	return ResponseWithContext{
+		Answer:  answer,
+		Context: formattedContext,
+	}, err
 }
 
-func (mc *Mistral) ask(question string, contextStr *string) (string, error) {
-	resp, err := mc.ApiGetChatResponseGetChatResponsePostWithResponse(context.TODO(), mistral.GetChatResponseRequest{
+func (mc *Mistral) ask(ctx context.Context, question string, contextStr *string, model string) (string, error) {
+	resp, err := mc.ApiGetChatResponseGetChatResponsePostWithResponse(ctx, mistral.GetChatResponseRequest{
 		Context: contextStr,
-		Model:   nil,
+		Model:   &model,
 		Prompt:  question,
 	})
 	if err != nil {
@@ -98,11 +101,9 @@ func toQuestionsList(QAPairs []models.QAPair) []mistral.QuestionAnswer {
 	return res
 }
 
-func (mc *Mistral) processQuestionsRequest(QAPairs []models.QAPair, useSaved bool) ([]string, error) {
-	resp, err := mc.ApiProcessQuestionsProcessQuestionsPostWithResponse(context.TODO(), mistral.ProcessQuestionsRequest{
-		Filename:      nil,
-		QuestionsList: toQuestionsList(QAPairs),
-		UseSaved:      &useSaved,
+func (mc *Mistral) processQuestionsRequest(ctx context.Context, question string) ([]mistral.QuestionAnswer, error) {
+	resp, err := mc.ApiProcessQuestionsProcessQuestionsPostWithResponse(ctx, mistral.SearchSimilarRequest{
+		Question: question,
 	})
 	if err != nil {
 		return nil, err

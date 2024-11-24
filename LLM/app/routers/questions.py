@@ -1,72 +1,67 @@
 from fastapi import APIRouter
-from ..utils.DB.faissDB import process_questions, add_new_questions, save_vectorized_data
-from ..schemas.questions import ProcessQuestionsRequest, GetChatResponseRequest, AddQuestionsRequest, \
-    SaveVectorizedDataRequest
-from ..utils.Mistral.mistral import get_chat_response
-import numpy as np
-import faiss
+from fastapi.responses import JSONResponse
+
+import app.core.vector_db.faiss_db as faiss_db
+import app.schemas.questions as schemas
+import app.core.mistral.mistral as mistral_client
+import app.core.formalize.formalize as formalize
+from app.core.readiness_probe.readiness_probe import ReadinessProbe
+
 
 router = APIRouter(
     tags=["Questions"]
 )
 
 
-# Маршрут для healthcheck
 @router.get("/ping")
 def api_ping():
+    """
+    Ping ручка, нужна для healthcheck'а
+    """
+
+    if not ReadinessProbe.get_value():
+        return JSONResponse(status_code=503, content={"status": "not ready"})
+
     return "OK"
 
 
-# Маршрут для process_questions
-@router.post("/process_questions")
-def api_process_questions(request: ProcessQuestionsRequest):
-    result = process_questions(
-        questions_list=request.questions_list,
-        use_saved=request.use_saved,
-        filename=request.filename
+@router.post("/search_similar", response_model=schemas.SearchSimilarResponse)
+def api_search_similar(request: schemas.SearchSimilarRequest):
+    """
+    Ищет для вопроса похожие из базы знаний
+    """
+
+    result = faiss_db.process_question(
+        question=request.question,
     )
-    return {"result": result}
+
+    return schemas.SearchSimilarResponse(result=result)
 
 
-# Маршрут для get_chat_response
 @router.post("/get_chat_response")
-def api_get_chat_response(request: GetChatResponseRequest):
-    response = get_chat_response(
+def api_get_chat_response(request: schemas.GetChatResponseRequest):
+    """
+    Ручка, которая ходит в Mistral API с заданным промптом, контекстом и моделью
+    """
+
+    # TODO add reponse model for openapi
+    response = mistral_client.get_chat_response(
         prompt=request.prompt,
         context=request.context,
         model=request.model
     )
+
     return {"response": response}
 
 
-# Маршрут для добавления новых вопросов в базу данных
-@router.post("/add_questions")
-def api_add_questions(request: AddQuestionsRequest):
-    # Используем функцию add_new_questions для добавления новых вопросов
-    add_new_questions(
-        new_questions=request.new_questions,
-        filename=request.filename
-    )
-    return {"message": f"Added {len(request.new_questions)} new questions to the database."}
+@router.post("/formalize")
+def api_formalize(request: schemas.FormalizeRequest):
+    """
+    Ручка для formalize
+    """
 
-
-# Новый маршрут для сохранения векторной базы данных
-@router.post("/save_vectorized_data")
-def api_save_vectorized_data(request: SaveVectorizedDataRequest):
-    # Преобразуем данные из запроса
-    data = request.data
-    embeddings = np.array(request.embeddings)
-
-    # Восстанавливаем FAISS индекс
-    index = faiss.IndexFlatL2(embeddings.shape[1])
-    index.add(np.array(request.embeddings))
-
-    # Сохраняем векторные данные
-    save_vectorized_data(
-        data=data,
-        embeddings=embeddings,
-        index=index,
-        filename=request.filename
+    response = formalize.formalize(
+        question=request.question
     )
 
-    return {"message": f"Data saved successfully to {request.filename}"}
+    return {"response": response}

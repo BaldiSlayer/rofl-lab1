@@ -1,13 +1,13 @@
 import re
 from g4f.client import Client
 
-MAX_ATTEMPTS = 10
+MAX_ATTEMPTS = 1
 client = Client()
 
 
 def generate_response(question: str, context: str) -> str:
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         messages=[{"role": "user", "content": question},
                   {"role": "system", "content": context}]
     )

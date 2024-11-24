@@ -1,23 +1,25 @@
-version: '3'
 services:
   llm:
     build:
       dockerfile: dockerfiles/llm.dockerfile
     container_name: llm
     image: stewkk/tfl-lab1-llm:latest
-    volumes:
-      - ./LLM/app/utils/Mistral/config.py:/api/app/utils/Mistral/config.py
     healthcheck:
       test: curl --fail 'http://llm:8100/ping' || exit 1
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 5s
+    restart: unless-stopped
   backend:
     build:
       dockerfile: ./dockerfiles/backend.dockerfile
     environment:
-      TGTOKEN: "${TGTOKEN}"
+      - TGTOKEN=${TGTOKEN}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - GHTOKEN=${GHTOKEN}
     env_file: ".env"
     container_name: backend
     image: stewkk/tfl-lab1-backend:latest
@@ -28,6 +30,9 @@ services:
         condition: service_healthy
       formalize:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
   interpret:
     build:
       dockerfile: ./dockerfiles/interpret.dockerfile
@@ -39,6 +44,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+    restart: unless-stopped
   formalize:
     build:
       dockerfile: ./dockerfiles/formalize.dockerfile
@@ -50,3 +56,26 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+    restart: unless-stopped
+  postgres:
+    image: public.ecr.aws/docker/library/postgres:17
+    container_name: postgres
+    volumes:
+      - 'postgres_data:/data/postgres'
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+    env_file: ".env"
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local

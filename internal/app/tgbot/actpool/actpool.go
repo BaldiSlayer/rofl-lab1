@@ -1,6 +1,8 @@
 package actpool
 
 import (
+	"context"
+	"errors"
 	"fmt"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
@@ -8,51 +10,70 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-type StateTransition = func(update tgbotapi.Update) (models.UserState, error)
+type StateTransition = func(ctx context.Context, update tgbotapi.Update) (models.UserState, error)
 
 type BotActionsPool struct {
 	storage ustorage.UserDataStorage
 
-	actions map[models.UserState]StateTransition
+	actions  map[models.UserState]StateTransition
+	commands map[string]StateTransition
 }
 
-func New() (*BotActionsPool, error) {
-	storage, err := ustorage.NewMapUserStorage()
-	if err != nil {
-		return nil, err
-	}
-
+func New(storage ustorage.UserDataStorage,
+	transitions map[models.UserState]StateTransition,
+	commands map[string]StateTransition) (*BotActionsPool, error) {
 	return &BotActionsPool{
-		actions: make(map[models.UserState]StateTransition),
-		storage: storage,
+		storage:  storage,
+		actions:  transitions,
+		commands: commands,
 	}, nil
 }
 
-// AddStateTransition добавляет контроллер. Не использовать "на лету", добавлять контроллеры только
-// при запуске программы. Иначе получите Race Condition. Не добавляю mutex, потому что добавлять
-// контроллеры "на лету" - очень странный кейс
-func (b *BotActionsPool) AddStateTransition(state models.UserState, f StateTransition) {
-	b.actions[state] = f
-}
-
 // Exec находит для юзера его текущий стейт и исполняет соответствующую функцию
-func (b *BotActionsPool) Exec(update tgbotapi.Update) error {
-	userState := b.storage.GetState(update.Message.Chat.ID)
+func (b *BotActionsPool) Exec(ctx context.Context, update tgbotapi.Update) error {
+	if update.Message != nil && update.Message.IsCommand() {
+		return b.ExecCommand(ctx, update)
+	}
+
+	userID := update.SentFrom().ID
+
+	userState, err := getUserState(ctx, userID, b.storage)
+	if err != nil {
+		return err
+	}
 
 	f, ok := b.actions[userState]
 	if !ok {
 		return fmt.Errorf("action pooler has no action for this state: %v", userState)
 	}
 
-	currentState, err := f(update)
+	currentState, err := f(ctx, update)
 	if err != nil {
-		return err
+		currentState = models.GetRequest
 	}
 
-	err = b.storage.SetState(update.Message.Chat.ID, currentState)
-	if err != nil {
-		return err
+	return errors.Join(err, b.storage.SetState(ctx, userID, currentState))
+}
+
+func (b *BotActionsPool) ExecCommand(ctx context.Context, update tgbotapi.Update) error {
+	f, ok := b.commands[update.Message.Command()]
+	if !ok {
+		return fmt.Errorf("action pooler has no action for this command: %s", update.Message.Command())
 	}
 
-	return err
+	state, err := f(ctx, update)
+	if err != nil {
+		state = models.GetRequest
+	}
+
+	return errors.Join(err, b.storage.SetState(ctx, update.SentFrom().ID, state))
+}
+
+func getUserState(ctx context.Context, userID int64, storage ustorage.UserDataStorage) (models.UserState, error) {
+	userState, err := storage.GetState(ctx, userID)
+	if errors.Is(err, ustorage.ErrNotFound) {
+		userState = models.Start
+		err = storage.SetState(ctx, userID, userState)
+	}
+	return userState, err
 }

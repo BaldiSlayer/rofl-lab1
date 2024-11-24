@@ -7,7 +7,11 @@ import (
 )
 
 type TGBotConfig struct {
-	Token string `env:"TGTOKEN"`
+	TgToken    string `env:"TGTOKEN"`
+	GhToken    string `env:"GHTOKEN"`
+	PgUser     string `env:"POSTGRES_USER"`
+	PgPassword string `env:"POSTGRES_PASSWORD"`
+	PgDBName   string `env:"POSTGRES_DB"`
 }
 
 func LoadTGBotConfig() (*TGBotConfig, error) {
