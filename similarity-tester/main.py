@@ -7,13 +7,17 @@ configuration = openapi_client.Configuration(
     host = "http://localhost:8100"
 )
 
-def get_similar(question: str):
+def get_similar(question: str) -> List[dict]:
+    """
+    Sends a request to the LM module API to find the nearest knowledge base elements for a given question
+
+    :param question: The question for which the nearest ones will be searched in the knowledge base
+    :return:
+    """
     with openapi_client.ApiClient(configuration) as api_client:
-        # Create an instance of the API class
         api_instance = openapi_client.QuestionsApi(api_client)
 
         try:
-            # Api Process Questions
             api_response = api_instance.api_process_questions_process_questions_post(
                 SearchSimilarRequest.from_dict({"question": question})
             )
@@ -38,14 +42,13 @@ def should_include_wrapper(inclusion_list: List[str]):
     return should_include
 
 
-
 class Test:
     def __init__(self, question: str, checker: callable):
         """
         Инициализация класса Test.
 
-        :param question:
-        :param checker: Функция, которая проверяет правильность ответа.
+        :param question: Question from a testcase
+        :param checker: Function that verifies compliance with the conditions
         """
         self.question = question
         self._checker = checker
