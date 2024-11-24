@@ -1,4 +1,4 @@
-FROM golang:1.23-bullseye AS build
+FROM public.ecr.aws/docker/library/golang:1.23-bullseye AS build
 
 WORKDIR /app
 
@@ -9,12 +9,16 @@ COPY /cmd/backend /app/cmd/backend
 COPY /internal /app/internal
 COPY /pkg /app/pkg
 
-RUN go build -o /bin/backend /app/cmd/backend/backend.go
+ARG LDFLAGS
 
-FROM ubuntu:20.04
+RUN go build -o /bin/backend -ldflags="$LDFLAGS" /app/cmd/backend/backend.go
+
+FROM public.ecr.aws/ubuntu/ubuntu:20.04
 
 RUN apt-get update && apt-get install -y ca-certificates
 
 COPY --from=build /bin/backend /bin/backend
+
+COPY /data /data
 
 CMD ["/bin/backend"]

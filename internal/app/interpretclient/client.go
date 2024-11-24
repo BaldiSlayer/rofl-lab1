@@ -17,12 +17,15 @@ type Interpreter struct {
 	*ClientWithResponses
 }
 
-// TODO: configure?
-const interpretServer = "http://interpret:8081"
+// TODO вынести в конфиг, хардкодить неудобно
+const (
+	interpretServer = "http://interpret:8081"
+	retryMax        = 5
+)
 
 func NewInterpreter() (*Interpreter, error) {
 	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 5
+	retryClient.RetryMax = retryMax
 	standardClient := retryClient.StandardClient() // *http.Client
 
 	c, err := NewClientWithResponses(interpretServer, WithHTTPClient(standardClient))
@@ -37,8 +40,8 @@ func NewInterpreter() (*Interpreter, error) {
 	}, nil
 }
 
-func (i *Interpreter) Interpret(trs trsparser.Trs) (string, error) {
-	res, err := i.TrsInterpretWithResponse(context.TODO(), TrsInterpretJSONRequestBody{
+func (i *Interpreter) Interpret(ctx context.Context, trs trsparser.Trs) (string, error) {
+	res, err := i.TrsInterpretWithResponse(ctx, TrsInterpretJSONRequestBody{
 		Interpretations: trs.Interpretations,
 		Rules:           trs.Rules,
 		Variables:       trs.Variables,

@@ -2,7 +2,7 @@ import yaml
 
 
 def parse(source_file='data.yaml'):
-    with open(source_file, 'r') as file:
+    with open(source_file, 'r', encoding="utf-8") as file:
         data = yaml.safe_load(file)
 
     data_grouped_by_author = {}
