@@ -26,16 +26,19 @@ def get_similar(question: str) -> List[dict]:
             print("Exception when calling QuestionsApi->api_process_questions_process_questions_post: %s\n" % e)
 
 
+def question_preprocessing(question: str) -> str:
+    return question.strip()
+
+
 def should_include_wrapper(inclusion_list: List[str]):
     def should_include(contexts: List[dict]):
-        contexts_questions = [i["question"].strip() for i in contexts]
+        contexts_questions = [question_preprocessing(i["question"]) for i in contexts]
         contexts_set = {c for c in contexts_questions}
 
         nonlocal inclusion_list
 
         for question in inclusion_list:
-            if question.strip() not in contexts_set:
-                raise Exception(f"There is no question \"{question}\" in context {contexts_questions}")
+            assert question.strip() in contexts_set, f"There is no question \"{question}\" in context {contexts_questions}"
 
         return True
 
@@ -80,16 +83,14 @@ def create_tests() -> List[Test]:
 
 
 def main():
-    try:
-        tests = create_tests()
+    tests = create_tests()
 
-        for i, test in enumerate(tests):
-            test.check()
-            print(f"Test {i + 1}/{len(tests)} passed")
+    for i, test in enumerate(tests):
+        test.check()
+        print(f"Test {i + 1}/{len(tests)} passed")
 
-        print("All tests passed successfully")
-    except Exception as e:
-        raise e
+    print("All tests passed successfully")
+
 
 
 if __name__ == "__main__":
