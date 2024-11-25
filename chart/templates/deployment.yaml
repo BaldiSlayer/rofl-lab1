@@ -260,5 +260,3 @@ spec:
             items:
               - key: "default.conf.template"
                 path: "default.conf.template"
-              - key: "get_chat_response.conf.template"
-                path: "get_chat_response.conf.template"

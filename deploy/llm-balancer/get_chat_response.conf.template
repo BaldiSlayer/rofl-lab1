@@ -1,16 +1,5 @@
-limit_req_zone $server_name zone=perserver:10m rate=1r/s;
-limit_req_status 429;
-
 server {
-    resolver 127.0.0.11 ipv6=off;
+    resolver kube-dns.kube-system.svc.cluster.local valid=10s ipv6=off;
     listen ${NGINX_PORT};
 
-    location /get_chat_response {
-             limit_req zone=perserver burst=120;
-
-             set $upstream_app llm;
-             set $upstream_port 8100;
-             set $upstream_proto http;
-             proxy_pass $upstream_proto://$upstream_app:$upstream_port;
-    }
 }
