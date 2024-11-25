@@ -1,5 +1,0 @@
-server {
-    resolver kube-dns.kube-system.svc.cluster.local valid=10s ipv6=off;
-    listen ${NGINX_PORT};
-
-}
