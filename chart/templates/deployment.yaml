@@ -246,7 +246,7 @@ spec:
           image: public.ecr.aws/nginx/nginx:stable-alpine
           env:
             - name: NGINX_PORT
-              value: 80
+              value: "80"
           ports:
             - containerPort: 80
           volumeMounts:
