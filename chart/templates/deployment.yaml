@@ -215,8 +215,9 @@ kind: ConfigMap
 metadata:
   name: llm-balancer
 data:
-  {{ range $path, $_ :=  .Files.Glob  "files/llm-balancer/**.conf.template" }}
-      {{ $.Files.Get $path }}
+  {{- range $path, $d := .Files.Glob "../deploy/llm-balancer/**.conf.template" }}
+  {{ $path }}: |-
+  {{- $d | toString}}
   {{ end }}
 
 ---
