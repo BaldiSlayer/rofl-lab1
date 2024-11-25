@@ -20,8 +20,8 @@ spec:
   selector:
     app: backend
   ports:
-    - port: 8085
-      targetPort: 8085
+    - port: 8443
+      targetPort: 8443
   type: ClusterIP
 
 ---

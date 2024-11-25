@@ -22,7 +22,7 @@ spec:
         - name: backend
           image: "{{ .Values.image.repository }}/tfl-lab1-backend:{{ .Values.image.tag }}"
           ports:
-            - containerPort: 8085
+            - containerPort: 8443
           env:
             - name: TGTOKEN
               valueFrom:
@@ -215,9 +215,9 @@ kind: ConfigMap
 metadata:
   name: llm-balancer
 data:
-  {{- range $path, $d := .Files.Glob "../deploy/llm-balancer/**.conf.template" }}
-  {{ $path }}: |-
-  {{- $d | toString}}
+  {{- range $path, $d := .Files.Glob "files/llm-balancer/*" }}
+  {{ regexReplaceAll "(.*)/" $path "" }}: |-
+  {{- $d | toString | nindent 4 }}
   {{ end }}
 
 ---
@@ -258,7 +258,7 @@ spec:
           configMap:
             name: llm-balancer
             items:
-              - key: "files/llm-balancer/default.conf.template"
+              - key: "default.conf.template"
                 path: "default.conf.template"
-              - key: "files/llm-balancer/get_chat_response.conf.template"
+              - key: "get_chat_response.conf.template"
                 path: "get_chat_response.conf.template"
