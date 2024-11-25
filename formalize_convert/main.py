@@ -1,19 +1,31 @@
 import re
-from g4f.client import Client
 # import asyncio
 # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+import llm_client
+from llm_client.rest import ApiException
+
+
+configuration = llm_client.Configuration(
+    host="http://llm:8100"
+)
 MAX_ATTEMPTS = 1
-client = Client()
 
 
 def generate_response(question: str, context: str) -> str:
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": question},
-                  {"role": "system", "content": context}]
-    )
+    with llm_client.ApiClient(configuration) as api_client:
+        api_instance = llm_client.QuestionsApi(api_client)
+        get_chat_response_request = llm_client.GetChatResponseRequest.from_dict({
+            "prompt": question,
+            "context": context,
+            "model": "mistral-large-latest",
+        })
 
-    return response.choices[0].message.content
+        try:
+            api_response = api_instance.api_get_chat_response_get_chat_response_post(
+                get_chat_response_request)
+            return api_response.response
+        except ApiException as e:
+            print("Exception when calling QuestionsApi->api_get_chat_response_get_chat_response_post: %s\n" % e)
 
 
 PROMPT = (
