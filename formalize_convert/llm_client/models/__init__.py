@@ -1,7 +1,6 @@
 # coding: utf-8
 
 # flake8: noqa
-
 """
     TFL
 
@@ -14,23 +13,7 @@
 """  # noqa: E501
 
 
-__version__ = "1.0.0"
-
-# import apis into sdk package
-from llm_client.api.questions_api import QuestionsApi
-
-# import ApiClient
-from llm_client.api_response import ApiResponse
-from llm_client.api_client import ApiClient
-from llm_client.configuration import Configuration
-from llm_client.exceptions import OpenApiException
-from llm_client.exceptions import ApiTypeError
-from llm_client.exceptions import ApiValueError
-from llm_client.exceptions import ApiKeyError
-from llm_client.exceptions import ApiAttributeError
-from llm_client.exceptions import ApiException
-
-# import models into sdk package
+# import models into model package
 from llm_client.models.add_questions_request import AddQuestionsRequest
 from llm_client.models.get_chat_response_request import GetChatResponseRequest
 from llm_client.models.get_chat_response_response import GetChatResponseResponse

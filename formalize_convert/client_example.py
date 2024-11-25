@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 
-import llm_client.openapi_client as openapi_client
-from llm_client.openapi_client.rest import ApiException
+import llm_client
+from llm_client.rest import ApiException
 from pprint import pprint
 
 # Defining the host is optional and defaults to http://localhost
 # See configuration.py for a list of all supported configuration parameters.
-configuration = openapi_client.Configuration(
+configuration = llm_client.Configuration(
     host="http://llm:8100"
 )
 
 
 # Enter a context with an instance of the API client
-with openapi_client.ApiClient(configuration) as api_client:
+with llm_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
-    api_instance = openapi_client.QuestionsApi(api_client)
-    get_chat_response_request = openapi_client.GetChatResponseRequest()
-    get_chat_response_request.prompt = "Привет!"
+    api_instance = llm_client.QuestionsApi(api_client)
+    get_chat_response_request = llm_client.GetChatResponseRequest.from_dict({
+        "prompt": "Привет!",
+        "model": "mistral-large-latest",
+    })
 
     try:
         # Api Add Questions
