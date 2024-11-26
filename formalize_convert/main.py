@@ -83,15 +83,18 @@ def get_trs(user_query: str, context: str):
 
         attempt = 0
 
-        while (not formalized_query and attempt < MAX_ATTEMPTS) or (not trs and attempt < MAX_ATTEMPTS):
-            attempt += 1
-            formalized_query = generate_response(user_query, context)
-            if formalized_query is None or formalized_query == "":
-                print('GPT_error, trying again.')
-                continue
-            print("user query:", user_query, sep='\n')
-            print("formalized:", formalized_query, sep='\n')
-            trs = convert(user_query, formalized_query)
+        while attempt < MAX_ATTEMPTS:
+            if not formalized_query or not trs:
+                attempt += 1
+                formalized_query = generate_response(user_query, context)
+                if formalized_query is None or formalized_query == "":
+                    print('GPT_error, trying again.')
+                    continue
+                print("user query:", user_query, sep='\n')
+                print("formalized:", formalized_query, sep='\n')
+                trs = convert(user_query, formalized_query)
+            else:
+                break
 
         return trs
 
