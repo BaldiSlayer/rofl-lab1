@@ -1,6 +1,4 @@
 import re
-# import asyncio
-# asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 import llm_client
 from llm_client.rest import ApiException
 
@@ -84,17 +82,16 @@ def get_trs(user_query: str, context: str):
         attempt = 0
 
         while attempt < MAX_ATTEMPTS:
-            if not formalized_query or not trs:
-                attempt += 1
-                formalized_query = generate_response(user_query, context)
-                if formalized_query is None or formalized_query == "":
-                    print('GPT_error, trying again.')
-                    continue
-                print("user query:", user_query, sep='\n')
-                print("formalized:", formalized_query, sep='\n')
-                trs = convert(user_query, formalized_query)
-            else:
+            if formalized_query and trs:
                 break
+            attempt += 1
+            formalized_query = generate_response(user_query, context)
+            if formalized_query is None or formalized_query == "":
+                print('GPT_error, trying again.')
+                continue
+            print("user query:", user_query, sep='\n')
+            print("formalized:", formalized_query, sep='\n')
+            trs = convert(user_query, formalized_query)
 
         return trs
 
