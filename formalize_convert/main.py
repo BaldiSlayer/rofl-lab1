@@ -156,7 +156,7 @@ def convert(user_query: str, formalized_query: str):
             else:
                 return {
                     "formalTrs": formalized_query,
-                    "error": f"{query_line[i]} не присутсвует в начальном запросе"
+                    "error": f"{query_line[i]} не присутствует в начальном запросе"
                 }
 
         trs += '-------------------------\n'
