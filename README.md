@@ -12,7 +12,7 @@
     ```
 2) Запускаем `Docker` контейнер
     ```bash
-   # подставить `API` ключ `mistral`
+   # подставить API ключ mistral
     docker run -p 8100:8100 -e MISTRAL_API_KEY=<API_КЛЮЧ_MISTRAL> my-t
     ```
 3) Переходим на http://localhost:8100/docs. Это раздел с документацией к `API`, отсюда можно отправлять
