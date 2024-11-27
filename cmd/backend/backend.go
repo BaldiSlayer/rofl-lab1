@@ -2,14 +2,16 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
 )
@@ -18,31 +20,24 @@ func cli() {
 	r := bufio.NewReader(os.Stdin)
 	data, err := io.ReadAll(r)
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		ExitWithError("error reading request from stdin", "error", err)
 	}
 
-	context, err := models.LoadQABase()
+	model, err := mclient.NewMistralClient()
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
-	}
-
-	model, err := mclient.NewMistralClient(context)
-	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		ExitWithError("failed to init llm client", "error", err)
 	}
 
 	slog.Info("Executing model request")
 
-	answer, err := usecases.AskKnowledgeBase(model, string(data))
+	answers, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		ExitWithError("error requesting knowledge base", "error", err)
 	}
 
-	fmt.Println(answer)
+	for _, answer := range answers {
+		fmt.Printf("model=%s question=%s\ncontext=%v", answer.Model, answer.Answer, answer.Context)
+	}
 }
 
 func main() {
@@ -55,9 +50,21 @@ func main() {
 		return
 	}
 
-	app := tgbot.New(
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	app, err := tgbot.New(
+		ctx,
 		tgbot.WithConfig(),
 	)
+	if err != nil {
+		ExitWithError("failed to init telegram client", "error", err.Error())
+	}
 
-	app.Run()
+	app.Run(ctx)
+}
+
+func ExitWithError(msg string, args ...any) {
+	slog.Error(msg, args...)
+	os.Exit(1)
 }

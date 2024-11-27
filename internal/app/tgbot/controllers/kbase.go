@@ -5,62 +5,48 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
+	"github.com/BaldiSlayer/rofl-lab1/internal/version"
 )
 
-const (
-	waitForKBQuestionTimeout = 10 * time.Second
-)
-
-func (controller *Controller) WaitForKBQuestion(update tgbotapi.Update) (models.UserState, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), waitForKBQuestionTimeout)
-	defer cancel()
-
-	var answer string
-	var err error
-
-	doneChan := make(chan struct{}, 1)
-	go func() {
-		answer, err = usecases.AskKnowledgeBase(controller.ModelClient, update.Message.Text)
-		if err != nil {
-			slog.Error(err.Error())
-		}
-		doneChan <- struct{}{}
-	}()
-
-	select {
-	case <-ctx.Done():
-		err = controller.Bot.SendMessage(
-			update.Message.Chat.ID,
-			"К сожалению не удалось получить ответ на Ваш вопрос",
-		)
-		if err != nil {
-			curState, err1 := controller.EmptyState(update)
-
-			return curState, errors.Join(err1, err)
-		}
-	case <-doneChan:
-		if err != nil {
-			curState, err1 := controller.EmptyState(update)
-
-			return curState, errors.Join(err1, err)
-		}
-
-		err = controller.Bot.SendMessage(
-			update.Message.Chat.ID,
-			fmt.Sprintf("Ответ модели на Ваш вопрос: %s", answer),
-		)
-		if err != nil {
-			curState, err1 := controller.EmptyState(update)
-
-			return curState, errors.Join(err1, err)
-		}
+func (controller *Controller) GetRequest(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
+	if update.Message == nil {
+		return models.GetRequest, nil
 	}
 
-	return controller.EmptyState(update)
+	return controller.handleKnowledgeBaseRequest(ctx, update)
+}
+
+func (controller *Controller) handleKnowledgeBaseRequest(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
+	userRequest := update.Message.Text
+
+	answers, err := usecases.AskKnowledgeBase(ctx, controller.ModelClient, userRequest)
+	if err != nil {
+		return 0, err
+	}
+
+	gistLink, err := usecases.UploadKnowledgeBaseAnswers(ctx, controller.GihubClient, userRequest, answers)
+	if err != nil {
+		return 0, err
+	}
+
+	answer := tgbotapi.EscapeText(tgbotapi.ModeMarkdown, answers[0].Answer)
+	buildVersion := tgbotapi.EscapeText(tgbotapi.ModeMarkdown, version.BuildVersionWithLink())
+
+	message := fmt.Sprintf("%s\n\n[ссылка на использованный контекст](%s)\n\n%s", answer, gistLink, buildVersion)
+	slog.Info(message)
+	return models.GetRequest, errors.Join(
+		controller.Bot.SendMarkdownMessage(
+			update.Message.Chat.ID,
+			message,
+		),
+		controller.Bot.SendMessage(
+			update.Message.Chat.ID,
+			"Введите запрос к Базе Знаний",
+		),
+	)
 }

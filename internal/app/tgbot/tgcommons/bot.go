@@ -1,14 +1,11 @@
 package tgcommons
 
 import (
-	"sync"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Bot struct {
 	bot *tgbotapi.BotAPI
-	mu  sync.Mutex
 }
 
 func NewBot(token string) (*Bot, error) {

@@ -1,45 +1,87 @@
 package usecases
 
 import (
+	"context"
+	"fmt"
+	"log/slog"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/formalizeclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/interpretclient"
 	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
 )
 
+const (
+	retryMax = 5
+)
+
 type TrsUseCases struct {
-	parser    trsparser.Parser
-	interpret interpretclient.Interpreter
-	formalize formalizeclient.Formalizer
+	parser    *trsparser.Parser
+	interpret *interpretclient.Interpreter
+	formalize *formalizeclient.Formalizer
 }
 
-func (uc TrsUseCases) ExtractFormalTrs(request string) (trsparser.Trs, string, error) {
-	formalizedTrs, err := uc.formalize.Formalize(request)
+func New() (*TrsUseCases, error) {
+	interpreter, err := interpretclient.NewInterpreter()
 	if err != nil {
-		return trsparser.Trs{}, "", err
+		return nil, err
 	}
 
-	trs, err := uc.parser.Parse(formalizedTrs)
+	formalizer, err := formalizeclient.NewFormalizer()
 	if err != nil {
-		return trsparser.Trs{}, formalizedTrs, err
+		return nil, err
 	}
 
-	return *trs, formalizedTrs, nil
+	return &TrsUseCases{
+		parser:    trsparser.NewParser(),
+		interpret: interpreter,
+		formalize: formalizer,
+	}, nil
 }
 
-func (uc TrsUseCases) FixFormalTrs(request, formalTrs string, parseError trsparser.ParseError) (trsparser.Trs, string, error) {
-	formalizedTrs, err := uc.formalize.FixFormalized(request, formalTrs, parseError.LlmMessage)
-	if err != nil {
-		return trsparser.Trs{}, "", err
-	}
-
-	trs, err := uc.parser.Parse(formalizedTrs)
-	if err != nil {
-		return trsparser.Trs{}, formalizedTrs, err
-	}
-
-	return *trs, formalizedTrs, nil
+type ExtractData struct {
+	Trs           trsparser.Trs
+	FormalizedTrs string
 }
 
-func (uc TrsUseCases) InterpretFormalTrs(trs trsparser.Trs) (string, error) {
-	return uc.interpret.Interpret(trs)
+func (uc *TrsUseCases) ExtractFormalTrs(ctx context.Context, request string) (ExtractData, error) {
+	result, err := uc.formalize.Formalize(ctx, request)
+	return uc.fixFormalTrs(ctx, request, result, err)
+}
+
+func (uc *TrsUseCases) FixFormalTrs(ctx context.Context, request, formalTrs, errorDescription string) (ExtractData, error) {
+	result, err := uc.formalize.FixFormalized(ctx, request, formalTrs, errorDescription)
+	return uc.fixFormalTrs(ctx, request, result, err)
+}
+
+func (uc *TrsUseCases) fixFormalTrs(ctx context.Context, request string, result formalizeclient.FormalizeResultDTO, err error) (ExtractData, error) {
+	if result.ErrorDescription != nil {
+		return ExtractData{}, fmt.Errorf("error formalizing trs: %s", *result.ErrorDescription)
+	}
+	for i := 0; i < retryMax && result.ErrorDescription != nil; i++ {
+		slog.Info("got error from formalize", "error", err)
+		result, err = uc.formalize.FixFormalized(ctx, request, result.FormalizedTrs, *result.ErrorDescription)
+	}
+	if err != nil {
+		return ExtractData{}, err
+	}
+	if result.ErrorDescription != nil {
+		return ExtractData{}, fmt.Errorf("error formalizing trs: %s", *result.ErrorDescription)
+	}
+
+	trs, err := uc.parser.Parse(result.FormalizedTrs)
+	if err != nil {
+		return ExtractData{
+			Trs:           trsparser.Trs{},
+			FormalizedTrs: result.FormalizedTrs,
+		}, err
+	}
+
+	return ExtractData{
+		Trs:           *trs,
+		FormalizedTrs: result.FormalizedTrs,
+	}, nil
+}
+
+func (uc *TrsUseCases) InterpretFormalTrs(ctx context.Context, trs trsparser.Trs) (string, error) {
+	return uc.interpret.Interpret(ctx, trs)
 }

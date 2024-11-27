@@ -23,7 +23,8 @@ type FixRequest struct {
 
 // FixResponse defines model for FixResponse.
 type FixResponse struct {
-	FormalTrs string `json:"formalTrs"`
+	Error     *string `json:"error,omitempty"`
+	FormalTrs string  `json:"formalTrs"`
 }
 
 // FormalizeRequest defines model for FormalizeRequest.
@@ -33,7 +34,8 @@ type FormalizeRequest struct {
 
 // FormalizeResult defines model for FormalizeResult.
 type FormalizeResult struct {
-	FormalTrs string `json:"formalTrs"`
+	Error     *string `json:"error,omitempty"`
+	FormalTrs string  `json:"formalTrs"`
 }
 
 // TrsFixJSONRequestBody defines body for TrsFix for application/json ContentType.
