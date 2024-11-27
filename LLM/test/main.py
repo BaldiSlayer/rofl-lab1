@@ -45,6 +45,10 @@ def should_include_wrapper(inclusion_list: List[str]):
     return should_include
 
 
+class TestFail(Exception):
+    pass
+
+
 class Test:
     def __init__(self, question: str, checker: callable):
         """
@@ -62,7 +66,7 @@ class Test:
         try:
             return self._checker(answer)
         except Exception as e:
-            raise Exception(f"Error in test \"{self.question}\": {str(e)}")
+            raise TestFail(f"Error in test \"{self.question}\": {str(e)}")
 
 
 def create_test(test_data: dict) -> Test:
