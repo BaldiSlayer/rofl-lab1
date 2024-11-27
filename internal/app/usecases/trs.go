@@ -2,10 +2,16 @@ package usecases
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/formalizeclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/interpretclient"
 	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
+)
+
+const (
+	retryMax = 5
 )
 
 type TrsUseCases struct {
@@ -38,42 +44,41 @@ type ExtractData struct {
 }
 
 func (uc *TrsUseCases) ExtractFormalTrs(ctx context.Context, request string) (ExtractData, error) {
-	formalizedTrs, err := uc.formalize.Formalize(ctx, request)
-	if err != nil {
-		return ExtractData{}, err
-	}
-
-	trs, err := uc.parser.Parse(formalizedTrs)
-	if err != nil {
-		return ExtractData{
-			Trs:           trsparser.Trs{},
-			FormalizedTrs: formalizedTrs,
-		}, err
-	}
-
-	return ExtractData{
-		Trs:           *trs,
-		FormalizedTrs: formalizedTrs,
-	}, nil
+	result, err := uc.formalize.Formalize(ctx, request)
+	return uc.fixFormalTrs(ctx, request, result, err)
 }
 
 func (uc *TrsUseCases) FixFormalTrs(ctx context.Context, request, formalTrs, errorDescription string) (ExtractData, error) {
-	formalizedTrs, err := uc.formalize.FixFormalized(ctx, request, formalTrs, errorDescription)
+	result, err := uc.formalize.FixFormalized(ctx, request, formalTrs, errorDescription)
+	return uc.fixFormalTrs(ctx, request, result, err)
+}
+
+func (uc *TrsUseCases) fixFormalTrs(ctx context.Context, request string, result formalizeclient.FormalizeResultDTO, err error) (ExtractData, error) {
+	if result.ErrorDescription != nil {
+		return ExtractData{}, fmt.Errorf("error formalizing trs: %s", *result.ErrorDescription)
+	}
+	for i := 0; i < retryMax && result.ErrorDescription != nil; i++ {
+		slog.Info("got error from formalize", "error", err)
+		result, err = uc.formalize.FixFormalized(ctx, request, result.FormalizedTrs, *result.ErrorDescription)
+	}
 	if err != nil {
 		return ExtractData{}, err
 	}
+	if result.ErrorDescription != nil {
+		return ExtractData{}, fmt.Errorf("error formalizing trs: %s", *result.ErrorDescription)
+	}
 
-	trs, err := uc.parser.Parse(formalizedTrs)
+	trs, err := uc.parser.Parse(result.FormalizedTrs)
 	if err != nil {
 		return ExtractData{
 			Trs:           trsparser.Trs{},
-			FormalizedTrs: formalizedTrs,
+			FormalizedTrs: result.FormalizedTrs,
 		}, err
 	}
 
 	return ExtractData{
 		Trs:           *trs,
-		FormalizedTrs: formalizedTrs,
+		FormalizedTrs: result.FormalizedTrs,
 	}, nil
 }
 

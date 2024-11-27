@@ -114,7 +114,7 @@ func (bot *App) Run(ctx context.Context) {
 				slog.Debug("processing update")
 				wg.Add(1)
 				go func() {
-					ctx, cancel := context.WithTimeout(context.Background(), time.Minute*4)
+					ctx, cancel := context.WithTimeout(context.Background(), time.Minute*15)
 					defer cancel()
 
 					bot.processUpdate(ctx, update)
