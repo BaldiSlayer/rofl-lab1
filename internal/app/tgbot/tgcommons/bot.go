@@ -33,7 +33,7 @@ func NewBot(token string) (*Bot, error) {
 
 	_, err = bot.GetWebhookInfo()
 	if err != nil {
-		slog.Error("failed to get webhook info", "error", err)
+		return fmt.Errorf("failed to get webhook info: %w", err)
 	}
 
 	return &Bot{
