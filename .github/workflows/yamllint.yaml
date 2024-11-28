@@ -3,6 +3,8 @@ name: JsonYamlLinter
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'chart/values.yaml'
   pull_request:
     branches: [ "main" ]
 

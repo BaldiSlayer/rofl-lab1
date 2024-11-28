@@ -1,6 +1,9 @@
 name: similarity-tester
 
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - 'chart/values.yaml'
 
 jobs:
   build:
