@@ -38,7 +38,8 @@ def get_chat_response(prompt, context=None, model="open-mistral-7b"):
 
     chat_response = client.chat.complete(
         model=model,
-        messages=messages
+        messages=messages,
+        n=1,
     )
 
     return chat_response.choices[0].message.content
