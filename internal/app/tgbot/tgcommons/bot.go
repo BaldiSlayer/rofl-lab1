@@ -1,7 +1,7 @@
 package tgcommons
 
 import (
-	"log/slog"
+	"fmt"
 	"net/http"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -33,7 +33,7 @@ func NewBot(token string) (*Bot, error) {
 
 	_, err = bot.GetWebhookInfo()
 	if err != nil {
-		return fmt.Errorf("failed to get webhook info: %w", err)
+		return nil, fmt.Errorf("failed to get webhook info: %w", err)
 	}
 
 	return &Bot{

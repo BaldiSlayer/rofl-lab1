@@ -107,48 +107,45 @@ func (bot *App) Run(ctx context.Context) {
 			slog.Debug("processing update")
 			wg.Add(1)
 			go func() {
-				timeout := time.Minute*6
+				defer wg.Done()
+
+				timeout := time.Minute * 6
 				ctx, cancel := context.WithTimeout(context.Background(), timeout)
 				defer cancel()
-			    bot.processUpdate(update, &wg)
+
+				err := bot.processUpdate(ctx, cancel, timeout, update)
+				if err != nil {
+					slog.Error("error while processing update", "error", err)
+				}
 			}()
 		}
 	}
 }
 
-func (bot *App) processUpdate(update tgbotapi.Update, wg *sync.WaitGroup) {
-	wg.Add(1)
-	defer wg.Done()
-
-	timeout := time.Minute * 4
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
+func (bot *App) processUpdate(ctx context.Context, cancel context.CancelFunc, timeout time.Duration, update tgbotapi.Update) error {
 	defer bot.processCallbackQuery(update)
 
 	if update.Message != nil && update.Message.Command() == "cancel" {
 		bot.processCancelCommand(ctx, update)
-		return
+		return nil
 	}
 
 	userID := update.SentFrom().ID
 	requestID, err := uuid.NewUUID()
 	if err != nil {
-		slog.Error("failed to generate UUID", "error", err)
-		return
+		return fmt.Errorf("failed to generate UUID: %w", err)
 	}
 
 	ok, err := bot.userLocks.TryLock(ctx, userID, requestID, timeout)
 	if err != nil {
-		slog.Error("failed to acquire user lock", "error", err)
-		return
+		return fmt.Errorf("failed to acquire user lock: %w", err)
 	}
 	if !ok {
 		err := bot.bot.SendMessage(userID, "Предыдущее сообщение еще обрабатывается\n\nВы можете отменить его обработку командой /cancel")
 		if err != nil {
-			slog.Error("failed to send message", "error", err)
+			return fmt.Errorf("failed to send message: %w", err)
 		}
-		return
+		return nil
 	}
 
 	defer func() {
@@ -167,7 +164,7 @@ func (bot *App) processUpdate(update tgbotapi.Update, wg *sync.WaitGroup) {
 			bot.bot.SendMessage(userID, "Запрос отменен"),
 		)
 		slog.Info("request cancelled", "error", err)
-		return
+		return nil
 	}
 	if err != nil {
 		state = models.GetRequest
@@ -181,8 +178,9 @@ func (bot *App) processUpdate(update tgbotapi.Update, wg *sync.WaitGroup) {
 			bot.bot.SendMessage(userID, fmt.Sprintf("Ошибка при обработке запроса: %s", err)),
 			bot.bot.SendMessage(userID, "Введите запрос к Базе Знаний"),
 		)
-		slog.Error("failed to process user action", "error", err)
+		return fmt.Errorf("failed to process user action: %w", err)
 	}
+	return nil
 }
 
 func (bot *App) processCancelCommand(ctx context.Context, update tgbotapi.Update) {
@@ -211,7 +209,11 @@ func (bot *App) cancelIfNotLocked(ctx context.Context, cancel context.CancelFunc
 		case <-ctx.Done():
 			return
 		case <-time.After(time.Second):
-			if !bot.userLocks.IsLocked(ctx, userID, requestID) {
+			isLocked, err := bot.userLocks.IsLocked(ctx, userID, requestID)
+			if err != nil {
+				slog.Error("failed to check user lock", "error", err)
+			}
+			if !isLocked || err != nil {
 				cancel()
 				return
 			}

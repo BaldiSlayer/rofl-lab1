@@ -28,7 +28,7 @@ type UserLockStorage interface {
 	TryLock(ctx context.Context, userID int64, instanceID uuid.UUID, duration time.Duration) (bool, error)
 	Unlock(ctx context.Context, userID int64, instanceID uuid.UUID) error
 	ForceUnlock(ctx context.Context, userID int64) error
-	IsLocked(ctx context.Context, userID int64, instanceID uuid.UUID) bool
+	IsLocked(ctx context.Context, userID int64, instanceID uuid.UUID) (bool, error)
 }
 
 type Closer interface {
