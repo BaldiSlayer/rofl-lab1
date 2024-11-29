@@ -43,7 +43,12 @@ func NewBot(token string) (*Bot, error) {
 
 func (bot *Bot) GetUpdatesChan() tgbotapi.UpdatesChannel {
 	updates := bot.bot.ListenForWebhook("/" + bot.bot.Token)
-	go http.ListenAndServe("0.0.0.0:8443", nil)
+	go func() {
+		err := http.ListenAndServe("0.0.0.0:8443", nil)
+		if err != nil {
+			slog.Error("error while http.ListenAndServe", "error", err)
+		}
+	}()
 
 	return updates
 }
