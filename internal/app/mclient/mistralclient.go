@@ -19,7 +19,6 @@ type Mistral struct {
 	*mistral.ClientWithResponses
 }
 
-// TODO вынести в конфиг, хардкодить неудобно
 const (
 	llmServer = "http://llm:8100"
 	retryMax  = 5
@@ -56,14 +55,12 @@ func getContextFromQASlice(contextQASlice []mistral.QuestionAnswer) string {
 	return result
 }
 
-func (mc *Mistral) AskWithContext(ctx context.Context, question string, model string) (ResponseWithContext, error) {
-	contextQASlice, err := mc.processQuestionsRequest(ctx, question)
-	if err != nil {
-		return ResponseWithContext{}, err
-	}
-
-	formattedContext := getContextFromQASlice(contextQASlice)
-
+func (mc *Mistral) AskWithContext(
+	ctx context.Context,
+	question string,
+	model string,
+	formattedContext string,
+) (ResponseWithContext, error) {
 	slog.Info("executing model request", "question", question, "context", formattedContext)
 
 	answer, err := mc.ask(ctx, question, &formattedContext, model)
@@ -108,10 +105,19 @@ func (mc *Mistral) processQuestionsRequest(ctx context.Context, question string)
 	if err != nil {
 		return nil, err
 	}
+
 	if resp.StatusCode() != http.StatusOK {
-		slog.Error("error requesting LLM", "code", resp.StatusCode())
-		return nil, errors.New("error requesting LLM")
+		return nil, fmt.Errorf("error requesting LLM: status code %d", resp.StatusCode())
 	}
 
 	return resp.JSON200.Result, nil
+}
+
+func (mc *Mistral) GetFormattedContext(ctx context.Context, question string) (string, error) {
+	contextQASlice, err := mc.processQuestionsRequest(ctx, question)
+	if err != nil {
+		return "", err
+	}
+
+	return getContextFromQASlice(contextQASlice), nil
 }

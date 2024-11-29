@@ -16,7 +16,8 @@ type KBAnswer struct {
 }
 
 func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, question string) ([]KBAnswer, error) {
-	res := []KBAnswer{}
+	res := make([]KBAnswer, 0)
+
 	requests := []struct {
 		model      string
 		useContext bool
@@ -36,21 +37,38 @@ func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, ques
 	}
 
 	for _, request := range requests {
-		ans, err := ask(ctx, modelClient, question, request.model, request.useContext)
+		var formattedContext string
+		var err error
+
+		if request.useContext {
+			formattedContext, err = modelClient.GetFormattedContext(ctx, question)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		ans, err := ask(ctx, modelClient, question, request.model, formattedContext)
 		if err != nil {
 			return nil, err
 		}
+
 		res = append(res, ans)
 	}
 
 	return res, nil
 }
 
-func ask(ctx context.Context, modelClient mclient.ModelClient, question, model string, useContext bool) (KBAnswer, error) {
-	if useContext {
-		res, err := modelClient.AskWithContext(ctx, question, model)
+func ask(
+	ctx context.Context,
+	modelClient mclient.ModelClient,
+	question,
+	model string,
+	formattedContext string,
+) (KBAnswer, error) {
+	if formattedContext != "" {
+		res, err := modelClient.AskWithContext(ctx, question, model, formattedContext)
 		if err != nil {
-			return KBAnswer{}, err
+			return KBAnswer{}, fmt.Errorf("failed to ask model with context: %w", err)
 		}
 
 		return KBAnswer{
@@ -62,33 +80,50 @@ func ask(ctx context.Context, modelClient mclient.ModelClient, question, model s
 
 	answer, err := modelClient.Ask(ctx, question, model)
 	if err != nil {
-		return KBAnswer{}, err
+		return KBAnswer{}, fmt.Errorf("failed to ask model without context: %w", err)
 	}
 
 	return KBAnswer{
-		Model:   model,
-		Answer:  answer,
-		Context: nil,
+		Model:  model,
+		Answer: answer,
 	}, nil
 }
 
-func UploadKnowledgeBaseAnswers(ctx context.Context, ghClient *githubclient.Client, userRequest string, answers []KBAnswer) (string, error) {
-	files := []githubclient.GistFile{}
+func UploadKnowledgeBaseAnswers(
+	ctx context.Context,
+	ghClient *githubclient.Client,
+	userRequest string,
+	answers []KBAnswer,
+) (string, error) {
+	files := make([]githubclient.GistFile, 0)
+
+	// предполагаем, что контекст у всех ответов одинаковый
+	for _, answer := range answers {
+		if answer.Context != nil {
+			files = append(files, githubclient.GistFile{
+				Name:    "context.md",
+				Content: *answer.Context,
+			})
+
+			break
+		}
+	}
+
 	files = append(files, githubclient.GistFile{
 		Name:    "1-question.md",
 		Content: userRequest,
 	})
+
 	for i, answer := range answers {
-		var content string
+		contextInfo := "# Контекст был использован"
+
 		if answer.Context == nil {
-			content = fmt.Sprintf("%s", answer.Answer)
-		} else {
-			content = fmt.Sprintf("%s\n\nИспользован контекст:\n%s", answer.Answer, *answer.Context)
+			contextInfo = "# Контекст не был использован"
 		}
 
 		files = append(files, githubclient.GistFile{
 			Name:    fmt.Sprintf("%d-%s.md", i+2, answer.Model),
-			Content: content,
+			Content: fmt.Sprintf("%s\n%s", contextInfo, answer.Answer),
 		})
 	}
 
