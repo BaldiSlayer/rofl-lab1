@@ -9,7 +9,7 @@ spec:
   source:
     path: 'chart'
     repoURL: 'https://github.com/BaldiSlayer/rofl-lab1'
-    targetRevision: adapt-backend-mult-instances
+    targetRevision: main
     helm:
       valueFiles:
         - values.yaml
