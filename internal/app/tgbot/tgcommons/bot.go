@@ -2,8 +2,8 @@ package tgcommons
 
 import (
 	"fmt"
-	"net/http"
 	"log/slog"
+	"net/http"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
