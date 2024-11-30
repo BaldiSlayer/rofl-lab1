@@ -42,8 +42,7 @@ func cli() {
 
 func main() {
 	useCli := flag.Bool("cli", false, "run with cli interface")
-	// TODO must be true
-	useWebhook := flag.Bool("webhook", false, "run tg bot with webhook")
+	callbackMode := flag.Bool("callback-mode", false, "run tg bot with webhook")
 
 	flag.Parse()
 
@@ -57,7 +56,7 @@ func main() {
 
 	app, err := tgbot.New(
 		ctx,
-		*useWebhook,
+		*callbackMode,
 		tgbot.WithConfig(),
 	)
 	if err != nil {

@@ -16,6 +16,7 @@ services:
   backend:
     build:
       dockerfile: ./dockerfiles/backend.dockerfile
+    command: ["/bin/backend", "--callback-mode"]
     environment:
       - TGTOKEN=${TGTOKEN}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

@@ -9,24 +9,24 @@ import (
 )
 
 type Bot struct {
-	bot        *tgbotapi.BotAPI
-	useWebhook bool
+	bot          *tgbotapi.BotAPI
+	callbackMode bool
 }
 
 const (
 	webhookBaseUrl = "https://tfl-lab1.starovoytovai.ru/"
 )
 
-func NewBot(token string, useWebhook bool) (*Bot, error) {
+func NewBot(token string, callbackMode bool) (*Bot, error) {
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create tgbotapi instance: %w", err)
 	}
 
-	if !useWebhook {
+	if callbackMode {
 		return &Bot{
-			bot:        bot,
-			useWebhook: useWebhook,
+			bot:          bot,
+			callbackMode: callbackMode,
 		}, err
 	}
 
@@ -54,7 +54,7 @@ func NewBot(token string, useWebhook bool) (*Bot, error) {
 }
 
 func (bot *Bot) GetUpdatesChan() tgbotapi.UpdatesChannel {
-	if !bot.useWebhook {
+	if bot.callbackMode {
 		u := tgbotapi.NewUpdate(0)
 		u.Timeout = 60
 

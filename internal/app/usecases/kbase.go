@@ -115,15 +115,15 @@ func UploadKnowledgeBaseAnswers(
 	})
 
 	for i, answer := range answers {
-		contextInfo := "# Контекст был использован"
+		extraInfo := fmt.Sprintf("## %s. Контекст был использован", answer.Model)
 
 		if answer.Context == nil {
-			contextInfo = "# Контекст не был использован"
+			extraInfo = fmt.Sprintf("## %s. Контекст не был использован", answer.Model)
 		}
 
 		files = append(files, githubclient.GistFile{
 			Name:    fmt.Sprintf("%d-%s.md", i+2, answer.Model),
-			Content: fmt.Sprintf("%s\n%s", contextInfo, answer.Answer),
+			Content: fmt.Sprintf("%s\n%s", extraInfo, answer.Answer),
 		})
 	}
 
