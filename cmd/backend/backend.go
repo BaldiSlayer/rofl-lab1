@@ -66,8 +66,6 @@ func main() {
 		return
 	}
 
-	fmt.Println(callbackMode)
-
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
