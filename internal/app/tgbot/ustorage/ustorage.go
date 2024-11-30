@@ -7,6 +7,7 @@ import (
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/pkg/trsparser"
+	"github.com/google/uuid"
 )
 
 type UserDataStorage interface {
@@ -21,6 +22,18 @@ type UserDataStorage interface {
 	GetRequest(ctx context.Context, userID int64) (string, error)
 	GetParseError(ctx context.Context, userID int64) (string, error)
 	GetUserStatesUpdatedAfter(ctx context.Context, after time.Time) ([]int64, error)
+}
+
+type UserLockStorage interface {
+	TryLock(ctx context.Context, userID int64, instanceID uuid.UUID, duration time.Duration) (bool, error)
+	Unlock(ctx context.Context, userID int64, instanceID uuid.UUID) error
+	ForceUnlock(ctx context.Context, userID int64) error
+	IsLocked(ctx context.Context, userID int64, instanceID uuid.UUID) (bool, error)
+}
+
+type Closer interface {
+	// Block until cleanup is completed
+	Close()
 }
 
 var ErrNotFound = errors.New("not found")
