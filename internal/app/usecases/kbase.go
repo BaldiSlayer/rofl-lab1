@@ -23,8 +23,6 @@ type AskResults struct {
 }
 
 func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, question string) (AskResults, error) {
-	res := make([]KBAnswer, 0)
-
 	requests := [...]struct {
 		model      string
 		useContext bool
@@ -43,22 +41,23 @@ func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, ques
 		},
 	}
 
+	res := make([]KBAnswer, 0, len(requests))
+
 	questionsContext, err := modelClient.GetFormattedContext(ctx, question)
 	if err != nil {
-		return AskResults{}, err
+		return AskResults{}, fmt.Errorf("failed to get formatted context: %w", err)
 	}
 
 	for _, request := range requests {
-		questionContext := questionsContext
+		questionContext := []models.QAPair(nil)
 
-		// если контекст не используем, то делаем слайс ниловым
-		if !request.useContext {
-			questionContext = []models.QAPair(nil)
+		if request.useContext {
+			questionContext = questionsContext
 		}
 
 		ans, err := ask(ctx, modelClient, question, request.model, questionContext)
 		if err != nil {
-			return AskResults{}, err
+			return AskResults{}, fmt.Errorf("error while ask model: %w", err)
 		}
 
 		res = append(res, ans)
