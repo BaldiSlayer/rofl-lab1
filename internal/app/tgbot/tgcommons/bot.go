@@ -9,15 +9,26 @@ import (
 )
 
 type Bot struct {
-	bot *tgbotapi.BotAPI
+	bot        *tgbotapi.BotAPI
+	useWebhook bool
 }
 
 const (
 	webhookBaseUrl = "https://tfl-lab1.starovoytovai.ru/"
 )
 
-func NewBot(token string) (*Bot, error) {
+func NewBot(token string, useWebhook bool) (*Bot, error) {
 	bot, err := tgbotapi.NewBotAPI(token)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create tgbotapi instance: %w", err)
+	}
+
+	if !useWebhook {
+		return &Bot{
+			bot:        bot,
+			useWebhook: useWebhook,
+		}, err
+	}
 
 	wh, err := tgbotapi.NewWebhook(webhookBaseUrl + token)
 	if err != nil {
@@ -43,6 +54,13 @@ func NewBot(token string) (*Bot, error) {
 }
 
 func (bot *Bot) GetUpdatesChan() tgbotapi.UpdatesChannel {
+	if !bot.useWebhook {
+		u := tgbotapi.NewUpdate(0)
+		u.Timeout = 60
+
+		return bot.bot.GetUpdatesChan(u)
+	}
+
 	updates := bot.bot.ListenForWebhook("/" + bot.bot.Token)
 	go func() {
 		err := http.ListenAndServe("0.0.0.0:8443", nil)

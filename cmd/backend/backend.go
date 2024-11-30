@@ -42,6 +42,7 @@ func cli() {
 
 func main() {
 	useCli := flag.Bool("cli", false, "run with cli interface")
+	useWebhook := flag.Bool("webhook", true, "run tg bot with webhook")
 
 	flag.Parse()
 
@@ -55,6 +56,7 @@ func main() {
 
 	app, err := tgbot.New(
 		ctx,
+		*useWebhook,
 		tgbot.WithConfig(),
 	)
 	if err != nil {
