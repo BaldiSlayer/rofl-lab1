@@ -12,21 +12,26 @@ class FormalizeResult(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, formal_trs=None):  # noqa: E501
+    def __init__(self, formal_trs=None, error=None):  # noqa: E501
         """FormalizeResult - a model defined in OpenAPI
 
         :param formal_trs: The formal_trs of this FormalizeResult.  # noqa: E501
         :type formal_trs: str
+        :param error: The error of this FormalizeResult.  # noqa: E501
+        :type error: str
         """
         self.openapi_types = {
-            'formal_trs': str
+            'formal_trs': str,
+            'error': str
         }
 
         self.attribute_map = {
-            'formal_trs': 'formalTrs'
+            'formal_trs': 'formalTrs',
+            'error': 'error'
         }
 
         self._formal_trs = formal_trs
+        self._error = error
 
     @classmethod
     def from_dict(cls, dikt) -> 'FormalizeResult':
@@ -61,3 +66,24 @@ class FormalizeResult(Model):
             raise ValueError("Invalid value for `formal_trs`, must not be `None`")  # noqa: E501
 
         self._formal_trs = formal_trs
+
+    @property
+    def error(self) -> str:
+        """Gets the error of this FormalizeResult.
+
+
+        :return: The error of this FormalizeResult.
+        :rtype: str
+        """
+        return self._error
+
+    @error.setter
+    def error(self, error: str):
+        """Sets the error of this FormalizeResult.
+
+
+        :param error: The error of this FormalizeResult.
+        :type error: str
+        """
+
+        self._error = error

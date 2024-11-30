@@ -16,12 +16,6 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// AddQuestionsRequest defines model for AddQuestionsRequest.
-type AddQuestionsRequest struct {
-	Filename     *string          `json:"filename,omitempty"`
-	NewQuestions []QuestionAnswer `json:"new_questions"`
-}
-
 // GetChatResponseRequest defines model for GetChatResponseRequest.
 type GetChatResponseRequest struct {
 	Context *string `json:"context,omitempty"`
@@ -39,29 +33,20 @@ type HTTPValidationError struct {
 	Detail *[]ValidationError `json:"detail,omitempty"`
 }
 
-// ProcessQuestionsRequest defines model for ProcessQuestionsRequest.
-type ProcessQuestionsRequest struct {
-	Filename      *string          `json:"filename,omitempty"`
-	QuestionsList []QuestionAnswer `json:"questions_list"`
-	UseSaved      *bool            `json:"use_saved,omitempty"`
-}
-
-// ProcessQuestionsResponse defines model for ProcessQuestionsResponse.
-type ProcessQuestionsResponse struct {
-	Result []string `json:"result"`
-}
-
 // QuestionAnswer defines model for QuestionAnswer.
 type QuestionAnswer struct {
 	Answer   string `json:"answer"`
 	Question string `json:"question"`
 }
 
-// SaveVectorizedDataRequest defines model for SaveVectorizedDataRequest.
-type SaveVectorizedDataRequest struct {
-	Data       []QuestionAnswer `json:"data"`
-	Embeddings [][]float32      `json:"embeddings"`
-	Filename   *string          `json:"filename,omitempty"`
+// SearchSimilarRequest defines model for SearchSimilarRequest.
+type SearchSimilarRequest struct {
+	Question string `json:"question"`
+}
+
+// SearchSimilarResponse defines model for SearchSimilarResponse.
+type SearchSimilarResponse struct {
+	Result []QuestionAnswer `json:"result"`
 }
 
 // ValidationError defines model for ValidationError.
@@ -82,17 +67,11 @@ type ValidationError_Loc_Item struct {
 	union json.RawMessage
 }
 
-// ApiAddQuestionsAddQuestionsPostJSONRequestBody defines body for ApiAddQuestionsAddQuestionsPost for application/json ContentType.
-type ApiAddQuestionsAddQuestionsPostJSONRequestBody = AddQuestionsRequest
-
 // ApiGetChatResponseGetChatResponsePostJSONRequestBody defines body for ApiGetChatResponseGetChatResponsePost for application/json ContentType.
 type ApiGetChatResponseGetChatResponsePostJSONRequestBody = GetChatResponseRequest
 
 // ApiProcessQuestionsProcessQuestionsPostJSONRequestBody defines body for ApiProcessQuestionsProcessQuestionsPost for application/json ContentType.
-type ApiProcessQuestionsProcessQuestionsPostJSONRequestBody = ProcessQuestionsRequest
-
-// ApiSaveVectorizedDataSaveVectorizedDataPostJSONRequestBody defines body for ApiSaveVectorizedDataSaveVectorizedDataPost for application/json ContentType.
-type ApiSaveVectorizedDataSaveVectorizedDataPostJSONRequestBody = SaveVectorizedDataRequest
+type ApiProcessQuestionsProcessQuestionsPostJSONRequestBody = SearchSimilarRequest
 
 // AsValidationErrorLoc0 returns the union data inside the ValidationError_Loc_Item as a ValidationErrorLoc0
 func (t ValidationError_Loc_Item) AsValidationErrorLoc0() (ValidationErrorLoc0, error) {
@@ -229,11 +208,6 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// ApiAddQuestionsAddQuestionsPostWithBody request with any body
-	ApiAddQuestionsAddQuestionsPostWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	ApiAddQuestionsAddQuestionsPost(ctx context.Context, body ApiAddQuestionsAddQuestionsPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ApiGetChatResponseGetChatResponsePostWithBody request with any body
 	ApiGetChatResponseGetChatResponsePostWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -243,35 +217,6 @@ type ClientInterface interface {
 	ApiProcessQuestionsProcessQuestionsPostWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ApiProcessQuestionsProcessQuestionsPost(ctx context.Context, body ApiProcessQuestionsProcessQuestionsPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// ApiSaveVectorizedDataSaveVectorizedDataPostWithBody request with any body
-	ApiSaveVectorizedDataSaveVectorizedDataPostWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	ApiSaveVectorizedDataSaveVectorizedDataPost(ctx context.Context, body ApiSaveVectorizedDataSaveVectorizedDataPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *Client) ApiAddQuestionsAddQuestionsPostWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewApiAddQuestionsAddQuestionsPostRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ApiAddQuestionsAddQuestionsPost(ctx context.Context, body ApiAddQuestionsAddQuestionsPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewApiAddQuestionsAddQuestionsPostRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
 }
 
 func (c *Client) ApiGetChatResponseGetChatResponsePostWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -320,70 +265,6 @@ func (c *Client) ApiProcessQuestionsProcessQuestionsPost(ctx context.Context, bo
 		return nil, err
 	}
 	return c.Client.Do(req)
-}
-
-func (c *Client) ApiSaveVectorizedDataSaveVectorizedDataPostWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewApiSaveVectorizedDataSaveVectorizedDataPostRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ApiSaveVectorizedDataSaveVectorizedDataPost(ctx context.Context, body ApiSaveVectorizedDataSaveVectorizedDataPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewApiSaveVectorizedDataSaveVectorizedDataPostRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-// NewApiAddQuestionsAddQuestionsPostRequest calls the generic ApiAddQuestionsAddQuestionsPost builder with application/json body
-func NewApiAddQuestionsAddQuestionsPostRequest(server string, body ApiAddQuestionsAddQuestionsPostJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewApiAddQuestionsAddQuestionsPostRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewApiAddQuestionsAddQuestionsPostRequestWithBody generates requests for ApiAddQuestionsAddQuestionsPost with any type of body
-func NewApiAddQuestionsAddQuestionsPostRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/add_questions")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
 }
 
 // NewApiGetChatResponseGetChatResponsePostRequest calls the generic ApiGetChatResponseGetChatResponsePost builder with application/json body
@@ -446,47 +327,7 @@ func NewApiProcessQuestionsProcessQuestionsPostRequestWithBody(server string, co
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/process_questions")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewApiSaveVectorizedDataSaveVectorizedDataPostRequest calls the generic ApiSaveVectorizedDataSaveVectorizedDataPost builder with application/json body
-func NewApiSaveVectorizedDataSaveVectorizedDataPostRequest(server string, body ApiSaveVectorizedDataSaveVectorizedDataPostJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewApiSaveVectorizedDataSaveVectorizedDataPostRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewApiSaveVectorizedDataSaveVectorizedDataPostRequestWithBody generates requests for ApiSaveVectorizedDataSaveVectorizedDataPost with any type of body
-func NewApiSaveVectorizedDataSaveVectorizedDataPostRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/save_vectorized_data")
+	operationPath := fmt.Sprintf("/search_similar")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -549,11 +390,6 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// ApiAddQuestionsAddQuestionsPostWithBodyWithResponse request with any body
-	ApiAddQuestionsAddQuestionsPostWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ApiAddQuestionsAddQuestionsPostResponse, error)
-
-	ApiAddQuestionsAddQuestionsPostWithResponse(ctx context.Context, body ApiAddQuestionsAddQuestionsPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ApiAddQuestionsAddQuestionsPostResponse, error)
-
 	// ApiGetChatResponseGetChatResponsePostWithBodyWithResponse request with any body
 	ApiGetChatResponseGetChatResponsePostWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ApiGetChatResponseGetChatResponsePostResponse, error)
 
@@ -563,34 +399,6 @@ type ClientWithResponsesInterface interface {
 	ApiProcessQuestionsProcessQuestionsPostWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ApiProcessQuestionsProcessQuestionsPostResponse, error)
 
 	ApiProcessQuestionsProcessQuestionsPostWithResponse(ctx context.Context, body ApiProcessQuestionsProcessQuestionsPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ApiProcessQuestionsProcessQuestionsPostResponse, error)
-
-	// ApiSaveVectorizedDataSaveVectorizedDataPostWithBodyWithResponse request with any body
-	ApiSaveVectorizedDataSaveVectorizedDataPostWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ApiSaveVectorizedDataSaveVectorizedDataPostResponse, error)
-
-	ApiSaveVectorizedDataSaveVectorizedDataPostWithResponse(ctx context.Context, body ApiSaveVectorizedDataSaveVectorizedDataPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ApiSaveVectorizedDataSaveVectorizedDataPostResponse, error)
-}
-
-type ApiAddQuestionsAddQuestionsPostResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *interface{}
-	JSON422      *HTTPValidationError
-}
-
-// Status returns HTTPResponse.Status
-func (r ApiAddQuestionsAddQuestionsPostResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ApiAddQuestionsAddQuestionsPostResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
 }
 
 type ApiGetChatResponseGetChatResponsePostResponse struct {
@@ -619,7 +427,7 @@ func (r ApiGetChatResponseGetChatResponsePostResponse) StatusCode() int {
 type ApiProcessQuestionsProcessQuestionsPostResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *ProcessQuestionsResponse
+	JSON200      *SearchSimilarResponse
 	JSON422      *HTTPValidationError
 }
 
@@ -637,46 +445,6 @@ func (r ApiProcessQuestionsProcessQuestionsPostResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
-}
-
-type ApiSaveVectorizedDataSaveVectorizedDataPostResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *interface{}
-	JSON422      *HTTPValidationError
-}
-
-// Status returns HTTPResponse.Status
-func (r ApiSaveVectorizedDataSaveVectorizedDataPostResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ApiSaveVectorizedDataSaveVectorizedDataPostResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-// ApiAddQuestionsAddQuestionsPostWithBodyWithResponse request with arbitrary body returning *ApiAddQuestionsAddQuestionsPostResponse
-func (c *ClientWithResponses) ApiAddQuestionsAddQuestionsPostWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ApiAddQuestionsAddQuestionsPostResponse, error) {
-	rsp, err := c.ApiAddQuestionsAddQuestionsPostWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseApiAddQuestionsAddQuestionsPostResponse(rsp)
-}
-
-func (c *ClientWithResponses) ApiAddQuestionsAddQuestionsPostWithResponse(ctx context.Context, body ApiAddQuestionsAddQuestionsPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ApiAddQuestionsAddQuestionsPostResponse, error) {
-	rsp, err := c.ApiAddQuestionsAddQuestionsPost(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseApiAddQuestionsAddQuestionsPostResponse(rsp)
 }
 
 // ApiGetChatResponseGetChatResponsePostWithBodyWithResponse request with arbitrary body returning *ApiGetChatResponseGetChatResponsePostResponse
@@ -711,56 +479,6 @@ func (c *ClientWithResponses) ApiProcessQuestionsProcessQuestionsPostWithRespons
 		return nil, err
 	}
 	return ParseApiProcessQuestionsProcessQuestionsPostResponse(rsp)
-}
-
-// ApiSaveVectorizedDataSaveVectorizedDataPostWithBodyWithResponse request with arbitrary body returning *ApiSaveVectorizedDataSaveVectorizedDataPostResponse
-func (c *ClientWithResponses) ApiSaveVectorizedDataSaveVectorizedDataPostWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ApiSaveVectorizedDataSaveVectorizedDataPostResponse, error) {
-	rsp, err := c.ApiSaveVectorizedDataSaveVectorizedDataPostWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseApiSaveVectorizedDataSaveVectorizedDataPostResponse(rsp)
-}
-
-func (c *ClientWithResponses) ApiSaveVectorizedDataSaveVectorizedDataPostWithResponse(ctx context.Context, body ApiSaveVectorizedDataSaveVectorizedDataPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ApiSaveVectorizedDataSaveVectorizedDataPostResponse, error) {
-	rsp, err := c.ApiSaveVectorizedDataSaveVectorizedDataPost(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseApiSaveVectorizedDataSaveVectorizedDataPostResponse(rsp)
-}
-
-// ParseApiAddQuestionsAddQuestionsPostResponse parses an HTTP response from a ApiAddQuestionsAddQuestionsPostWithResponse call
-func ParseApiAddQuestionsAddQuestionsPostResponse(rsp *http.Response) (*ApiAddQuestionsAddQuestionsPostResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ApiAddQuestionsAddQuestionsPostResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
-		var dest HTTPValidationError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON422 = &dest
-
-	}
-
-	return response, nil
 }
 
 // ParseApiGetChatResponseGetChatResponsePostResponse parses an HTTP response from a ApiGetChatResponseGetChatResponsePostWithResponse call
@@ -811,40 +529,7 @@ func ParseApiProcessQuestionsProcessQuestionsPostResponse(rsp *http.Response) (*
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ProcessQuestionsResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
-		var dest HTTPValidationError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON422 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseApiSaveVectorizedDataSaveVectorizedDataPostResponse parses an HTTP response from a ApiSaveVectorizedDataSaveVectorizedDataPostWithResponse call
-func ParseApiSaveVectorizedDataSaveVectorizedDataPostResponse(rsp *http.Response) (*ApiSaveVectorizedDataSaveVectorizedDataPostResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ApiSaveVectorizedDataSaveVectorizedDataPostResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
+		var dest SearchSimilarResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

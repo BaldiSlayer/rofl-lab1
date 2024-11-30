@@ -2,7 +2,9 @@ name: Build images
 
 on:
   push:
-    branches: [ "main", "impl-tgbot" ]
+    branches: [ "main" ]
+    paths-ignore:
+      - 'chart/values.yaml'
 
 jobs:
   docker:
@@ -39,7 +41,7 @@ jobs:
         with:
           builder: ${{ steps.builder-llm.outputs.name }}
           push: true
-          tags: stewkk/tfl-lab1-llm:latest
+          tags: stewkk/tfl-lab1-llm:${{ github.sha }} , stewkk/tfl-lab1-llm:latest
           file: ./dockerfiles/llm.dockerfile
           cache-from: type=registry,ref=stewkk/tfl-lab1-llm:latest
           cache-to: type=inline
@@ -63,7 +65,7 @@ jobs:
         with:
           builder: ${{ steps.builder-backend.outputs.name }}
           push: true
-          tags: stewkk/tfl-lab1-backend:latest
+          tags: stewkk/tfl-lab1-backend:${{ github.sha }} , stewkk/tfl-lab1-backend:latest
           file: ./dockerfiles/backend.dockerfile
           build-args: LDFLAGS=${{ env.LDFLAGS }}
           cache-from: type=registry,ref=stewkk/tfl-lab1-backend:latest
@@ -74,7 +76,7 @@ jobs:
         with:
           builder: ${{ steps.builder-interpret.outputs.name }}
           push: true
-          tags: stewkk/tfl-lab1-interpret:latest
+          tags: stewkk/tfl-lab1-interpret:${{ github.sha }} , stewkk/tfl-lab1-interpret:latest
           file: ./dockerfiles/interpret.dockerfile
           cache-from: type=registry,ref=stewkk/tfl-lab1-interpret:latest
           cache-to: type=inline
@@ -84,7 +86,53 @@ jobs:
         with:
           builder: ${{ steps.builder-formalize.outputs.name }}
           push: true
-          tags: stewkk/tfl-lab1-formalize:latest
+          tags: stewkk/tfl-lab1-formalize:${{ github.sha }} , stewkk/tfl-lab1-formalize:latest
           file: ./dockerfiles/formalize.dockerfile
           cache-from: type=registry,ref=stewkk/tfl-lab1-formalize:latest
           cache-to: type=inline
+
+  update:
+    name: Update Helm Manifests
+    runs-on: ubuntu-latest
+    needs: docker
+    permissions:
+      contents: 'write'
+      packages: 'write'
+      actions: 'read'
+
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.VERSION_BUMPER_APPID }}
+          private-key: ${{ secrets.VERSION_BUMPER_SECRET }}
+
+      - name: Get GitHub App User ID
+        id: get-user-id
+        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - run: |
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>'
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Update Image Tag Values
+        run: |
+          chart_dir="chart"
+          new_image_tag=${{ github.sha }}
+          
+          # Update the values.yaml file with the new image tag
+          sed -i "s/^  tag: .*/  tag: $new_image_tag/" "$chart_dir/values.yaml"
+
+      # test
+      - name: Commit the changes made
+        run: |
+          git commit -am "updating image tag"
+          git push

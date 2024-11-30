@@ -65,6 +65,8 @@ components:
       properties:
         formalTrs:
           type: string
+        error:
+          type: string
     FixRequest:
       type: object
       required:
@@ -84,4 +86,6 @@ components:
         - formalTrs
       properties:
         formalTrs:
+          type: string
+        error:
           type: string

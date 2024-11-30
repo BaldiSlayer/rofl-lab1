@@ -3,6 +3,8 @@ name: JsonYamlLinter
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'chart/values.yaml'
   pull_request:
     branches: [ "main" ]
 
@@ -14,3 +16,5 @@ jobs:
     - name: json-yaml-validate
       id: json-yaml-validate
       uses: GrantBirki/json-yaml-validate@v3.2.1
+      with:
+        yaml_exclude_regex: 'chart/templates/.*'

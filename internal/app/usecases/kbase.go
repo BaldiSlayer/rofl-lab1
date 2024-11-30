@@ -3,12 +3,9 @@ package usecases
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/githubclient"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/kbdatastorage"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/version"
 )
 
@@ -51,15 +48,15 @@ func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, ques
 
 func ask(ctx context.Context, modelClient mclient.ModelClient, question, model string, useContext bool) (KBAnswer, error) {
 	if useContext {
-		answer, context, err := modelClient.AskWithContext(ctx, question, model)
+		res, err := modelClient.AskWithContext(ctx, question, model)
 		if err != nil {
 			return KBAnswer{}, err
 		}
 
 		return KBAnswer{
 			Model:   model,
-			Answer:  answer,
-			Context: &context,
+			Answer:  res.Answer,
+			Context: &res.Context,
 		}, nil
 	}
 
@@ -73,34 +70,6 @@ func ask(ctx context.Context, modelClient mclient.ModelClient, question, model s
 		Answer:  answer,
 		Context: nil,
 	}, nil
-}
-
-func LoadQABase() ([]models.QAPair, error) {
-	jsonStorage, err := kbdatastorage.NewJsonKBDataStorage("data/data.json")
-	if err != nil {
-		return nil, err
-	}
-
-	yamlStorage, err := kbdatastorage.NewYamlKBDataStorage("data/data.yaml")
-	if err != nil {
-		return nil, err
-	}
-
-	jsonData, err := jsonStorage.GetQAPairs()
-	if err != nil {
-		return nil, err
-	}
-
-	yamlData, err := yamlStorage.GetQAPairs()
-	if err != nil {
-		return nil, err
-	}
-
-	jsonData = []models.QAPair{} // NOTE: omit context from json temporarily
-
-	slog.Info("Loaded context", "json", len(jsonData), "yaml", len(yamlData))
-
-	return append(jsonData, yamlData...), nil
 }
 
 func UploadKnowledgeBaseAnswers(ctx context.Context, ghClient *githubclient.Client, userRequest string, answers []KBAnswer) (string, error) {
@@ -128,5 +97,10 @@ func UploadKnowledgeBaseAnswers(ctx context.Context, ghClient *githubclient.Clie
 		Files:       files,
 	}
 
-	return ghClient.GistCreate(ctx, gist)
+	link, err := ghClient.GistCreate(ctx, gist)
+	if err != nil {
+		return "", fmt.Errorf("failed to create gist: %w", err)
+	}
+
+	return link, nil
 }

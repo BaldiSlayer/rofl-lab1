@@ -1,0 +1,18 @@
+name: similarity-tester
+
+on:
+  push:
+    paths-ignore:
+      - 'chart/values.yaml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build and run Docker container
+      run: |
+        docker build -f ./dockerfiles/similarity-tester.dockerfile -t my-app .
+        docker run my-app
