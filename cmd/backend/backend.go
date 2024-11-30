@@ -42,7 +42,8 @@ func cli() {
 
 func main() {
 	useCli := flag.Bool("cli", false, "run with cli interface")
-	useWebhook := flag.Bool("webhook", true, "run tg bot with webhook")
+	// TODO must be true
+	useWebhook := flag.Bool("webhook", false, "run tg bot with webhook")
 
 	flag.Parse()
 
