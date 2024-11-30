@@ -45,7 +45,7 @@ func (mc *Mistral) Ask(ctx context.Context, question string, model string) (stri
 	return mc.ask(ctx, question, nil, model)
 }
 
-func getContextFromQASlice(contextQASlice []mistral.QuestionAnswer) string {
+func getContextFromQASlice(contextQASlice []models.QAPair) string {
 	result := ""
 
 	for _, item := range contextQASlice {
@@ -59,8 +59,10 @@ func (mc *Mistral) AskWithContext(
 	ctx context.Context,
 	question string,
 	model string,
-	formattedContext string,
+	questionContext []models.QAPair,
 ) (ResponseWithContext, error) {
+	formattedContext := getContextFromQASlice(questionContext)
+
 	slog.Info("executing model request", "question", question, "context", formattedContext)
 
 	answer, err := mc.ask(ctx, question, &formattedContext, model)
@@ -113,11 +115,19 @@ func (mc *Mistral) processQuestionsRequest(ctx context.Context, question string)
 	return resp.JSON200.Result, nil
 }
 
-func (mc *Mistral) GetFormattedContext(ctx context.Context, question string) (string, error) {
+func (mc *Mistral) GetFormattedContext(ctx context.Context, question string) ([]models.QAPair, error) {
 	contextQASlice, err := mc.processQuestionsRequest(ctx, question)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return getContextFromQASlice(contextQASlice), nil
+	qaPairSlice := make([]models.QAPair, 0, len(contextQASlice))
+	for _, val := range contextQASlice {
+		qaPairSlice = append(qaPairSlice, models.QAPair{
+			Question: val.Question,
+			Answer:   val.Answer,
+		})
+	}
+
+	return qaPairSlice, nil
 }

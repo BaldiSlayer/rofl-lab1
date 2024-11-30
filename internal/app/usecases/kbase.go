@@ -3,6 +3,8 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
+	"strings"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/githubclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
@@ -10,15 +12,20 @@ import (
 )
 
 type KBAnswer struct {
-	Model   string
-	Answer  string
-	Context *string
+	Model      string
+	Answer     string
+	UseContext bool
 }
 
-func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, question string) ([]KBAnswer, error) {
+type AskResults struct {
+	Answers          []KBAnswer
+	QuestionsContext []models.QAPair
+}
+
+func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, question string) (AskResults, error) {
 	res := make([]KBAnswer, 0)
 
-	requests := []struct {
+	requests := [...]struct {
 		model      string
 		useContext bool
 	}{
@@ -36,26 +43,31 @@ func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, ques
 		},
 	}
 
-	for _, request := range requests {
-		var formattedContext string
-		var err error
+	questionsContext, err := modelClient.GetFormattedContext(ctx, question)
+	if err != nil {
+		return AskResults{}, err
+	}
 
-		if request.useContext {
-			formattedContext, err = modelClient.GetFormattedContext(ctx, question)
-			if err != nil {
-				return nil, err
-			}
+	for _, request := range requests {
+		questionContext := questionsContext
+
+		// если контекст не используем, то делаем слайс ниловым
+		if !request.useContext {
+			questionContext = []models.QAPair(nil)
 		}
 
-		ans, err := ask(ctx, modelClient, question, request.model, formattedContext)
+		ans, err := ask(ctx, modelClient, question, request.model, questionContext)
 		if err != nil {
-			return nil, err
+			return AskResults{}, err
 		}
 
 		res = append(res, ans)
 	}
 
-	return res, nil
+	return AskResults{
+		Answers:          res,
+		QuestionsContext: questionsContext,
+	}, nil
 }
 
 func ask(
@@ -63,18 +75,18 @@ func ask(
 	modelClient mclient.ModelClient,
 	question,
 	model string,
-	formattedContext string,
+	questionContext []models.QAPair,
 ) (KBAnswer, error) {
-	if formattedContext != "" {
-		res, err := modelClient.AskWithContext(ctx, question, model, formattedContext)
+	if len(questionContext) != 0 {
+		res, err := modelClient.AskWithContext(ctx, question, model, questionContext)
 		if err != nil {
 			return KBAnswer{}, fmt.Errorf("failed to ask model with context: %w", err)
 		}
 
 		return KBAnswer{
-			Model:   model,
-			Answer:  res.Answer,
-			Context: &res.Context,
+			Model:      model,
+			Answer:     res.Answer,
+			UseContext: true,
 		}, nil
 	}
 
@@ -89,35 +101,46 @@ func ask(
 	}, nil
 }
 
+func getContextPresentationForGist(questionsContext []models.QAPair) string {
+	var sb strings.Builder
+
+	sb.WriteString("## Контекст")
+	sb.WriteByte('\n')
+
+	for _, val := range questionsContext {
+		sb.WriteString("### Вопрос\n")
+		sb.WriteString(val.Question)
+		sb.WriteByte('\n')
+		sb.WriteString("### Ответ\n")
+		sb.WriteString(val.Answer)
+		sb.WriteByte('\n')
+	}
+
+	return sb.String()
+}
+
 func UploadKnowledgeBaseAnswers(
 	ctx context.Context,
 	ghClient *githubclient.Client,
 	userRequest string,
-	answers []KBAnswer,
+	askResults AskResults,
 ) (string, error) {
-	files := make([]githubclient.GistFile, 0)
+	files := make([]githubclient.GistFile, 0, 4)
 
-	// предполагаем, что контекст у всех ответов одинаковый
-	for _, answer := range answers {
-		if answer.Context != nil {
-			files = append(files, githubclient.GistFile{
-				Name:    "context.md",
-				Content: *answer.Context,
-			})
-
-			break
-		}
-	}
+	files = append(files, githubclient.GistFile{
+		Name:    "context.md",
+		Content: getContextPresentationForGist(askResults.QuestionsContext),
+	})
 
 	files = append(files, githubclient.GistFile{
 		Name:    "1-question.md",
 		Content: userRequest,
 	})
 
-	for i, answer := range answers {
+	for i, answer := range askResults.Answers {
 		extraInfo := fmt.Sprintf("## %s. Контекст был использован", answer.Model)
 
-		if answer.Context == nil {
+		if !answer.UseContext {
 			extraInfo = fmt.Sprintf("## %s. Контекст не был использован", answer.Model)
 		}
 
