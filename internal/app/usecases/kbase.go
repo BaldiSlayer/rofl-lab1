@@ -127,15 +127,17 @@ func UploadKnowledgeBaseAnswers(
 ) (string, error) {
 	files := make([]githubclient.GistFile, 0, 4)
 
-	files = append(files, githubclient.GistFile{
-		Name:    "context.md",
-		Content: getContextPresentationForGist(askResults.QuestionsContext),
-	})
-
-	files = append(files, githubclient.GistFile{
-		Name:    "1-question.md",
-		Content: userRequest,
-	})
+	files = append(
+		files,
+		githubclient.GistFile{
+			Name:    "context.md",
+			Content: getContextPresentationForGist(askResults.QuestionsContext),
+		},
+		githubclient.GistFile{
+			Name:    "1-question.md",
+			Content: fmt.Sprintf("## Пользовательский вопрос\n%s", userRequest),
+		},
+	)
 
 	for i, answer := range askResults.Answers {
 		extraInfo := fmt.Sprintf("## %s. Контекст был использован", answer.Model)

@@ -30,17 +30,27 @@ func cli() {
 
 	slog.Info("Executing model request")
 
-	answersResults, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
+	askResults, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
 	if err != nil {
 		ExitWithError("error requesting knowledge base", "error", err)
 	}
 
-	for _, answer := range answersResults.Answers {
+	for _, answer := range askResults.Answers {
+		if !answer.UseContext {
+			fmt.Printf(
+				"model=%s question=%s\n",
+				answer.Model,
+				answer.Answer,
+			)
+
+			continue
+		}
+
 		fmt.Printf(
 			"model=%s question=%s\ncontext=%v",
 			answer.Model,
 			answer.Answer,
-			answersResults.QuestionsContext,
+			askResults.QuestionsContext,
 		)
 	}
 }
@@ -55,6 +65,8 @@ func main() {
 		cli()
 		return
 	}
+
+	fmt.Println(callbackMode)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
