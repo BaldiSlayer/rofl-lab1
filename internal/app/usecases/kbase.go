@@ -3,11 +3,11 @@ package usecases
 import (
 	"context"
 	"fmt"
-	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"strings"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/githubclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/version"
 )
 
