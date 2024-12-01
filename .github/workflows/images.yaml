@@ -134,5 +134,6 @@ jobs:
 
       - name: Commit the changes made
         run: |
+          git pull
           git commit -am "updating image tag"
           git push

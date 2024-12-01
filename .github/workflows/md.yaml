@@ -51,5 +51,6 @@ jobs:
 
       - name: Commit the changes made
         run: |
+          git pull
           git commit -am "generating md file"
           git push
