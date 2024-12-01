@@ -1,0 +1,55 @@
+name: Make md file with knowledge base
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'data/data.yaml'
+
+jobs:
+  update:
+    name: Generate md file
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'write'
+      packages: 'write'
+      actions: 'read'
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.VERSION_BUMPER_APPID }}
+          private-key: ${{ secrets.VERSION_BUMPER_SECRET }}
+
+      - name: Get GitHub App User ID
+        id: get-user-id
+        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - run: |
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>'
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Update md file
+        run: |
+          pip install pyyaml
+          echo "$(python3 scripts/gen_data_md.py data/data.yaml)" > data/output.md
+
+      - name: Commit the changes made
+        run: |
+          git commit -am "generating md file"
+          git push
