@@ -16,6 +16,7 @@ services:
   backend:
     build:
       dockerfile: ./dockerfiles/backend.dockerfile
+    command: ["/bin/backend", "--callback-mode"]
     environment:
       - TGTOKEN=${TGTOKEN}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -83,7 +84,7 @@ services:
     image: public.ecr.aws/nginx/nginx:stable-alpine
     container_name: llm-balancer
     volumes:
-      - ./deploy/llm-balancer:/etc/nginx/templates
+      - ./deploy/llm-balancer/compose.conf.template:/etc/nginx/templates/default.conf.template
     environment:
       - NGINX_PORT=80
 

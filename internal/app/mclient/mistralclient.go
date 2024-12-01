@@ -19,7 +19,6 @@ type Mistral struct {
 	*mistral.ClientWithResponses
 }
 
-// TODO вынести в конфиг, хардкодить неудобно
 const (
 	llmServer = "http://llm-balancer"
 	retryMax  = 5
@@ -46,7 +45,7 @@ func (mc *Mistral) Ask(ctx context.Context, question string, model string) (stri
 	return mc.ask(ctx, question, nil, model)
 }
 
-func getContextFromQASlice(contextQASlice []mistral.QuestionAnswer) string {
+func getContextFromQASlice(contextQASlice []models.QAPair) string {
 	result := ""
 
 	for _, item := range contextQASlice {
@@ -56,13 +55,13 @@ func getContextFromQASlice(contextQASlice []mistral.QuestionAnswer) string {
 	return result
 }
 
-func (mc *Mistral) AskWithContext(ctx context.Context, question string, model string) (ResponseWithContext, error) {
-	contextQASlice, err := mc.processQuestionsRequest(ctx, question)
-	if err != nil {
-		return ResponseWithContext{}, err
-	}
-
-	formattedContext := getContextFromQASlice(contextQASlice)
+func (mc *Mistral) AskWithContext(
+	ctx context.Context,
+	question string,
+	model string,
+	questionContext []models.QAPair,
+) (ResponseWithContext, error) {
+	formattedContext := getContextFromQASlice(questionContext)
 
 	slog.Info("executing model request", "question", question, "context", formattedContext)
 
@@ -108,10 +107,27 @@ func (mc *Mistral) processQuestionsRequest(ctx context.Context, question string)
 	if err != nil {
 		return nil, err
 	}
+
 	if resp.StatusCode() != http.StatusOK {
-		slog.Error("error requesting LLM", "code", resp.StatusCode())
-		return nil, errors.New("error requesting LLM")
+		return nil, fmt.Errorf("error requesting LLM: status code %d", resp.StatusCode())
 	}
 
 	return resp.JSON200.Result, nil
+}
+
+func (mc *Mistral) GetFormattedContext(ctx context.Context, question string) ([]models.QAPair, error) {
+	contextQASlice, err := mc.processQuestionsRequest(ctx, question)
+	if err != nil {
+		return nil, err
+	}
+
+	qaPairSlice := make([]models.QAPair, 0, len(contextQASlice))
+	for _, val := range contextQASlice {
+		qaPairSlice = append(qaPairSlice, models.QAPair{
+			Question: val.Question,
+			Answer:   val.Answer,
+		})
+	}
+
+	return qaPairSlice, nil
 }
