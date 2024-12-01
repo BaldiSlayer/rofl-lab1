@@ -4,8 +4,6 @@ on:
   push:
     paths:
       - 'LLM/**'
-    paths-ignore:
-      - 'data/output.md'
 
 jobs:
   build:
