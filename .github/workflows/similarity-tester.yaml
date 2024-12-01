@@ -2,8 +2,10 @@ name: similarity-tester
 
 on:
   push:
+    paths:
+      - 'LLM/**'
     paths-ignore:
-      - 'chart/values.yaml'
+      - 'data/output.md'
 
 jobs:
   build:
