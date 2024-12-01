@@ -57,7 +57,7 @@ func cli() {
 
 func main() {
 	useCli := flag.Bool("cli", false, "run with cli interface")
-	callbackMode := flag.Bool("callback-mode", false, "run tg bot with webhook")
+	callbackMode := flag.Bool("callback-mode", false, "run tg bot in long polling mode")
 
 	flag.Parse()
 
