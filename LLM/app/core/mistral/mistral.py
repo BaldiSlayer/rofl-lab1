@@ -3,17 +3,13 @@ from mistralai import Mistral
 import app.config.config as config
 
 
-class SingletonTextTranslator:
-    _instance = None
+def create_mistral_client():
+    conf = config.SingletonConfig.get_instance()
 
-    @classmethod
-    def get_instance(cls):
-        if cls._instance is None:
-            conf = config.SingletonConfig.get_instance()
+    return Mistral(api_key=conf.get_mistral_api_key())
 
-            cls._instance = Mistral(api_key=conf.get_mistral_api_key())
 
-        return cls._instance
+mistral_client = create_mistral_client()
 
 
 def get_chat_response(prompt, context=None, model="open-mistral-7b"):
@@ -25,9 +21,8 @@ def get_chat_response(prompt, context=None, model="open-mistral-7b"):
     :param context: Строка с дополнительным контекстом (опционально).
     :return: Ответ от LLM.
     """
-    client = SingletonTextTranslator.get_instance()
 
-    if not client:
+    if not mistral_client:
         return "Ошибка: Клиент не инициализирован."
 
     messages = []
@@ -36,7 +31,7 @@ def get_chat_response(prompt, context=None, model="open-mistral-7b"):
 
     messages.append({"role": "user", "content": prompt})
 
-    chat_response = client.chat.complete(
+    chat_response = mistral_client.chat.complete(
         model=model,
         messages=messages,
         n=1,
