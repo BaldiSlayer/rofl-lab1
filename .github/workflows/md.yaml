@@ -51,5 +51,5 @@ jobs:
 
       - name: Commit the changes made
         run: |
-          git commit -am "updating image tag"
+          git commit -am "generating md file"
           git push
