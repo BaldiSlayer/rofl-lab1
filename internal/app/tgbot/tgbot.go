@@ -9,6 +9,7 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/google/uuid"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/actpool"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/controllers"
@@ -24,9 +25,10 @@ type App struct {
 
 	controller *controllers.Controller
 
-	actionsPooler *actpool.BotActionsPool
-	userLocks     map[int64]*sync.Mutex
-	userStorage   ustorage.UserDataStorage
+	actionsPooler  *actpool.BotActionsPool
+	userLocks      ustorage.UserLockStorage
+	userStorage    ustorage.UserDataStorage
+	ustorageCloser ustorage.Closer
 }
 
 type Option func(options *App) error
@@ -45,7 +47,7 @@ func WithConfig() Option {
 	}
 }
 
-func New(ctx context.Context, opts ...Option) (*App, error) {
+func New(ctx context.Context, callbackMode bool, opts ...Option) (*App, error) {
 	tgBot := &App{}
 
 	for _, opt := range opts {
@@ -55,27 +57,27 @@ func New(ctx context.Context, opts ...Option) (*App, error) {
 		}
 	}
 
-	tgBot.userLocks = make(map[int64]*sync.Mutex)
-
-	userStorage, err := ustorage.NewPostgresUserStorage(tgBot.config.PgUser, tgBot.config.PgPassword, tgBot.config.PgDBName)
+	postgres, err := ustorage.NewPostgresStorage(tgBot.config.PgUser, tgBot.config.PgPassword, tgBot.config.PgDBName)
 	if err != nil {
 		return nil, err
 	}
 
-	tgBot.userStorage = userStorage
+	tgBot.userLocks = postgres
+	tgBot.ustorageCloser = postgres
+	tgBot.userStorage = postgres
 
-	tgBot.bot, err = tgcommons.NewBot(tgBot.config.TgToken)
+	tgBot.bot, err = tgcommons.NewBot(tgBot.config.TgToken, callbackMode)
 	if err != nil {
 		return nil, err
 	}
 
-	controller, err := controllers.New(tgBot.bot, userStorage, tgBot.config.GhToken)
+	controller, err := controllers.New(tgBot.bot, postgres, tgBot.config.GhToken)
 	if err != nil {
 		return nil, err
 	}
 	tgBot.controller = controller
 
-	tgBot.actionsPooler, err = actpool.New(userStorage, buildTransitions(controller), buildCommands(controller))
+	tgBot.actionsPooler, err = actpool.New(postgres, buildTransitions(controller), buildCommands(controller))
 	if err != nil {
 		return nil, err
 	}
@@ -86,54 +88,137 @@ func New(ctx context.Context, opts ...Option) (*App, error) {
 }
 
 func (bot *App) Run(ctx context.Context) {
-	// NOTE: Offset value set to 0 means that when backend is restarted, updates
-	// received by the last call to getUpdates will be resent by the Telegram
-	// API, whether they're already handled or not.
-	u := tgbotapi.NewUpdate(0)
-	// NOTE: Updates per request
-	u.Limit = 100
-	// NOTE: Timeout of long polling requests
-	u.Timeout = 1
-	u.AllowedUpdates = []string{tgbotapi.UpdateTypeMessage, tgbotapi.UpdateTypeCallbackQuery}
-
-	bot.controller.InitContext(ctx)
-
-	updates := bot.bot.GetUpdatesChan(u)
-
-	err := bot.controller.SendStartupMessages(context.Background())
-	if err != nil {
-		slog.Error("failed to send startup messages", "error", err)
-		return
-	}
+	updates := bot.bot.GetUpdatesChan()
 
 	slog.Info("telegram bot has successfully started")
 
-	func() {
-		var wg sync.WaitGroup
-		for {
-			select {
-			case update := <-updates:
-				slog.Debug("processing update")
-				wg.Add(1)
-				go func() {
-					ctx, cancel := context.WithTimeout(context.Background(), time.Minute*4)
-					defer cancel()
+	var wg sync.WaitGroup
+	for {
+		select {
+		case <-ctx.Done():
+			slog.Info("Gracefully shutting down")
 
-					bot.processUpdate(ctx, update)
-					wg.Done()
-				}()
-			case <-ctx.Done():
-				slog.Info("Gracefully shutting down")
-				err := bot.controller.SendRestartMessages(context.Background())
+			bot.bot.StopReceivingUpdates()
+			wg.Wait()
+
+			bot.ustorageCloser.Close()
+			return
+		case update := <-updates:
+			slog.Debug("processing update")
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+
+				timeout := time.Minute * 6
+				ctx, cancel := context.WithTimeout(context.Background(), timeout)
+				defer cancel()
+
+				err := bot.processUpdate(ctx, cancel, timeout, update)
 				if err != nil {
-					slog.Error("failed to send restart messages", "error", err)
+					slog.Error("error while processing update", "error", err)
 				}
+			}()
+		}
+	}
+}
 
-				wg.Wait()
+func (bot *App) processUpdate(ctx context.Context, cancel context.CancelFunc, timeout time.Duration, update tgbotapi.Update) error {
+	defer bot.processCallbackQuery(update)
+
+	if update.Message != nil && update.Message.Command() == "cancel" {
+		bot.processCancelCommand(ctx, update)
+		return nil
+	}
+
+	userID := update.SentFrom().ID
+	requestID, err := uuid.NewUUID()
+	if err != nil {
+		return fmt.Errorf("failed to generate UUID: %w", err)
+	}
+
+	ok, err := bot.userLocks.TryLock(ctx, userID, requestID, timeout)
+	if err != nil {
+		return fmt.Errorf("failed to acquire user lock: %w", err)
+	}
+	if !ok {
+		err := bot.bot.SendMessage(userID, "Предыдущее сообщение еще обрабатывается\n\nВы можете отменить его обработку командой /cancel")
+		if err != nil {
+			return fmt.Errorf("failed to send message: %w", err)
+		}
+		return nil
+	}
+
+	defer func() {
+		err := bot.userLocks.Unlock(context.Background(), userID, requestID)
+		if err != nil {
+			slog.Error("failed to unlock user", "error", err)
+		}
+	}()
+
+	go bot.cancelIfNotLocked(ctx, cancel, userID, requestID)
+
+	state, err := bot.actionsPooler.Exec(ctx, update)
+	if errors.Is(ctx.Err(), context.Canceled) {
+		err = errors.Join(
+			ctx.Err(),
+			bot.bot.SendMessage(userID, "Запрос отменен"),
+		)
+		slog.Info("request cancelled", "error", err)
+		return nil
+	}
+	if err != nil {
+		state = models.GetRequest
+	}
+
+	err = errors.Join(err, bot.userStorage.SetState(ctx, userID, state))
+	if err != nil {
+		err = errors.Join(
+			err,
+			bot.userStorage.SetState(ctx, userID, models.GetRequest),
+			bot.bot.SendMessage(userID, fmt.Sprintf("Ошибка при обработке запроса: %s", err)),
+			bot.bot.SendMessage(userID, "Введите запрос к Базе Знаний"),
+		)
+		return fmt.Errorf("failed to process user action: %w", err)
+	}
+	return nil
+}
+
+func (bot *App) processCancelCommand(ctx context.Context, update tgbotapi.Update) {
+	userID := update.SentFrom().ID
+
+	err := bot.userLocks.ForceUnlock(ctx, userID)
+	if err != nil {
+		slog.Error("failed to force unlock user", "userID", userID, "error", err)
+	}
+}
+
+func (bot *App) processCallbackQuery(update tgbotapi.Update) {
+	if update.CallbackQuery == nil {
+		return
+	}
+
+	err := bot.bot.SendCallbackResponse(update)
+	if err != nil {
+		slog.Error("failed to send callback response", "error", err)
+	}
+}
+
+func (bot *App) cancelIfNotLocked(ctx context.Context, cancel context.CancelFunc, userID int64, requestID uuid.UUID) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(time.Second):
+			isLocked, err := bot.userLocks.IsLocked(ctx, userID, requestID)
+			if err != nil {
+				slog.Error("failed to check user lock", "error", err)
+			}
+			if !isLocked || err != nil {
+				cancel()
 				return
 			}
 		}
-	}()
+	}
 }
 
 func buildTransitions(controller *controllers.Controller) map[models.UserState]actpool.StateTransition {
@@ -152,43 +237,5 @@ func buildCommands(controller *controllers.Controller) map[string]actpool.StateT
 		"help":    controller.HelpCommand,
 		"trs":     controller.TrsCommand,
 		"version": controller.VersionCommand,
-	}
-}
-
-func (bot *App) lockByUserID(userID int64) *sync.Mutex {
-	if lock, ok := bot.userLocks[userID]; ok {
-		return lock
-	}
-
-	lock := &sync.Mutex{}
-	bot.userLocks[userID] = lock
-	return lock
-}
-
-func (bot *App) processUpdate(ctx context.Context, update tgbotapi.Update) {
-	userID := update.SentFrom().ID
-	userLock := bot.lockByUserID(userID)
-	if !userLock.TryLock() {
-		err := bot.bot.SendMessage(userID, "Предыдущее сообщение еще обрабатывается")
-		if err != nil {
-			slog.Error(err.Error())
-		}
-		return
-	}
-	defer userLock.Unlock()
-
-	err := bot.actionsPooler.Exec(ctx, update)
-	if err != nil {
-		err = errors.Join(err, bot.bot.SendMessage(userID, fmt.Sprintf("Ошибка при обработке запроса: %s", err)))
-		err = errors.Join(err, bot.bot.SendMessage(userID, "Введите запрос к Базе Знаний"))
-		slog.Error("failed to process user action", "error", err)
-		return
-	}
-
-	if update.CallbackQuery != nil {
-		err := bot.bot.SendCallbackResponse(update)
-		if err != nil {
-			slog.Error("failed to send callback response", "error", err)
-		}
 	}
 }

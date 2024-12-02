@@ -35,4 +35,3 @@ pywebview
 plyer
 cryptography
 nodriver
-g4f == 0.3.2.8

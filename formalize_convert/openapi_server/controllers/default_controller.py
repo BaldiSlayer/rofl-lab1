@@ -38,7 +38,7 @@ def trs_formalize(body):  # noqa: E501
         res = logic.formalize(formalize_request.trs)
         if res is None:
             return "Unexpected error", 500, {"Content-Type": "text/plain"}
-        return FormalizeResult(res), 200, {"Content-Type": "application/json"}
+        return FormalizeResult(res["formalTrs"], res["error"]), 200, {"Content-Type": "application/json"}
 
     return "Bad request", 400, {"Content-Type": "text/plain"}
 
@@ -59,6 +59,6 @@ def trs_fix(body):  # noqa: E501
         res = logic.fix_formalized_trs(trs, formalTrs, error)
         if res is None:
             return "Unexpected error", 500, {"Content-Type": "text/plain"}
-        return FixResponse(res), 200, {"Content-Type": "application/json"}
+        return FixResponse(res["formalTrs"], res["error"]), 200, {"Content-Type": "application/json"}
 
     return "Bad request", 400, {"Content-Type": "text/plain"}

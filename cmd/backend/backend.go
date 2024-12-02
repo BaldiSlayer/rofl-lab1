@@ -20,42 +20,44 @@ func cli() {
 	r := bufio.NewReader(os.Stdin)
 	data, err := io.ReadAll(r)
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		ExitWithError("error reading request from stdin", "error", err)
 	}
 
 	model, err := mclient.NewMistralClient()
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
-	}
-
-	qa, err := usecases.LoadQABase()
-	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
-	}
-	err = model.InitContext(context.Background(), qa)
-	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		ExitWithError("failed to init llm client", "error", err)
 	}
 
 	slog.Info("Executing model request")
 
-	answers, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
+	askResults, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		ExitWithError("error requesting knowledge base", "error", err)
 	}
 
-	for _, answer := range answers {
-		fmt.Printf("model=%s question=%s\ncontext=%v", answer.Model, answer.Answer, answer.Context)
+	for _, answer := range askResults.Answers {
+		if !answer.UseContext {
+			fmt.Printf(
+				"model=%s question=%s\n",
+				answer.Model,
+				answer.Answer,
+			)
+
+			continue
+		}
+
+		fmt.Printf(
+			"model=%s question=%s\ncontext=%v",
+			answer.Model,
+			answer.Answer,
+			askResults.QuestionsContext,
+		)
 	}
 }
 
 func main() {
 	useCli := flag.Bool("cli", false, "run with cli interface")
+	callbackMode := flag.Bool("callback-mode", false, "run tg bot in long polling mode")
 
 	flag.Parse()
 
@@ -69,12 +71,17 @@ func main() {
 
 	app, err := tgbot.New(
 		ctx,
+		*callbackMode,
 		tgbot.WithConfig(),
 	)
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		ExitWithError("failed to init telegram client", "error", err.Error())
 	}
 
 	app.Run(ctx)
+}
+
+func ExitWithError(msg string, args ...any) {
+	slog.Error(msg, args...)
+	os.Exit(1)
 }

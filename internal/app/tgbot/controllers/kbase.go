@@ -24,22 +24,23 @@ func (controller *Controller) GetRequest(ctx context.Context, update tgbotapi.Up
 func (controller *Controller) handleKnowledgeBaseRequest(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userRequest := update.Message.Text
 
-	answers, err := usecases.AskKnowledgeBase(ctx, controller.ModelClient, userRequest)
+	askResults, err := usecases.AskKnowledgeBase(ctx, controller.ModelClient, userRequest)
 	if err != nil {
 		return 0, err
 	}
 
-	gistLink, err := usecases.UploadKnowledgeBaseAnswers(ctx, controller.GihubClient, userRequest, answers)
+	gistLink, err := usecases.UploadKnowledgeBaseAnswers(ctx, controller.GihubClient, userRequest, askResults)
 	if err != nil {
 		return 0, err
 	}
 
-	answer := answers[0].Answer
-	answer = tgbotapi.EscapeText(tgbotapi.ModeMarkdown, answers[0].Answer)
-	buildVersion := tgbotapi.EscapeText(tgbotapi.ModeMarkdown, version.BuildVersion())
+	answer := tgbotapi.EscapeText(tgbotapi.ModeMarkdown, askResults.Answers[0].Answer)
+	buildVersion := version.BuildVersionWithLink()
 
 	message := fmt.Sprintf("%s\n\n[ссылка на использованный контекст](%s)\n\n%s", answer, gistLink, buildVersion)
+
 	slog.Info(message)
+
 	return models.GetRequest, errors.Join(
 		controller.Bot.SendMarkdownMessage(
 			update.Message.Chat.ID,
