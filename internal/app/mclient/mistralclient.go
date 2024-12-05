@@ -69,7 +69,10 @@ func (mc *Mistral) AskWithContext(
 	model string,
 	questionContext []models.QAPair,
 ) (ResponseWithContext, error) {
-	formattedContext, _ := getContextFromQASlice(questionContext)
+	formattedContext, err := getContextFromQASlice(questionContext)
+	if err != nil {
+		return ResponseWithContext{}, err
+	}
 
 	slog.Info("executing model request", "question", question, "context", formattedContext)
 
@@ -95,17 +98,6 @@ func (mc *Mistral) ask(ctx context.Context, question string, contextStr *string,
 	}
 
 	return resp.JSON200.Response, nil
-}
-
-func toQuestionsList(QAPairs []models.QAPair) []mistral.QuestionAnswer {
-	res := []mistral.QuestionAnswer{}
-	for _, qa := range QAPairs {
-		res = append(res, mistral.QuestionAnswer{
-			Answer:   qa.Answer,
-			Question: qa.Question,
-		})
-	}
-	return res
 }
 
 func (mc *Mistral) processQuestionsRequest(ctx context.Context, question string) ([]mistral.QuestionAnswer, error) {
