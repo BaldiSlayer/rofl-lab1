@@ -68,7 +68,7 @@ def get_refactored_question(question, context):
     Получает переформулированный вопрос на основе контекста.
     """
     try:
-        refactored_question = get_chat_response(question, context=context, model="mistral-small-latest")
+        refactored_question = get_chat_response(question, context=context, model="mistral-large-2411")
         logger.info("Переформулированный вопрос: %s", refactored_question)
         return refactored_question
     except Exception as e:
@@ -81,7 +81,7 @@ def get_answer(question, context):
     Получает ответ на вопрос на основе контекста.
     """
     try:
-        answer = get_chat_response(question, context=context, model="mistral-large-latest")
+        answer = get_chat_response(question, context=context, model="mistral-large-2411")
         logger.info("Ответ: %s", answer)
         return answer
     except Exception as e:

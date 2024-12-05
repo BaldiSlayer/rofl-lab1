@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **prompt** | **str** |  |
 **context** | **str** |  | [optional]
-**model** | **str** |  | [optional] [default to 'open-mistral-7b']
+**model** | **str** |  | [optional] [default to 'mistral-large-2411']
 
 ## Example
 

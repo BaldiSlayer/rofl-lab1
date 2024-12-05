@@ -15,7 +15,7 @@ def generate_response(question: str, context: str) -> str:
         get_chat_response_request = llm_client.GetChatResponseRequest.from_dict({
             "prompt": question,
             "context": context,
-            "model": "mistral-large-latest",
+            "model": "mistral-large-2411",
         })
 
         try:

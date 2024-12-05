@@ -17,7 +17,7 @@ with llm_client.ApiClient(configuration) as api_client:
     api_instance = llm_client.QuestionsApi(api_client)
     get_chat_response_request = llm_client.GetChatResponseRequest.from_dict({
         "prompt": "Привет!",
-        "model": "mistral-large-latest",
+        "model": "mistral-large-2411",
     })
 
     try:

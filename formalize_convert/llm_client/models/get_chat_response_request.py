@@ -28,7 +28,7 @@ class GetChatResponseRequest(BaseModel):
     """ # noqa: E501
     prompt: StrictStr
     context: Optional[StrictStr] = None
-    model: Optional[StrictStr] = 'open-mistral-7b'
+    model: Optional[StrictStr] = 'mistral-large-2411'
     __properties: ClassVar[List[str]] = ["prompt", "context", "model"]
 
     model_config = ConfigDict(
@@ -84,6 +84,6 @@ class GetChatResponseRequest(BaseModel):
         _obj = cls.model_validate({
             "prompt": obj.get("prompt"),
             "context": obj.get("context"),
-            "model": obj.get("model") if obj.get("model") is not None else 'open-mistral-7b'
+            "model": obj.get("model") if obj.get("model") is not None else 'mistral-large-2411'
         })
         return _obj
