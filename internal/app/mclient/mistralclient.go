@@ -48,7 +48,7 @@ func (mc *Mistral) Ask(ctx context.Context, question string, model string) (stri
 }
 
 func getContextFromQASlice(contextQASlice []models.QAPair) (string, error) {
-	t, err := template.New("qaTemplate").Parse(contextTemplate)
+	t, err := template.New("qaTemplate").Parse(ModelContextTemplate)
 	if err != nil {
 		return "", err
 	}
