@@ -1,11 +1,13 @@
 package mclient
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"text/template"
 
 	"github.com/hashicorp/go-retryablehttp"
 
@@ -45,14 +47,20 @@ func (mc *Mistral) Ask(ctx context.Context, question string, model string) (stri
 	return mc.ask(ctx, question, nil, model)
 }
 
-func getContextFromQASlice(contextQASlice []models.QAPair) string {
-	result := ""
-
-	for _, item := range contextQASlice {
-		result = result + fmt.Sprintf("\nВопрос: %s Ответ: %s", item.Question, item.Answer)
+func getContextFromQASlice(contextQASlice []models.QAPair) (string, error) {
+	t, err := template.New("qaTemplate").Parse(contextTemplate)
+	if err != nil {
+		return "", err
 	}
 
-	return result
+	var output bytes.Buffer
+
+	err = t.Execute(&output, contextQASlice)
+	if err != nil {
+		return "", err
+	}
+
+	return output.String(), nil
 }
 
 func (mc *Mistral) AskWithContext(
@@ -61,7 +69,7 @@ func (mc *Mistral) AskWithContext(
 	model string,
 	questionContext []models.QAPair,
 ) (ResponseWithContext, error) {
-	formattedContext := getContextFromQASlice(questionContext)
+	formattedContext, _ := getContextFromQASlice(questionContext)
 
 	slog.Info("executing model request", "question", question, "context", formattedContext)
 
