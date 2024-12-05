@@ -15,4 +15,4 @@ minikube kubectl -- create secret -n prod generic db-secrets --from-literal=user
 minikube kubectl -- create secret -n prod generic backend-secrets --from-literal=github-token="${GHTOKEN}" --from-literal=tg-api-key="${TGTOKEN}"
 
 minikube service postgres-external -n prod --url
-export $(cat .env | xargs) && docker run -it --rm --network rofl-lab1 -v $(pwd)/postgresql/migrations/:/migrations/migrations urbica/pgmigrate -d /migrations -t latest migrate -t 4 -c "port=30001 host=172.16.1.2 dbname=$POSTGRES_DB user=$POSTGRES_USER password=$POSTGRES_PASSWORD"
+export $(cat .env | xargs) && docker run -it --rm --network=host -v $(pwd)/postgresql/migrations/:/migrations/migrations urbica/pgmigrate -d /migrations -t latest migrate -t 4 -c "port=30001 host=localhost dbname=$POSTGRES_DB user=$POSTGRES_USER password=$POSTGRES_PASSWORD"
