@@ -38,4 +38,3 @@ def should_include_checker(question: str, should_include: List[str]):
 
     for question in should_include:
         assert question.strip() in contexts_set, f"There is no question \"{question}\" in context {contexts_questions}"
-
