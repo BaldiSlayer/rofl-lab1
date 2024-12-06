@@ -16,4 +16,4 @@ do
     sleep $SLEEP_TIME
 done
 
-pytest /LLM/test/get_similar_tests/
+pytest -s /LLM/test/get_similar_tests/
