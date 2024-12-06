@@ -18,8 +18,8 @@ WORKDIR /LLM
 RUN python /LLM/app/init_embeddings/init_embeddings.py /LLM/app/init_embeddings/data.yaml /LLM/vectorized_data.faiss && \
     mv /LLM/app/init_embeddings/data.yaml /LLM/data.yaml
 
-COPY /LLM/test /similarity-tester
+COPY /LLM/test /LLM/test
 
-RUN chmod +x /similarity-tester/start.sh
+RUN chmod +x /LLM/test/start.sh
 
-CMD ["/bin/bash", "/similarity-tester/start.sh"]
+CMD ["/bin/bash", "/LLM/test/start.sh"]
