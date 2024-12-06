@@ -5,6 +5,7 @@ def test_nearest_example_1():
     question = "Что такое счетчиковая машина?"
     should_include = [
         "Что такое счетчиковая машина?",
+        "fdsa",
     ]
 
     should_include_checker(question, should_include)
