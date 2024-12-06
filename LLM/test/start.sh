@@ -16,6 +16,4 @@ do
     sleep $SLEEP_TIME
 done
 
-ls -l
-
-python3 /LLM/test/get_similar_tests/lisov_tests.py
+pytest /LLM/test/get_similar_tests/lisov_tests.py

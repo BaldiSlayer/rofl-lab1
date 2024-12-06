@@ -8,6 +8,7 @@ RUN apt update && apt install -y curl
 
 COPY /LLM/requirements.txt /LLM/requirements.txt
 RUN pip install --no-cache-dir -r /LLM/requirements.txt
+RUN pip install pytest
 
 COPY /LLM/app /LLM/app
 COPY /LLM/__init__.py /LLM/__init__.py

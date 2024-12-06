@@ -16,14 +16,14 @@ from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
-from openapi_client.models.get_chat_response_request import GetChatResponseRequest
-from openapi_client.models.get_chat_response_response import GetChatResponseResponse
-from openapi_client.models.search_similar_request import SearchSimilarRequest
-from openapi_client.models.search_similar_response import SearchSimilarResponse
+from test.openapi_client.models.get_chat_response_request import GetChatResponseRequest
+from test.openapi_client.models.get_chat_response_response import GetChatResponseResponse
+from test.openapi_client.models.search_similar_request import SearchSimilarRequest
+from test.openapi_client.models.search_similar_response import SearchSimilarResponse
 
-from openapi_client.api_client import ApiClient, RequestSerialized
-from openapi_client.api_response import ApiResponse
-from openapi_client.rest import RESTResponseType
+from test.openapi_client.api_client import ApiClient, RequestSerialized
+from test.openapi_client.api_response import ApiResponse
+from test.openapi_client.rest import RESTResponseType
 
 
 class QuestionsApi:

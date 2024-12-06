@@ -17,25 +17,25 @@
 __version__ = "1.0.0"
 
 # import apis into sdk package
-from openapi_client.api.questions_api import QuestionsApi
+from test.openapi_client.api.questions_api import QuestionsApi
 
 # import ApiClient
-from openapi_client.api_response import ApiResponse
-from openapi_client.api_client import ApiClient
-from openapi_client.configuration import Configuration
-from openapi_client.exceptions import OpenApiException
-from openapi_client.exceptions import ApiTypeError
-from openapi_client.exceptions import ApiValueError
-from openapi_client.exceptions import ApiKeyError
-from openapi_client.exceptions import ApiAttributeError
-from openapi_client.exceptions import ApiException
+from test.openapi_client.api_response import ApiResponse
+from test.openapi_client.api_client import ApiClient
+from test.openapi_client.configuration import Configuration
+from test.openapi_client.exceptions import OpenApiException
+from test.openapi_client.exceptions import ApiTypeError
+from test.openapi_client.exceptions import ApiValueError
+from test.openapi_client.exceptions import ApiKeyError
+from test.openapi_client.exceptions import ApiAttributeError
+from test.openapi_client.exceptions import ApiException
 
 # import models into sdk package
-from openapi_client.models.get_chat_response_request import GetChatResponseRequest
-from openapi_client.models.get_chat_response_response import GetChatResponseResponse
-from openapi_client.models.http_validation_error import HTTPValidationError
-from openapi_client.models.location_inner import LocationInner
-from openapi_client.models.question_answer import QuestionAnswer
-from openapi_client.models.search_similar_request import SearchSimilarRequest
-from openapi_client.models.search_similar_response import SearchSimilarResponse
-from openapi_client.models.validation_error import ValidationError
+from test.openapi_client.models.get_chat_response_request import GetChatResponseRequest
+from test.openapi_client.models.get_chat_response_response import GetChatResponseResponse
+from test.openapi_client.models.http_validation_error import HTTPValidationError
+from test.openapi_client.models.location_inner import LocationInner
+from test.openapi_client.models.question_answer import QuestionAnswer
+from test.openapi_client.models.search_similar_request import SearchSimilarRequest
+from test.openapi_client.models.search_similar_response import SearchSimilarResponse
+from test.openapi_client.models.validation_error import ValidationError
