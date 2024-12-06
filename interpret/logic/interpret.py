@@ -233,8 +233,7 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
             end_expressions.append(end_expression)
             for v in variables_set:
                 f.write("(declare-fun " + v + " () Int)\n")
-            for v in variables_set:
-            assert_line="(< " + start_expressions[0] + " " + end_expressions[0] + ")"
+        assert_line="(< " + start_expressions[0] + " " + end_expressions[0] + ")"
         for cr in range(1,len(trs_rules)):
             assert_line="(or "+ assert_line+" (< " + start_expressions[cr] + " " + end_expressions[cr] + "))"
         f.write("(assert " + assert_line + ")\n")
