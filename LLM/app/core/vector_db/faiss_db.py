@@ -64,7 +64,7 @@ def init_faiss_db():
 
 
 def make_question_answer(qa_item: dict) -> schemas.QuestionAnswer:
-    return schemas.QuestionAnswer(question=qa_item["question"], answer=qa_item["answer"])
+    return schemas.QuestionAnswer(question=qa_item["questions"][0], answer=qa_item["answer"])
 
 
 def process_question(question: str) -> list[schemas.QuestionAnswer]:
