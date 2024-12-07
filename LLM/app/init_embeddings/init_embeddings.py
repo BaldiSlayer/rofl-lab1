@@ -16,6 +16,8 @@ def create_embeddings(model, data):
         for question in item["questions"]:
             texts.append(translator.translate_text(question))
 
+    print(texts)
+
     embeddings = model.encode(texts)
 
     faiss.normalize_L2(embeddings)
