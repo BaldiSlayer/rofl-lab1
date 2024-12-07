@@ -144,3 +144,31 @@ def test_count_n_len_words_3():
 
     should_include_checker(question, should_include)
 
+
+def test_count_n_len_words_4():
+    question = "Количество слов определенной длины в заданном регулярном языке. Алгоритм подсчета"
+    should_include = [
+        "Опиши алгоритм подсчета количества слов определенной длины в заданном регулярном языке",
+    ]
+
+    should_include_checker(question, should_include)
+
+
+def test_count_n_len_words_5():
+    question = "Найди мне количество слов длины l в заданном регулярном языке"
+    should_include = [
+        "Опиши алгоритм подсчета количества слов определенной длины в заданном регулярном языке",
+    ]
+
+    should_include_checker(question, should_include)
+
+
+def test_count_n_len_words_6():
+    question = "Задан регулярный язык. Найди количество слов длины l в заданном регулярном языке"
+    should_include = [
+        "Опиши алгоритм подсчета количества слов определенной длины в заданном регулярном языке",
+    ]
+
+    should_include_checker(question, should_include)
+
+
