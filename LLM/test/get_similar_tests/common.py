@@ -1,4 +1,7 @@
-from typing import List
+from typing import List, Tuple
+
+import numpy as np
+
 import test.openapi_client as oc
 from test.openapi_client.models.search_similar_request import SearchSimilarRequest
 
@@ -38,3 +41,7 @@ def should_include_checker(question: str, should_include: List[str]):
 
     for question in should_include:
         assert question.strip() in contexts_set, f"There is no question \"{question}\" in context {contexts_questions}"
+
+
+def should_be_in_percentile_checker(question: str, should_be_in_percentile: List[Tuple[str, int]]):
+    return 1

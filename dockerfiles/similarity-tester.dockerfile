@@ -8,7 +8,6 @@ RUN apt update && apt install -y curl
 
 COPY /LLM/requirements.txt /LLM/requirements.txt
 RUN pip install --no-cache-dir -r /LLM/requirements.txt
-RUN pip install pytest
 
 COPY /LLM/app /LLM/app
 COPY /LLM/__init__.py /LLM/__init__.py
@@ -20,6 +19,9 @@ RUN python /LLM/app/init_embeddings/init_embeddings.py /LLM/app/init_embeddings/
     mv /LLM/app/init_embeddings/data.yaml /LLM/data.yaml
 
 COPY /LLM/test /LLM/test
+RUN pip install pytest
+
+RUN pip install numpy
 
 RUN chmod +x /LLM/test/start.sh
 
