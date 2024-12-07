@@ -65,4 +65,5 @@ def should_be_in_percentile_checker(question: str, should_be_in_percentile: List
 
         assert percentile != -1, f"There is no question \"{value}\" in context {contexts_questions}"
 
-        assert value[1] >= (percentile / len(contexts_questions)), f" Question \"{value}\" is not in {value[1]} percentile in context {contexts_questions}"
+        assert value[1] >= (percentile / len(contexts_questions)), f" Question \"{value}\" is not in {value[1]} " \
+                                                                   f"percentile in context {contexts_questions} "
