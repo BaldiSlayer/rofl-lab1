@@ -103,6 +103,11 @@ func ask(
 func getContextPresentationForGist(questionsContext []models.QAPair) string {
 	var sb strings.Builder
 
+	sb.WriteString("## Шаблон промпта для контекста\n")
+	sb.WriteString("```")
+	sb.WriteString(mclient.ModelContextTemplate)
+	sb.WriteString("\n```\n")
+
 	sb.WriteString("## Контекст")
 	sb.WriteByte('\n')
 
