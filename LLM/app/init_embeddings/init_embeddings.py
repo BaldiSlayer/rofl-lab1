@@ -10,7 +10,11 @@ import app.config.config as config
 def create_embeddings(model, data):
     translator = text_translator.translator
 
-    texts = [translator.translate_text(item["questions"][0]) for item in data]
+    texts = []
+
+    for item in data:
+        texts += item["questions"]
+
     embeddings = model.encode(texts)
 
     faiss.normalize_L2(embeddings)
