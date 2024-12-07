@@ -10,14 +10,14 @@ import app.schemas.questions as schemas
 faiss_db = None
 
 
-def convex_indexes(q_idx: int, counts: list[int]):
+def convex_indexes(q_idx: int, counts: list[int]) -> (int, int):
     elem_index = 0
 
     for item in counts:
-        q_idx -= item
+        if q_idx < item:
+            return elem_index, q_idx
 
-        if q_idx < 0:
-            return elem_index
+        q_idx -= item
 
         elem_index += 1
 
@@ -41,8 +41,14 @@ class FaissDB:
 
         self.index = faiss.read_index('vectorized_data.faiss')
 
-    def question_index_to_elem_index(self, q_idx: int) -> int:
-        return convex_indexes(q_idx, self.elem_index_questions)
+    def get_knowledge_base_elem(self, q_idx: int):
+        print(q_idx)
+
+        ans_pos, question_pos = convex_indexes(q_idx, self.elem_index_questions)
+
+        elem = self.data[ans_pos]
+
+        return {"question": elem["questions"][question_pos], "answer": elem["answer"]}
 
     def search_similar(self, query, k_max=10, similarity_threshold=0.1):
         """
@@ -72,7 +78,7 @@ class FaissDB:
             dynamic_k += 1
 
         # Return only those objects that satisfy the dynamic k
-        return [self.data[idx] for idx in indices[0][:dynamic_k]]
+        return [self.get_knowledge_base_elem(idx) for idx in indices[0][:dynamic_k]]
 
 
 def init_faiss_db():
@@ -84,7 +90,7 @@ def init_faiss_db():
 
 
 def make_question_answer(qa_item: dict) -> schemas.QuestionAnswer:
-    return schemas.QuestionAnswer(question=qa_item["questions"][0], answer=qa_item["answer"])
+    return schemas.QuestionAnswer(question=qa_item["question"], answer=qa_item["answer"])
 
 
 def process_question(question: str) -> list[schemas.QuestionAnswer]:
