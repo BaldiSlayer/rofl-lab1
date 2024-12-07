@@ -27,10 +27,7 @@ class FaissDB:
     def search_similar(self, query, k_max=10, similarity_threshold=0.1):
         """
         Dynamic search for similar objects based on similarity threshold.
-        :param model: sentence transformer model
-        :param index: FAISS index
         :param query: query string
-        :param data: original data (list of questions/answers)
         :param k_max: maximum number of results to return
         :param similarity_threshold: threshold for similarity to dynamically adjust k
         :return: list of similar objects
@@ -60,6 +57,7 @@ class FaissDB:
 
 def init_faiss_db():
     global faiss_db
+
     faiss_db = FaissDB(
         config.SingletonConfig.get_instance().get_sentence_transformer_name(),
     )
@@ -75,8 +73,6 @@ def process_question(question: str) -> list[schemas.QuestionAnswer]:
     :param question:
     :return: nearest objects
     """
-
-    conf = config.SingletonConfig.get_instance()
 
     similar_objects = faiss_db.search_similar(
         question,
