@@ -41,14 +41,30 @@ class FaissDB:
 
         self.index = faiss.read_index('vectorized_data.faiss')
 
-    def get_knowledge_base_elem(self, q_idx: int):
-        print(q_idx)
-
-        ans_pos, question_pos = convex_indexes(q_idx, self.elem_index_questions)
-
+    def get_knowledge_base_elem(self, ans_pos: int, question_pos: int):
         elem = self.data[ans_pos]
 
         return {"question": elem["questions"][question_pos], "answer": elem["answer"]}
+
+    def get_context(self, distances, indices, similarity_threshold, k_max):
+        context = []
+        kb_items_idxes_set = set()
+
+        closest_distance = distances[0][0]
+
+        for i in range(1, k_max):
+            if distances[0][i] - closest_distance > similarity_threshold:
+                break
+
+            ans_pos, question_pos = convex_indexes(indices[0][i], self.elem_index_questions)
+
+            # такой вопрос еще не был добавлен в контекст
+            if ans_pos not in kb_items_idxes_set:
+                kb_items_idxes_set.add(ans_pos)
+
+                context.append(self.get_knowledge_base_elem(ans_pos, question_pos))
+
+        return context
 
     def search_similar(self, query, k_max=10, similarity_threshold=0.1):
         """
@@ -58,6 +74,7 @@ class FaissDB:
         :param similarity_threshold: threshold for similarity to dynamically adjust k
         :return: list of similar objects
         """
+
         translator = text_translator.translator
 
         query_embedding = self.model.encode([translator.translate_text(query)])
@@ -67,18 +84,7 @@ class FaissDB:
         # perform a search with the maximum value of k
         distances, indices = self.index.search(np.array(query_embedding), k_max)
 
-        # Find the closest distance
-        closest_distance = distances[0][0]
-
-        # Dynamically determine k depending on the distances
-        dynamic_k = 1  # At least one result is always returned
-        for i in range(1, k_max):
-            if distances[0][i] - closest_distance > similarity_threshold:
-                break
-            dynamic_k += 1
-
-        # Return only those objects that satisfy the dynamic k
-        return [self.get_knowledge_base_elem(idx) for idx in indices[0][:dynamic_k]]
+        return self.get_context(distances, indices, similarity_threshold, k_max)
 
 
 def init_faiss_db():
