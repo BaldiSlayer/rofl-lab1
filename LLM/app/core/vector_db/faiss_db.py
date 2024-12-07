@@ -7,8 +7,6 @@ import app.core.vector_db.text_translator as text_translator
 import app.config.config as config
 import app.schemas.questions as schemas
 
-faiss_db = None
-
 
 def convex_indexes(q_idx: int, counts: list[int]) -> (int, int):
     elem_index = 0
@@ -44,7 +42,7 @@ class FaissDB:
     def get_knowledge_base_elem(self, ans_pos: int, question_pos: int):
         elem = self.data[ans_pos]
 
-        return {"question": elem["questions"][question_pos], "answer": elem["answer"]}
+        return schemas.QuestionAnswer(question=elem["questions"][question_pos], answer=elem["answer"])
 
     def get_context(self, distances, indices, similarity_threshold, k_max):
         context = []
@@ -64,6 +62,7 @@ class FaissDB:
 
                 context.append(self.get_knowledge_base_elem(ans_pos, question_pos))
 
+        # TODO to not to dict
         return context
 
     def search_similar(self, query, k_max=10, similarity_threshold=0.1):
@@ -87,16 +86,9 @@ class FaissDB:
         return self.get_context(distances, indices, similarity_threshold, k_max)
 
 
-def init_faiss_db():
-    global faiss_db
-
-    faiss_db = FaissDB(
-        config.SingletonConfig.get_instance().get_sentence_transformer_name(),
-    )
-
-
-def make_question_answer(qa_item: dict) -> schemas.QuestionAnswer:
-    return schemas.QuestionAnswer(question=qa_item["question"], answer=qa_item["answer"])
+faiss_db = FaissDB(
+    config.SingletonConfig.get_instance().get_sentence_transformer_name(),
+)
 
 
 def process_question(question: str) -> list[schemas.QuestionAnswer]:
@@ -110,4 +102,4 @@ def process_question(question: str) -> list[schemas.QuestionAnswer]:
         question,
     )
 
-    return [make_question_answer(qa_item) for qa_item in similar_objects]
+    return similar_objects
