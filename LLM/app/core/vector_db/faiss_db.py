@@ -42,8 +42,6 @@ class FaissDB:
         self.index = faiss.read_index('vectorized_data.faiss')
 
     def get_knowledge_base_elem(self, ans_pos: int, question_pos: int):
-        print(ans_pos, question_pos)
-
         elem = self.data[ans_pos]
 
         return {"question": elem["questions"][question_pos], "answer": elem["answer"]}
@@ -68,7 +66,7 @@ class FaissDB:
 
         return context
 
-    def search_similar(self, query, k_max=2, similarity_threshold=0.1):
+    def search_similar(self, query, k_max=10, similarity_threshold=0.1):
         """
         Dynamic search for similar objects based on similarity threshold.
         :param query: query string
