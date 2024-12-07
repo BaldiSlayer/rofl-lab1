@@ -21,7 +21,7 @@ def convex_indexes(q_idx: int, counts: list[int]):
 
         elem_index += 1
 
-    return elem_index
+    raise ValueError("q_idx is out of bounds")
 
 
 class FaissDB:
