@@ -1,7 +1,5 @@
 from typing import List, Tuple
 
-import numpy as np
-
 import test.openapi_client as oc
 from test.openapi_client.models.search_similar_request import SearchSimilarRequest
 
