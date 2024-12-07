@@ -19,9 +19,8 @@ RUN python /LLM/app/init_embeddings/init_embeddings.py /LLM/app/init_embeddings/
     mv /LLM/app/init_embeddings/data.yaml /LLM/data.yaml
 
 COPY /LLM/test /LLM/test
-RUN pip install pytest
 
-RUN pip install numpy
+RUN pip install pytest
 
 RUN chmod +x /LLM/test/start.sh
 

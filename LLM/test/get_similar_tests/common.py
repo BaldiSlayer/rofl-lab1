@@ -34,14 +34,37 @@ def question_preprocessing(question: str) -> str:
 
 
 def should_include_checker(question: str, should_include: List[str]):
+    """
+    should_include_checker sends request to get_similar route and checks if all items of
+    should_include list are in context for question
+    :param question: emulated user question
+    :param should_include: list of questions that are necessary to be in context
+    :return:
+    """
     contexts = get_similar(question)
 
     contexts_questions = [question_preprocessing(i["question"]) for i in contexts]
     contexts_set = {c for c in contexts_questions}
 
-    for question in should_include:
-        assert question.strip() in contexts_set, f"There is no question \"{question}\" in context {contexts_questions}"
+    for value in should_include:
+        assert value.strip() in contexts_set, f"There is no question \"{value}\" in context {contexts_questions}"
 
 
-def should_be_in_percentile_checker(question: str, should_be_in_percentile: List[Tuple[str, int]]):
-    return 1
+def should_be_in_percentile_checker(question: str, should_be_in_percentile: List[Tuple[str, float]]):
+    """
+    should_be_in_percentile_checker sends request to get_similar route and checks if all
+    items of should_be_in_percentile are in theirs percentiles.
+    :param question: emulated user question
+    :param should_be_in_percentile: list of (question, percentile)
+    :return:
+    """
+    contexts = get_similar(question)
+
+    contexts_questions = [question_preprocessing(i["question"]) for i in contexts]
+
+    for value in should_be_in_percentile:
+        percentile = contexts_questions.index(value[0])
+
+        assert percentile != -1, f"There is no question \"{value}\" in context {contexts_questions}"
+
+        assert value[1] >= (percentile / len(contexts_questions)), f" Question \"{value}\" is not in {value[1]} percentile in context {contexts_questions}"

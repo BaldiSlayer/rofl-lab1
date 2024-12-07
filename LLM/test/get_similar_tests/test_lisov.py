@@ -1,4 +1,4 @@
-from test.get_similar_tests.common import should_include_checker
+from test.get_similar_tests.common import should_include_checker, should_be_in_percentile_checker
 
 
 def test_nearest_nka():
@@ -9,6 +9,15 @@ def test_nearest_nka():
 
     should_include_checker(question, should_include)
 
+    should_be_in_percentile_checker(
+        question,
+        [
+            (
+                "Что представляет собой язык, распознаваемый недетерминированным конечным автоматом (НКА)?",
+                5,
+            )
+        ],
+    )
 
 def test_nearest_nka_2():
     question = "Опиши язык, распознаваемый недетерминированным конечным автоматом (НКА)?"
