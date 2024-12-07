@@ -16,7 +16,4 @@ do
     sleep $SLEEP_TIME
 done
 
-cd ../similarity-tester || exit 1
-
-python3 main.py
-
+pytest -s /LLM/test/get_similar_tests/

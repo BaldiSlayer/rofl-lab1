@@ -14,11 +14,11 @@
 
 
 # import models into model package
-from openapi_client.models.get_chat_response_request import GetChatResponseRequest
-from openapi_client.models.get_chat_response_response import GetChatResponseResponse
-from openapi_client.models.http_validation_error import HTTPValidationError
-from openapi_client.models.location_inner import LocationInner
-from openapi_client.models.question_answer import QuestionAnswer
-from openapi_client.models.search_similar_request import SearchSimilarRequest
-from openapi_client.models.search_similar_response import SearchSimilarResponse
-from openapi_client.models.validation_error import ValidationError
+from test.openapi_client.models.get_chat_response_request import GetChatResponseRequest
+from test.openapi_client.models.get_chat_response_response import GetChatResponseResponse
+from test.openapi_client.models.http_validation_error import HTTPValidationError
+from test.openapi_client.models.location_inner import LocationInner
+from test.openapi_client.models.question_answer import QuestionAnswer
+from test.openapi_client.models.search_similar_request import SearchSimilarRequest
+from test.openapi_client.models.search_similar_response import SearchSimilarResponse
+from test.openapi_client.models.validation_error import ValidationError
