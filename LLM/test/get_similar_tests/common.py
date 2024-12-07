@@ -1,3 +1,4 @@
+import re
 from typing import List, Tuple
 
 import test.openapi_client as oc
@@ -28,7 +29,9 @@ def get_similar(question: str) -> List[dict]:
 
 
 def question_preprocessing(question: str) -> str:
-    return question.strip()
+    res = question.strip().replace("\n", ' ')
+
+    return re.sub(r'\s+', "", res)
 
 
 def should_include_checker(question: str, should_include: List[str]):
@@ -41,11 +44,14 @@ def should_include_checker(question: str, should_include: List[str]):
     """
     contexts = get_similar(question)
 
-    contexts_questions = [question_preprocessing(i["question"]) for i in contexts]
-    contexts_set = {c for c in contexts_questions}
+    contexts_answers = [question_preprocessing(i["answer"]) for i in contexts]
+    contexts_set = {c for c in contexts_answers}
 
     for value in should_include:
-        assert value.strip() in contexts_set, f"There is no question \"{value}\" in context {contexts_questions}"
+        processed = question_preprocessing(value)
+
+        assert question_preprocessing(value) in contexts_set, f"There is no question \"{processed}\" in context " \
+                                                              f"answers {contexts_answers}"
 
 
 def should_be_in_percentile_checker(question: str, should_be_in_percentile: List[Tuple[str, float]]):
