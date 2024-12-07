@@ -13,7 +13,8 @@ def create_embeddings(model, data):
     texts = []
 
     for item in data:
-        texts += item["questions"]
+        for question in item["questions"]:
+            texts.append(translator.translate_text(question))
 
     embeddings = model.encode(texts)
 

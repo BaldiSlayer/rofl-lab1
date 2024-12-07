@@ -7,8 +7,21 @@ import app.core.vector_db.text_translator as text_translator
 import app.config.config as config
 import app.schemas.questions as schemas
 
-
 faiss_db = None
+
+
+def convex_indexes(q_idx: int, counts: list[int]):
+    elem_index = 0
+
+    for item in counts:
+        q_idx -= item
+
+        if q_idx < 0:
+            return elem_index
+
+        elem_index += 1
+
+    return elem_index
 
 
 class FaissDB:
@@ -22,7 +35,14 @@ class FaissDB:
         with open('data.yaml', 'r') as file:
             self.data = yaml.safe_load(file)
 
+        self.elem_index_questions = []
+        for item in self.data:
+            self.elem_index_questions.append(len(item['questions']))
+
         self.index = faiss.read_index('vectorized_data.faiss')
+
+    def question_index_to_elem_index(self, q_idx: int) -> int:
+        return convex_indexes(q_idx, self.elem_index_questions)
 
     def search_similar(self, query, k_max=10, similarity_threshold=0.1):
         """
