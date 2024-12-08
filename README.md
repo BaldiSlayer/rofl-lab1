@@ -22,6 +22,9 @@
 [/search_similar](http://0.0.0.0:8100/docs#/Questions/api_search_similar_search_similar_post), а для отправки запроса
 в `mistral` - [/get_chat_response](http://0.0.0.0:8100/docs#/Questions/api_get_chat_response_get_chat_response_post).
 
+**Важно**: сейчас в проде используем `mistral-large-2411`. Эта же версия
+используется по умолчанию в ручке `/get_chat_response`.
+
 ## Автотесты для поиска близких
 
 У нас появились автотесты для поиска близких. Добавить свой тест можно
