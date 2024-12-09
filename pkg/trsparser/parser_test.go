@@ -33,25 +33,6 @@ func TestErrorOnJustEOL(t *testing.T) {
 	)
 }
 
-func TestErrorNoEOL(t *testing.T) {
-	var parseError *ParseError
-
-	_, err := Parser{}.Parse(
-		`variables = x
-f(x) = x
------
-f(x) = 5`,
-	)
-
-	assert.ErrorAs(t, err, &parseError)
-	assert.Equal(
-		t,
-		`неверно задана интерпретация f: `+
-			`ожидался перенос строки после определения интерпретации, получено "EOF" (строка 0, символ 0)`,
-		parseError.LlmMessage,
-	)
-}
-
 func TestErrorNoSeparator(t *testing.T) {
 	var parseError *ParseError
 
@@ -261,8 +242,7 @@ func TestParsesSimpleTrs(t *testing.T) {
 		`variables = x
 f(x) = x
 -----
-f(x) = 5
-`,
+f(x) = 5`,
 	)
 
 	assert.NoError(t, err)
