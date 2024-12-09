@@ -235,8 +235,10 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
                 f.write("(declare-fun " + v + " () Int)\n")
             for v in variables_set:
                 f.write("(assert (>= " + v + " 0))\n")
-        for cr in range(len(trs_rules)):
-            f.write("(assert (<= " + start_expressions[cr] + " " + end_expressions[cr] + "))\n")
+        assert_line="(< " + start_expressions[0] + " " + end_expressions[0] + ")"
+        for cr in range(1,len(trs_rules)):
+            assert_line="(or "+ assert_line+" (< " + start_expressions[cr] + " " + end_expressions[cr] + "))"
+        f.write("(assert " + assert_line + ")\n")
         f.write("(check-sat)\n")
         f.write("(get-model)")
 

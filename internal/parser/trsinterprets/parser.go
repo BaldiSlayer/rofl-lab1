@@ -62,29 +62,29 @@ func (p *Parser) peek() models.LexemType {
 
 func (p *Parser) interpretations() ([]Interpretation, error) {
 	res := []Interpretation{}
-	for {
-		if p.peek() == models.LexEOF && len(res) == 0 {
-			return nil, &models.ParseError{
-				LlmMessage: "система должна содержать хотя бы одну интерпретацию",
-				Message:    "at least one interpretation expected",
-			}
-		}
-		if p.peek() == models.LexEOF {
-			return res, nil
-		}
-
+	for p.peek() != models.LexEOF {
 		interpret, err := p.interpretation()
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = p.accept(models.LexEOL, "EOL", "ожидался перенос строки после определения интерпретации")
-		if err != nil {
-			return nil, models.Wrap("ill-formed interpretation", fmt.Sprintf("неверно задана интерпретация %s", interpret.Name), err)
-		}
-
 		res = append(res, interpret)
+
+		if p.peek() != models.LexEOF {
+			_, err = p.accept(models.LexEOL, "EOL", "ожидался перенос строки после определения интерпретации")
+			if err != nil {
+				return nil, models.Wrap("ill-formed interpretation", fmt.Sprintf("неверно задана интерпретация %s", interpret.Name), err)
+			}
+		}
 	}
+
+	if len(res) == 0 {
+		return nil, &models.ParseError{
+			LlmMessage: "система должна содержать хотя бы одну интерпретацию",
+			Message:    "at least one interpretation expected",
+		}
+	}
+	return res, nil
 }
 
 func (p *Parser) interpretation() (Interpretation, error) {
