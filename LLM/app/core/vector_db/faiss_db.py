@@ -23,7 +23,7 @@ class FaissDB:
 
         self.index = faiss.read_index('vectorized_data.faiss')
 
-    def search_similar(self, query, k_max=2, similarity_threshold=0.69):
+    def search_similar(self, query, k_max=10, similarity_threshold=0.69):
         """
         Dynamic search for similar objects based on similarity threshold.
         :param query: query string
