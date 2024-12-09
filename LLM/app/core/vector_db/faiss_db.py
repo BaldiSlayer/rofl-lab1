@@ -7,7 +7,6 @@ import app.core.vector_db.text_translator as text_translator
 import app.config.config as config
 import app.schemas.questions as schemas
 
-
 faiss_db = None
 
 
@@ -24,13 +23,10 @@ class FaissDB:
 
         self.index = faiss.read_index('vectorized_data.faiss')
 
-    def search_similar(self, query, k_max=10, similarity_threshold=0.1):
+    def search_similar(self, query, k_max=10, similarity_threshold=0.69):
         """
         Dynamic search for similar objects based on similarity threshold.
-        :param model: sentence transformer model
-        :param index: FAISS index
         :param query: query string
-        :param data: original data (list of questions/answers)
         :param k_max: maximum number of results to return
         :param similarity_threshold: threshold for similarity to dynamically adjust k
         :return: list of similar objects
@@ -41,21 +37,15 @@ class FaissDB:
 
         faiss.normalize_L2(query_embedding)
 
-        # perform a search with the maximum value of k
-        distances, indices = self.index.search(np.array(query_embedding), k_max)
+        D, I = self.index.search(np.array(query_embedding), k_max)
 
-        # Find the closest distance
-        closest_distance = distances[0][0]
-
-        # Dynamically determine k depending on the distances
-        dynamic_k = 1  # At least one result is always returned
+        dynamic_k = 1
         for i in range(1, k_max):
-            if distances[0][i] - closest_distance > similarity_threshold:
+            if D[0][i] < similarity_threshold:
                 break
             dynamic_k += 1
 
-        # Return only those objects that satisfy the dynamic k
-        return [self.data[idx] for idx in indices[0][:dynamic_k]]
+        return [self.data[idx] for idx in I[0][:dynamic_k]]
 
 
 def init_faiss_db():
@@ -77,9 +67,5 @@ def process_question(question: str) -> list[schemas.QuestionAnswer]:
     """
 
     conf = config.SingletonConfig.get_instance()
-
-    similar_objects = faiss_db.search_similar(
-        question,
-    )
-
+    similar_objects = faiss_db.search_similar(question)
     return [make_question_answer(qa_item) for qa_item in similar_objects]
