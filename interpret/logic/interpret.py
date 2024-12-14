@@ -5,6 +5,19 @@ from z3 import *
 from typing import List
 
 
+class Counterexample:
+    def __init__(self, declarations: List[str]):
+        self.declarations = sorted(declarations)
+
+    def __repr__(self):
+        s = "Сounterexample:\n"
+
+        for i in self.declarations:
+            s += i + '\n'
+
+        return s
+
+
 def simplify_expression(expression):
     """
     The simplify_expression function simplifies expressions.
@@ -267,15 +280,13 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
     solver_result = solver.check()
 
     if solver_result == sat:
-        result += "Сounterexample:\n"
         model = solver.model()
 
         declarations = []
         for decl in model:
             declarations.append(f"{decl} = {model[decl]}")
 
-        for i in sorted(declarations):
-            result += i + '\n'
+        result = Counterexample(declarations=declarations)
 
     elif solver_result == unsat:
         result += "Verification success\nDemo:\n"
@@ -292,4 +303,5 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
         result += s1 + '\n' + s2 + '\n'
     else:
         return "Unknown"
-    return result
+
+    return str(result)
