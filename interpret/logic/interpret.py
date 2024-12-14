@@ -1,18 +1,19 @@
-#!/usr/bin/env python3
 import re
 from sympy import simplify as sympy_simplify, expand, Symbol
 from random import randint
 from z3 import *
 from typing import List
 
-'''
-  The simplify_expression function simplifies expressions. 
-  Multiplication must be entered with an asterisk '*'.
-  Exponentiation can be implemented as both x**2 and x^2. 
-  However, it's important to note that 2^4*5 will be simplified to 80. 
-  So, if an expression is in the exponent, it must be enclosed in parentheses '()'.
-'''
+
 def simplify_expression(expression):
+    """
+    The simplify_expression function simplifies expressions.
+    Multiplication must be entered with an asterisk '*'.
+    Exponentiation can be implemented as both x**2 and x^2.
+    However, it's important to note that 2^4*5 will be simplified to 80.
+    So, if an expression is in the exponent, it must be enclosed in parentheses '()'.
+    """
+
     # Replace variables with SymPy symbols
     expression = re.sub(r'([a-z]+)', r'Symbol("\1")', expression)
 
@@ -20,11 +21,11 @@ def simplify_expression(expression):
     return str(simplified_expression)
 
 
-'''
-  The to_prefix_notation function rewrites an expression in prefix notation. 
-  It also creates a set of variables contained in the resulting expression.
-'''
 def to_prefix_notation(expression, index):
+    """
+    The to_prefix_notation function rewrites an expression in prefix notation.
+    It also creates a set of variables contained in the resulting expression.
+    """
     variables_set = set()
     expression = expression.replace('**', '^')
 
@@ -48,7 +49,9 @@ def to_prefix_notation(expression, index):
                 prefix_multipliers += prefix_power
         prefix_expression = prefix_expression + ' ' + prefix_multipliers + ')'
     prefix_expression += ')'
+
     return prefix_expression, variables_set
+
 
 def get_arguments(function):
     i = 2
@@ -62,16 +65,19 @@ def get_arguments(function):
             round_brackets -= 1
         elif function[i] == ',' and round_brackets == 0:
             result.append(function[start:i])
-            start = i+1
+            start = i + 1
         i += 1
+
     result.append(function[start: -1])
+
     return result
 
-'''
-     Replaces function arguments with new values.
-     Returns the right-hand side of the expression.
-'''
+
 def change_arguments(function_definition, new_args):
+    """
+    Replaces function arguments with new values.
+    Returns the right-hand side of the expression.
+    """
     result = ""
     parts_of_definition = function_definition.split('=')
     old_args = get_arguments(parts_of_definition[0])
@@ -80,7 +86,9 @@ def change_arguments(function_definition, new_args):
             result = result + '(' + new_args[old_args.index(symbol)] + ')'
         else:
             result += symbol
+
     return result
+
 
 def is_constructor(c, constructors):
     for i in constructors:
@@ -88,37 +96,44 @@ def is_constructor(c, constructors):
             return True
     return False
 
-'''
+
+def get_internal_function(string, start, constants):
+    """
     Finds the inner function that starts at the given 'start' index.
     Returns the index of the element after that function
-'''
-def get_internal_function(str, start, constants):
-    if str[start] in constants:
-        return str[start], start+1
-    else:
-        i = start + 2
-        round_brackets = 1
+    """
+    if string[start] in constants:
+        return string[start], start + 1
 
-        while round_brackets > 0:
-            if str[i] == '(':
-                round_brackets += 1
-            elif str[i] == ')':
-                round_brackets -= 1
-            i += 1
-        return str[start:i], i
+    i = start + 2
+    round_brackets = 1
+
+    while round_brackets > 0:
+        if string[i] == '(':
+            round_brackets += 1
+        elif string[i] == ')':
+            round_brackets -= 1
+        i += 1
+
+    return string[start:i], i
+
 
 def find_function_definition(function, grammar_rules):
     for rule in grammar_rules:
         if function[0] == rule[0]:
             return rule
+
+
 def substitute_interpretation(function, constructors, grammar_rules, constants):
     function_definition = find_function_definition(function, grammar_rules)
 
-    #Situations where the function is just a constant or a variable
-    if function_definition == None:
+    # Situations where the function is just a constant or a variable
+    if function_definition is None:
         return function
-    elif function in constants:
+
+    if function in constants:
         return function_definition[2:]
+
     args = get_arguments(function)
     for i in range(len(args)):
         arg = args[i]
@@ -127,12 +142,15 @@ def substitute_interpretation(function, constructors, grammar_rules, constants):
         while j < len(arg):
             if is_constructor(arg[j], constructors):
                 internal_function, j = get_internal_function(arg, j, constants)
-                new_arg = new_arg + '(' + substitute_interpretation(internal_function, constructors, grammar_rules, constants) + ')'
+                new_arg = new_arg + '(' + substitute_interpretation(internal_function, constructors, grammar_rules,
+                                                                    constants) + ')'
             else:
                 new_arg += arg[j]
-                j+=1
+                j += 1
         args[i] = simplify_expression(new_arg)
+
     return simplify_expression(change_arguments(function_definition, args))
+
 
 def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: List[str]) -> str:
     result = ""
@@ -234,10 +252,10 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
             for v in variables_set:
                 f.write("(declare-fun " + v + " () Int)\n")
             for v in variables_set:
-                f.write("(assert (>= " + v + " 0))\n")
-        assert_line="(< " + start_expressions[0] + " " + end_expressions[0] + ")"
-        for cr in range(1,len(trs_rules)):
-            assert_line="(or "+ assert_line+" (< " + start_expressions[cr] + " " + end_expressions[cr] + "))"
+                f.write("(assert (> " + v + " 0))\n")
+        assert_line = "(<= " + start_expressions[0] + " " + end_expressions[0] + ")"  #######changed
+        for cr in range(1, len(trs_rules)):
+            assert_line = "(or " + assert_line + " (<= " + start_expressions[cr] + " " + end_expressions[cr] + "))"
         f.write("(assert " + assert_line + ")\n")
         f.write("(check-sat)\n")
         f.write("(get-model)")
@@ -251,8 +269,14 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
     if solver_result == sat:
         result += "Сounterexample:\n"
         model = solver.model()
+
+        declarations = []
         for decl in model:
-            result += f"{decl} = {model[decl]}\n"
+            declarations.append(f"{decl} = {model[decl]}")
+
+        for i in sorted(declarations):
+            result += i + '\n'
+
     elif solver_result == unsat:
         result += "Verification success\nDemo:\n"
         s1, s2 = demo()
