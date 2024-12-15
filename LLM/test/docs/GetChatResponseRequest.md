@@ -5,9 +5,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**prompt** | **str** |  | 
-**context** | **str** |  | [optional] 
-**model** | **str** |  | [optional] [default to 'open-mistral-7b']
+**prompt** | **str** |  |
+**context** | **str** |  | [optional]
+**model** | **str** |  | [optional] [default to 'mistral-large-2411']
 
 ## Example
 
@@ -27,5 +27,3 @@ get_chat_response_request_dict = get_chat_response_request_instance.to_dict()
 get_chat_response_request_from_dict = GetChatResponseRequest.from_dict(get_chat_response_request_dict)
 ```
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
-
-

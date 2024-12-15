@@ -47,7 +47,7 @@ func WithConfig() Option {
 	}
 }
 
-func New(ctx context.Context, opts ...Option) (*App, error) {
+func New(ctx context.Context, callbackMode bool, opts ...Option) (*App, error) {
 	tgBot := &App{}
 
 	for _, opt := range opts {
@@ -66,7 +66,7 @@ func New(ctx context.Context, opts ...Option) (*App, error) {
 	tgBot.ustorageCloser = postgres
 	tgBot.userStorage = postgres
 
-	tgBot.bot, err = tgcommons.NewBot(tgBot.config.TgToken)
+	tgBot.bot, err = tgcommons.NewBot(tgBot.config.TgToken, callbackMode)
 	if err != nil {
 		return nil, err
 	}

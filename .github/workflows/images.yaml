@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
     paths-ignore:
       - 'chart/values.yaml'
+      - 'data/output.md'
 
 jobs:
   docker:
@@ -131,8 +132,8 @@ jobs:
           # Update the values.yaml file with the new image tag
           sed -i "s/^  tag: .*/  tag: $new_image_tag/" "$chart_dir/values.yaml"
 
-      # test
       - name: Commit the changes made
         run: |
+          git pull
           git commit -am "updating image tag"
           git push

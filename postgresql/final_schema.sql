@@ -1,5 +1,7 @@
 -- export $(cat .env | xargs) && docker run -it --rm --network rofl-lab1_default -v $(pwd)/postgresql/migrations/:/migrations/migrations urbica/pgmigrate -d /migrations -t latest migrate -t 4 -c "port=5432 host=postgres dbname=$POSTGRES_DB user=$POSTGRES_USER password=$POSTGRES_PASSWORD"
 
+CREATE SCHEMA tfllab1;
+
 CREATE TABLE tfllab1.user_state (
        user_id BIGINT PRIMARY KEY,
        state INT NOT NULL,

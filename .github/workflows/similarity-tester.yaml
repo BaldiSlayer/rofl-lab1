@@ -2,8 +2,8 @@ name: similarity-tester
 
 on:
   push:
-    paths-ignore:
-      - 'chart/values.yaml'
+    paths:
+      - 'LLM/**'
 
 jobs:
   build:
