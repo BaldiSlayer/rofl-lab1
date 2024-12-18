@@ -36,7 +36,7 @@
 Затем, в корне репозитория создайте файл `.env` и заполните его следующим образом:
 
 ```
-MISTRAL_API_KEY=<mistal token>
+MISTRAL_API_KEY=<mistral token>
 TGTOKEN=<tg bot token>
 POSTGRES_PASSWORD=strong
 POSTGRES_USER=admin
