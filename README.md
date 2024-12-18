@@ -35,7 +35,7 @@
 Сгенерируйте [GHTOKEN](https://github.com/settings/tokens?type=beta) (нужен вечный токен с read-write доступом к Gist).
 Затем, в корне репозитория создайте файл `.env` и заполните его следующим образом:
 
-```
+```dockerfile
 # все значения переменных являются просто примерами, можно выставить свои
 MISTRAL_API_KEY=<mistral token>
 TGTOKEN=<tg bot token>
