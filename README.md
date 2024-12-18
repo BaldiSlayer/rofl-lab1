@@ -32,7 +32,7 @@
 
 ### 2. Создание файла .env
 
-Сгенерируйте [GHTOKEN](https://github.com/settings/tokens?type=beta).
+Сгенерируйте [GHTOKEN](https://github.com/settings/tokens?type=beta) (нужен вечный токен с read-write доступом к Gist).
 Затем, в корне репозитория создайте файл `.env` и заполните его следующим образом:
 
 ```
