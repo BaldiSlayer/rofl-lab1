@@ -2,7 +2,6 @@ from app.core.vector_db.faiss_db import convex_indexes
 
 
 def test_convex_indexes():
-    # Тест с обычным случаем
     assert convex_indexes(4, [2, 2, 1]) == (2, 0)
     assert convex_indexes(4, [1, 1, 1, 1, 1]) == (4, 0)
     assert convex_indexes(2, [1, 1, 1]) == (2, 0)
