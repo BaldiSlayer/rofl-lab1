@@ -3,7 +3,9 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
+	"sync"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/githubclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
@@ -29,27 +31,39 @@ func AskKnowledgeBase(
 	question string,
 	requests []commons.ModelRequest,
 ) (AskResults, error) {
-	res := make([]KBAnswer, 0, len(requests))
+	res := make([]KBAnswer, len(requests))
 
 	questionsContext, err := modelClient.GetFormattedContext(ctx, question)
 	if err != nil {
 		return AskResults{}, fmt.Errorf("failed to get formatted context: %w", err)
 	}
 
-	for _, request := range requests {
-		questionContext := []models.QAPair(nil)
+	var wg sync.WaitGroup
 
-		if request.UseContext {
-			questionContext = questionsContext
-		}
+	wg.Add(len(requests))
 
-		ans, err := ask(ctx, modelClient, question, request.Model, questionContext)
-		if err != nil {
-			return AskResults{}, fmt.Errorf("error while ask model: %w", err)
-		}
+	for i, request := range requests {
+		go func(i int, request models.ModelRequest) {
+			defer wg.Done()
 
-		res = append(res, ans)
+			questionContext := []models.QAPair(nil)
+
+			if request.UseContext {
+				questionContext = questionsContext
+			}
+
+			ans, err := ask(ctx, modelClient, question, request.Model, questionContext)
+			if err != nil {
+				slog.Error("error while asking model", "model", request.Model)
+
+				return
+			}
+
+			res[i] = ans
+		}(i, request)
 	}
+
+	wg.Wait()
 
 	return AskResults{
 		Answers:          res,
