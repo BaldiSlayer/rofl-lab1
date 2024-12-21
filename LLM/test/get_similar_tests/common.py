@@ -80,14 +80,17 @@ def should_be_in_percentile_checker(
     """
     contexts = get_similar(question)
 
-    contexts_questions = [question_preprocessing(i["question"]) for i in contexts]
+    contexts_answers = [i["answer"] for i in contexts]
+    proceeded_contexts_answers = {question_preprocessing(i) for i in contexts_answers}
 
     for value in should_be_in_percentile:
-        ans_index = contexts_questions.index(value[0])
+        proceeded_answer = question_preprocessing(value[0])
 
-        assert ans_index != -1, f"There is no answer \"{value}\" in context {contexts_questions}"
+        ans_index = proceeded_contexts_answers.index(proceeded_answer)
 
-        percentile = ans_index / len(contexts_questions)
+        assert ans_index != -1, f"There is no answer \"{value[0]}\" in context {contexts_answers}"
+
+        percentile = ans_index / len(contexts_answers)
 
         assert value[1] >= percentile, \
-            f" Question \"{value}\" is not in {value[1]} percentile in context {contexts_questions}"
+            f"Answer \"{value[0]}\" is not in {value[1]} percentile in context {contexts_answers}"
