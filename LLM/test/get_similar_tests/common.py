@@ -1,4 +1,5 @@
 import re
+import yaml
 from typing import List, Tuple
 
 import test.openapi_client as oc
@@ -9,11 +10,18 @@ configuration = oc.Configuration(
 )
 
 
+def parse_yaml() -> dict:
+    with open('data.yaml', 'r', encoding='utf-8') as file:
+        data = yaml.safe_load(file)
+
+    return {i['id']: i for i in data}
+
+
 def get_similar(question: str) -> List[dict]:
     """
     Sends a request to the LM module API to find the nearest knowledge base elements for a given question
 
-    :param question: The question for which the nearest ones will be searched in the knowledge base
+    :param: question: The question for which the nearest ones will be searched in the knowledge base
     :return:
     """
     with oc.ApiClient(configuration) as api_client:
@@ -34,24 +42,27 @@ def question_preprocessing(question: str) -> str:
     return re.sub(r'\s+', "", res)
 
 
-def should_include_checker(question: str, should_include: List[str]):
+def should_include_checker(question: str, should_include: List[int]):
     """
     should_include_checker sends request to get_similar route and checks if all items of
     should_include list are in context for question
     :param question: emulated user question
-    :param should_include: list of questions that are necessary to be in context
+    :param should_include: list of answers ids that are necessary to be in context
     :return:
     """
     contexts = get_similar(question)
 
+    data = parse_yaml()
+
     contexts_answers = [i["answer"] for i in contexts]
     proceeded_contexts_answers = {question_preprocessing(i) for i in contexts_answers}
 
-    for value in should_include:
+    for value_id in should_include:
+        value = data[value_id]['answer']
         processed = question_preprocessing(value)
 
-        assert processed in proceeded_contexts_answers, f"There is no question \"{value}\" " \
-                                                        f"in context answers {contexts_answers}"
+        assert processed in proceeded_contexts_answers, \
+            f"There is no answer \"{value}\" in context answers {contexts_answers}"
 
 
 def should_be_in_percentile_checker(question: str, should_be_in_percentile: List[Tuple[str, float]]):
@@ -67,9 +78,11 @@ def should_be_in_percentile_checker(question: str, should_be_in_percentile: List
     contexts_questions = [question_preprocessing(i["question"]) for i in contexts]
 
     for value in should_be_in_percentile:
-        percentile = contexts_questions.index(value[0])
+        ans_index = contexts_questions.index(value[0])
 
-        assert percentile != -1, f"There is no question \"{value}\" in context {contexts_questions}"
+        assert ans_index != -1, f"There is no answer \"{value}\" in context {contexts_questions}"
 
-        assert value[1] >= (percentile / len(contexts_questions)), f" Question \"{value}\" is not in {value[1]} " \
-                                                                   f"percentile in context {contexts_questions} "
+        percentile = ans_index / len(contexts_questions)
+
+        assert value[1] >= percentile, \
+            f" Question \"{value}\" is not in {value[1]} percentile in context {contexts_questions}"
