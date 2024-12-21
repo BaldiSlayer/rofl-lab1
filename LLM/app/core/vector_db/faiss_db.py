@@ -9,10 +9,13 @@ import app.schemas.questions as schemas
 
 
 def convex_indexes(q_idx: int, counts: list[int]) -> (int, int):
+    # индекс элемента базы знаний (у нас несколько вопросов на один ответ)
     elem_index = 0
 
     for item in counts:
         if q_idx < item:
+            # возвращаем элемент базы знаний в котором содержится вопрос с номером q_idx и
+            # номер вопроса внутри этого элемента
             return elem_index, q_idx
 
         q_idx -= item
@@ -56,7 +59,7 @@ class FaissDB:
 
             ans_pos, question_pos = convex_indexes(indices[0][i], self.elem_index_questions)
 
-            # такой вопрос еще не был добавлен в контекст
+            # такой ответ еще не был добавлен в контекст
             if ans_pos not in kb_items_idxes_set:
                 kb_items_idxes_set.add(ans_pos)
 
