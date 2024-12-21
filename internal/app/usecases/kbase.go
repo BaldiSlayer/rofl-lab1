@@ -28,11 +28,11 @@ func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, ques
 		useContext bool
 	}{
 		{
-			model:      "mistral-large-latest",
+			model:      "mistral-large-2411",
 			useContext: true,
 		},
 		{
-			model:      "mistral-large-latest",
+			model:      "mistral-large-2411",
 			useContext: false,
 		},
 		{

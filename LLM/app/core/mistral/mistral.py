@@ -12,7 +12,7 @@ def create_mistral_client():
 mistral_client = create_mistral_client()
 
 
-def get_chat_response(prompt, context=None, model="open-mistral-7b"):
+def get_chat_response(prompt, context=None, model="mistral-large-2411"):
     """
     Получает ответ от LLM на основе предоставленного промпта и контекста.
 
@@ -35,6 +35,7 @@ def get_chat_response(prompt, context=None, model="open-mistral-7b"):
         model=model,
         messages=messages,
         n=1,
+        random_seed=322,
     )
 
     return chat_response.choices[0].message.content

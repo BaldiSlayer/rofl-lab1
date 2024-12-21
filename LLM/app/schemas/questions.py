@@ -18,7 +18,7 @@ class SearchSimilarResponse(BaseModel):
 class GetChatResponseRequest(BaseModel):
     prompt: str
     context: Optional[str] = None
-    model: Optional[str] = "open-mistral-7b"
+    model: Optional[str] = "mistral-large-2411"
 
 
 # Модель запроса для formalize

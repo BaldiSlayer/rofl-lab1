@@ -15,7 +15,7 @@ def generate_response(question: str, context: str) -> str:
         get_chat_response_request = llm_client.GetChatResponseRequest.from_dict({
             "prompt": question,
             "context": context,
-            "model": "mistral-large-latest",
+            "model": "mistral-large-2411",
         })
 
         try:
@@ -77,12 +77,10 @@ PROMPT = (
 def get_trs(user_query: str, context: str):
     try:
         formalized_query = None
-        trs = None
-
         attempt = 0
 
         while attempt < MAX_ATTEMPTS:
-            if formalized_query and trs:
+            if formalized_query:
                 break
             attempt += 1
             formalized_query = generate_response(user_query, context)
@@ -91,9 +89,11 @@ def get_trs(user_query: str, context: str):
                 continue
             print("user query:", user_query, sep='\n')
             print("formalized:", formalized_query, sep='\n')
-            trs = convert(user_query, formalized_query)
 
-        return trs
+        return {
+            "formalTrs": formalized_query,
+            "error": None
+        }
 
     except Exception as e:
         print(f"Произошла ошибка: {e}")
