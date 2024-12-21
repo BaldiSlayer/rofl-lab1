@@ -2,15 +2,20 @@ import faiss
 import yaml
 import sys
 
-from sentence_transformers import SentenceTransformer
 import app.core.vector_db.text_translator as text_translator
+from sentence_transformers import SentenceTransformer
 import app.config.config as config
 
 
 def create_embeddings(model, data):
     translator = text_translator.translator
 
-    texts = [translator.translate_text(item["question"] + " " + item["answer"]) for item in data]
+    texts = []
+
+    for item in data:
+        for question in item["questions"]:
+            texts.append(translator.translate_text(question))
+
     embeddings = model.encode(texts)
 
     faiss.normalize_L2(embeddings)
