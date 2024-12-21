@@ -44,14 +44,14 @@ def should_include_checker(question: str, should_include: List[str]):
     """
     contexts = get_similar(question)
 
-    contexts_answers = [question_preprocessing(i["answer"]) for i in contexts]
-    contexts_set = {c for c in contexts_answers}
+    contexts_answers = [i["answer"] for i in contexts]
+    proceeded_contexts_answers = {question_preprocessing(i) for i in contexts_answers}
 
     for value in should_include:
         processed = question_preprocessing(value)
 
-        assert question_preprocessing(value) in contexts_set, f"There is no question \"{processed}\" in context " \
-                                                              f"answers {contexts_answers}"
+        assert processed in proceeded_contexts_answers, f"There is no question \"{value}\" " \
+                                                        f"in context answers {contexts_answers}"
 
 
 def should_be_in_percentile_checker(question: str, should_be_in_percentile: List[Tuple[str, float]]):
