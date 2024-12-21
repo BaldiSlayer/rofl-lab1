@@ -30,14 +30,6 @@ func GetFastModelRequestsPattern() []commons.ModelRequest {
 			Model:      "mistral-large-2411",
 			UseContext: true,
 		},
-		{
-			Model:      "mistral-large-2411",
-			UseContext: false,
-		},
-		{
-			Model:      "open-mistral-7b",
-			UseContext: true,
-		},
 	}
 }
 
