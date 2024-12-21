@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log/slog"
@@ -58,15 +57,9 @@ func (controller *Controller) handleKnowledgeBaseRequest(
 		return 0, fmt.Errorf("failed to get answer for knowledge base request: %w", err)
 	}
 
-	return models.GetRequest, errors.Join(
-		controller.Bot.EditMarkdownMessage(
-			update.Message.Chat.ID,
-			msgID,
-			message,
-		),
-		controller.Bot.SendMessage(
-			update.Message.Chat.ID,
-			"Введите запрос к Базе Знаний",
-		),
+	return models.GetRequest, controller.Bot.EditMarkdownMessage(
+		update.Message.Chat.ID,
+		msgID,
+		message,
 	)
 }
