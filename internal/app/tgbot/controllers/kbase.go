@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	similarAnswerTemplate = "Для вашего вопроса были найдены следущие похожие элементы."
+	similarAnswerTemplate = "Для вашего вопроса были найдены следущие похожие элементы:"
 )
 
 func (controller *Controller) GetRequest(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
@@ -79,6 +79,35 @@ func (controller *Controller) handleKnowledgeBaseRequest(
 	)
 }
 
+func (controller *Controller) multiModelsAns(
+	ctx context.Context,
+	messageText string,
+	userID int64,
+) (models.UserState, error) {
+	msgID, err := controller.Bot.SendMessageWithReturningID(
+		userID,
+		"Запрос обрабатывается. Ожидайте.",
+	)
+	if err != nil {
+		return 0, fmt.Errorf("error while trying to send message: %w", err)
+	}
+
+	message, err := controller.getAnswerForKnowledgeBaseRequest(
+		ctx,
+		messageText,
+		mclient.GetDefaultModelRequestsPattern(),
+	)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get answer for knowledge base request: %w", err)
+	}
+
+	return models.GetRequest, controller.Bot.EditMarkdownMessage(
+		userID,
+		msgID,
+		message,
+	)
+}
+
 func (controller *Controller) GetRequestMultiModels(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 
@@ -88,41 +117,20 @@ func (controller *Controller) GetRequestMultiModels(ctx context.Context, update 
 		return models.GetQuestionMultiModels, controller.Bot.SendMessage(userID, "Введите вопрос к базе знаний")
 	}
 
-	msgID, err := controller.Bot.SendMessageWithReturningID(
-		update.Message.Chat.ID,
-		"Запрос обрабатывается. Ожидайте.",
-	)
-	if err != nil {
-		return 0, fmt.Errorf("error while trying to send message: %w", err)
-	}
-
-	message, err := controller.getAnswerForKnowledgeBaseRequest(
+	return controller.multiModelsAns(
 		ctx,
-		update.Message.Text,
-		mclient.GetDefaultModelRequestsPattern(),
-	)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get answer for knowledge base request: %w", err)
-	}
-
-	return models.GetRequest, controller.Bot.EditMarkdownMessage(
+		args,
 		update.Message.Chat.ID,
-		msgID,
-		message,
 	)
 }
 
-func (controller *Controller) GetSimilar(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
-	userID := update.SentFrom().ID
-
-	args := strings.TrimSpace(update.Message.Text)
-
-	if args == "" {
-		return models.GetQuestionMultiModels, controller.Bot.SendMessage(userID, "Введите вопрос к базе знаний")
-	}
-
+func (controller *Controller) getSimilar(
+	ctx context.Context,
+	messageText string,
+	userID int64,
+) (models.UserState, error) {
 	msgID, err := controller.Bot.SendMessageWithReturningID(
-		update.Message.Chat.ID,
+		userID,
 		"Запрос обрабатывается. Ожидайте.",
 	)
 	if err != nil {
@@ -133,7 +141,7 @@ func (controller *Controller) GetSimilar(ctx context.Context, update tgbotapi.Up
 		ctx,
 		controller.ModelClient,
 		controller.GihubClient,
-		update.Message.Text,
+		messageText,
 	)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get similar elements for knowledge base request: %w", err)
@@ -147,24 +155,57 @@ func (controller *Controller) GetSimilar(ctx context.Context, update tgbotapi.Up
 	)
 
 	return models.GetRequest, controller.Bot.EditMarkdownMessage(
-		update.Message.Chat.ID,
+		userID,
 		msgID,
 		message,
+	)
+}
+
+func (controller *Controller) GetSimilarRequest(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
+	userID := update.SentFrom().ID
+
+	args := strings.TrimSpace(update.Message.Text)
+
+	if args == "" {
+		return models.GetQuestionMultiModels, controller.Bot.SendMessage(userID, "Введите вопрос к базе знаний")
+	}
+
+	return controller.getSimilar(
+		ctx,
+		args,
+		update.Message.Chat.ID,
 	)
 }
 
 func (controller *Controller) CommandMultiModels(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 
-	return models.GetQuestionMultiModels,
-		controller.Bot.SendMessage(userID, "Введите вопрос к базе знаний. Для ответа на вопрос "+
-			"будет сделано 3 разных запроса.")
+	args := strings.TrimSpace(update.Message.CommandArguments())
+	if args == "" {
+		return models.GetQuestionMultiModels, controller.Bot.SendMessage(userID, "Введите вопрос к базе "+
+			"знаний. Для ответа на вопрос будет сделано 3 разных запроса.")
+	}
+
+	return controller.multiModelsAns(
+		ctx,
+		args,
+		userID,
+	)
 }
 
 func (controller *Controller) CommandGetSimilar(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 
-	return models.GetSimilar,
-		controller.Bot.SendMessage(userID, "Введите вопрос, для него будут найдены "+
-			"похожие элементы базы знаний (да, это реально похожие, а не мы выдаем рандом.)")
+	args := strings.TrimSpace(update.Message.CommandArguments())
+	if args == "" {
+		return models.GetSimilar,
+			controller.Bot.SendMessage(userID, "Введите вопрос, для него будут найдены "+
+				"похожие элементы базы знаний (да, это реально похожие, а не мы выдаем рандом.)")
+	}
+
+	return controller.getSimilar(
+		ctx,
+		args,
+		userID,
+	)
 }
