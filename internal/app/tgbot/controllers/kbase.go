@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
 	"log/slog"
+	"strings"
 
 	commons "github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
@@ -72,4 +73,45 @@ func (controller *Controller) handleKnowledgeBaseRequest(
 		msgID,
 		message,
 	)
+}
+
+func (controller *Controller) GetRequestMultiModels(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
+	userID := update.SentFrom().ID
+
+	args := strings.TrimSpace(update.Message.Text)
+
+	if args == "" {
+		return models.GetQuestionMultiModels, controller.Bot.SendMessage(userID, "Введите вопрос к базе знаний")
+	}
+
+	msgID, err := controller.Bot.SendMessageWithReturningID(
+		update.Message.Chat.ID,
+		"Запрос обрабатывается. Ожидайте.",
+	)
+	if err != nil {
+		return 0, fmt.Errorf("error while trying to send message: %w", err)
+	}
+
+	message, err := controller.getAnswerForKnowledgeBaseRequest(
+		ctx,
+		update.Message.Text,
+		mclient.GetDefaultModelRequestsPattern(),
+	)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get answer for knowledge base request: %w", err)
+	}
+
+	return models.GetRequest, controller.Bot.EditMarkdownMessage(
+		update.Message.Chat.ID,
+		msgID,
+		message,
+	)
+}
+
+func (controller *Controller) GetCommandMultiModels(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
+	userID := update.SentFrom().ID
+
+	return models.GetQuestionMultiModels,
+		controller.Bot.SendMessage(userID, "Введите вопрос к базе знаний. Для ответа на вопрос "+
+			"будет сделано 3 разных запроса.")
 }

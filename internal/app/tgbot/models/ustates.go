@@ -15,4 +15,6 @@ const (
 	ValidateTrs
 	// FixTrs - состояние отображения пользователю ошибки формализации TRS
 	FixTrs
+	// GetQuestionMultiModels -
+	GetQuestionMultiModels
 )
