@@ -3,12 +3,14 @@ package controllers
 import (
 	"context"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
 	"log/slog"
 
+	commons "github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/tgbot/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/usecases"
 	"github.com/BaldiSlayer/rofl-lab1/internal/version"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 func (controller *Controller) GetRequest(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
@@ -19,8 +21,12 @@ func (controller *Controller) GetRequest(ctx context.Context, update tgbotapi.Up
 	return controller.handleKnowledgeBaseRequest(ctx, update)
 }
 
-func (controller *Controller) getAnswerForKnowledgeBaseRequest(ctx context.Context, userRequest string) (string, error) {
-	askResults, err := usecases.AskKnowledgeBase(ctx, controller.ModelClient, userRequest)
+func (controller *Controller) getAnswerForKnowledgeBaseRequest(
+	ctx context.Context,
+	userRequest string,
+	requests []commons.ModelRequest,
+) (string, error) {
+	askResults, err := usecases.AskKnowledgeBase(ctx, controller.ModelClient, userRequest, requests)
 	if err != nil {
 		return "", fmt.Errorf("failed to ask knowledge base: %w", err)
 	}
@@ -52,7 +58,11 @@ func (controller *Controller) handleKnowledgeBaseRequest(
 		return 0, fmt.Errorf("error while trying to send message: %w", err)
 	}
 
-	message, err := controller.getAnswerForKnowledgeBaseRequest(ctx, update.Message.Text)
+	message, err := controller.getAnswerForKnowledgeBaseRequest(
+		ctx,
+		update.Message.Text,
+		mclient.GetFastModelRequestsPattern(),
+	)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get answer for knowledge base request: %w", err)
 	}
