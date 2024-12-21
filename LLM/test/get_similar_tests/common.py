@@ -1,6 +1,7 @@
 import re
 import yaml
 from typing import List, Tuple
+import pytest
 
 import test.openapi_client as oc
 from test.openapi_client.models.search_similar_request import SearchSimilarRequest
@@ -10,7 +11,8 @@ configuration = oc.Configuration(
 )
 
 
-def parse_yaml() -> dict:
+@pytest.fixture(scope='session')
+def knowledge_base_data() -> dict:
     with open('data.yaml', 'r', encoding='utf-8') as file:
         data = yaml.safe_load(file)
 
@@ -42,30 +44,33 @@ def question_preprocessing(question: str) -> str:
     return re.sub(r'\s+', "", res)
 
 
-def should_include_checker(question: str, should_include: List[int]):
+def should_include_checker(knowledge_base_data, question: str, should_include: List[int]):
     """
     should_include_checker sends request to get_similar route and checks if all items of
     should_include list are in context for question
+    :param knowledge_base_data:
     :param question: emulated user question
     :param should_include: list of answers ids that are necessary to be in context
     :return:
     """
     contexts = get_similar(question)
 
-    data = parse_yaml()
-
     contexts_answers = [i["answer"] for i in contexts]
     proceeded_contexts_answers = {question_preprocessing(i) for i in contexts_answers}
 
     for value_id in should_include:
-        value = data[value_id]['answer']
+        value = knowledge_base_data[value_id]['answer']
         processed = question_preprocessing(value)
 
         assert processed in proceeded_contexts_answers, \
             f"There is no answer \"{value}\" in context answers {contexts_answers}"
 
 
-def should_be_in_percentile_checker(question: str, should_be_in_percentile: List[Tuple[str, float]]):
+def should_be_in_percentile_checker(
+    knowledge_base_data,
+    question: str,
+    should_be_in_percentile: List[Tuple[str, float]],
+):
     """
     should_be_in_percentile_checker sends request to get_similar route and checks if all
     items of should_be_in_percentile are in theirs percentiles.
