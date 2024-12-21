@@ -1,4 +1,4 @@
-from test.get_similar_tests.common import should_include_checker, should_be_in_percentile_checker, knowledge_base_data
+from test.get_similar_tests.common import should_include_checker, knowledge_base_data
 import pytest
 
 

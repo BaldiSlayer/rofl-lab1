@@ -19,6 +19,7 @@ def knowledge_base_data() -> dict:
     return {i['id']: i for i in data}
 
 
+# TODO сделать асинхронным, как и все тесты
 def get_similar(question: str) -> List[dict]:
     """
     Sends a request to the LM module API to find the nearest knowledge base elements for a given question
@@ -64,33 +65,3 @@ def should_include_checker(knowledge_base_data, question: str, should_include: L
 
         assert processed in proceeded_contexts_answers, \
             f"There is no answer \"{value}\" in context answers {contexts_answers}"
-
-
-def should_be_in_percentile_checker(
-    knowledge_base_data,
-    question: str,
-    should_be_in_percentile: List[Tuple[str, float]],
-):
-    """
-    should_be_in_percentile_checker sends request to get_similar route and checks if all
-    items of should_be_in_percentile are in theirs percentiles.
-    :param question: emulated user question
-    :param should_be_in_percentile: list of (question, percentile)
-    :return:
-    """
-    contexts = get_similar(question)
-
-    contexts_answers = [i["answer"] for i in contexts]
-    proceeded_contexts_answers = {question_preprocessing(i) for i in contexts_answers}
-
-    for value in should_be_in_percentile:
-        proceeded_answer = question_preprocessing(value[0])
-
-        ans_index = proceeded_contexts_answers.index(proceeded_answer)
-
-        assert ans_index != -1, f"There is no answer \"{value[0]}\" in context {contexts_answers}"
-
-        percentile = ans_index / len(contexts_answers)
-
-        assert value[1] >= percentile, \
-            f"Answer \"{value[0]}\" is not in {value[1]} percentile in context {contexts_answers}"
