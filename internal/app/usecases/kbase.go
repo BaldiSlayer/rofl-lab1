@@ -8,6 +8,7 @@ import (
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/githubclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
+	commons "github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/version"
 )
 
@@ -22,25 +23,12 @@ type AskResults struct {
 	QuestionsContext []models.QAPair
 }
 
-func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, question string) (AskResults, error) {
-	requests := [...]struct {
-		model      string
-		useContext bool
-	}{
-		{
-			model:      "mistral-large-2411",
-			useContext: true,
-		},
-		{
-			model:      "mistral-large-2411",
-			useContext: false,
-		},
-		{
-			model:      "open-mistral-7b",
-			useContext: true,
-		},
-	}
-
+func AskKnowledgeBase(
+	ctx context.Context,
+	modelClient mclient.ModelClient,
+	question string,
+	requests []commons.ModelRequest,
+) (AskResults, error) {
 	res := make([]KBAnswer, 0, len(requests))
 
 	questionsContext, err := modelClient.GetFormattedContext(ctx, question)
@@ -51,11 +39,11 @@ func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, ques
 	for _, request := range requests {
 		questionContext := []models.QAPair(nil)
 
-		if request.useContext {
+		if request.UseContext {
 			questionContext = questionsContext
 		}
 
-		ans, err := ask(ctx, modelClient, question, request.model, questionContext)
+		ans, err := ask(ctx, modelClient, question, request.Model, questionContext)
 		if err != nil {
 			return AskResults{}, fmt.Errorf("error while ask model: %w", err)
 		}

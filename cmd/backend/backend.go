@@ -30,7 +30,12 @@ func cli() {
 
 	slog.Info("Executing model request")
 
-	askResults, err := usecases.AskKnowledgeBase(context.Background(), model, string(data))
+	askResults, err := usecases.AskKnowledgeBase(
+		context.Background(),
+		model,
+		string(data),
+		mclient.GetDefaultModelRequestsPattern(),
+	)
 	if err != nil {
 		ExitWithError("error requesting knowledge base", "error", err)
 	}
