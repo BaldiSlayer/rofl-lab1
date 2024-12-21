@@ -15,6 +15,10 @@ const (
 	ValidateTrs
 	// FixTrs - состояние отображения пользователю ошибки формализации TRS
 	FixTrs
-	// GetQuestionMultiModels -
+	// GetQuestionMultiModels - состояние ожидания ввода запроса от пользователю в режиме использования
+	// нескольких моделей
 	GetQuestionMultiModels
+	// GetSimilar - состояние ожидания ввода запроса от пользователю в режиме поиска
+	// близких
+	GetSimilar
 )

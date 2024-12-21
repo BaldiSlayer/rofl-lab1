@@ -229,6 +229,7 @@ func buildTransitions(controller *controllers.Controller) map[models.UserState]a
 		models.ValidateTrs:            controller.ValidateTrs,
 		models.FixTrs:                 controller.FixTrs,
 		models.GetQuestionMultiModels: controller.GetRequestMultiModels,
+		models.GetSimilar:             controller.GetSimilar,
 	}
 }
 
@@ -238,6 +239,7 @@ func buildCommands(controller *controllers.Controller) map[string]actpool.StateT
 		"help":        controller.HelpCommand,
 		"trs":         controller.TrsCommand,
 		"version":     controller.VersionCommand,
-		"multimodels": controller.GetCommandMultiModels,
+		"multimodels": controller.CommandMultiModels,
+		"similar":     controller.CommandGetSimilar,
 	}
 }

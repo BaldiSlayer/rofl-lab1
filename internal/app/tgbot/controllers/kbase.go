@@ -14,6 +14,10 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+var (
+	similarAnswerTemplate = "Для вашего вопроса были найдены следущие похожие элементы."
+)
+
 func (controller *Controller) GetRequest(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
 	if update.Message == nil {
 		return models.GetRequest, nil
@@ -108,10 +112,59 @@ func (controller *Controller) GetRequestMultiModels(ctx context.Context, update 
 	)
 }
 
-func (controller *Controller) GetCommandMultiModels(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
+func (controller *Controller) GetSimilar(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
+	userID := update.SentFrom().ID
+
+	args := strings.TrimSpace(update.Message.Text)
+
+	if args == "" {
+		return models.GetQuestionMultiModels, controller.Bot.SendMessage(userID, "Введите вопрос к базе знаний")
+	}
+
+	msgID, err := controller.Bot.SendMessageWithReturningID(
+		update.Message.Chat.ID,
+		"Запрос обрабатывается. Ожидайте.",
+	)
+	if err != nil {
+		return 0, fmt.Errorf("error while trying to send message: %w", err)
+	}
+
+	gistLink, err := usecases.GetSimilarElements(
+		ctx,
+		controller.ModelClient,
+		controller.GihubClient,
+		update.Message.Text,
+	)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get similar elements for knowledge base request: %w", err)
+	}
+
+	message := fmt.Sprintf(
+		"%s\n\n[ссылка на использованный контекст](%s)\n\n%s",
+		similarAnswerTemplate,
+		gistLink,
+		version.BuildVersionWithLink(),
+	)
+
+	return models.GetRequest, controller.Bot.EditMarkdownMessage(
+		update.Message.Chat.ID,
+		msgID,
+		message,
+	)
+}
+
+func (controller *Controller) CommandMultiModels(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
 
 	return models.GetQuestionMultiModels,
 		controller.Bot.SendMessage(userID, "Введите вопрос к базе знаний. Для ответа на вопрос "+
 			"будет сделано 3 разных запроса.")
+}
+
+func (controller *Controller) CommandGetSimilar(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
+	userID := update.SentFrom().ID
+
+	return models.GetSimilar,
+		controller.Bot.SendMessage(userID, "Введите вопрос, для него будут найдены "+
+			"похожие элементы базы знаний (да, это реально похожие, а не мы выдаем рандом.)")
 }
