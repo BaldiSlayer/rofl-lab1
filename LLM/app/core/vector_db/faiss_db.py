@@ -5,7 +5,6 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 
 import app.core.vector_db.questions_preprocessing as question_preprocessor
-import app.core.vector_db.text_translator as text_translator
 import app.config.config as config
 import app.schemas.questions as schemas
 
@@ -71,7 +70,7 @@ class FaissDB:
         # TODO to not to dict
         return context
 
-    def search_similar(self, query, similarity_threshold=0.3):
+    def search_similar(self, query, similarity_threshold=0.5):
         """
         Dynamic search for similar objects based on similarity threshold.
         :param query: query string
@@ -80,9 +79,7 @@ class FaissDB:
         :return: list of similar objects
         """
 
-        translator = text_translator.translator
-
-        query_embedding = self.model.encode([question_preprocessor.prepocess_question(translator, query)])
+        query_embedding = self.model.encode([question_preprocessor.prepocess_question(query)])
 
         faiss.normalize_L2(query_embedding)
 

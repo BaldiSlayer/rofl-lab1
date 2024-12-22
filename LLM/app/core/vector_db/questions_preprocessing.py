@@ -11,7 +11,7 @@ download('punkt_tab')
 stop_words = set(stopwords.words('russian'))
 
 
-def prepocess_question(lang_translator, question: str) -> str:
+def prepocess_question(question: str) -> str:
     question = question.strip()
 
     # Убираем пунктуацию и переводим текст в нижний регистр
@@ -23,4 +23,4 @@ def prepocess_question(lang_translator, question: str) -> str:
     # Удаляем стоп слова
     filtered_words = [word for word in words if word not in stop_words]
 
-    return lang_translator.translate_text(' '.join(filtered_words))
+    return ' '.join(filtered_words)

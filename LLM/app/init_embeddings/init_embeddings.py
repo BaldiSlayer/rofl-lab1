@@ -5,18 +5,15 @@ import sys
 from sentence_transformers import SentenceTransformer
 
 import app.core.vector_db.questions_preprocessing as question_preprocessor
-import app.core.vector_db.text_translator as text_translator
 import app.config.config as config
 
 
 def create_embeddings(model, data):
-    translator = text_translator.translator
-
     texts = []
 
     for item in data:
         for question in item["questions"]:
-            texts.append(question_preprocessor.prepocess_question(translator, question))
+            texts.append(question_preprocessor.prepocess_question(question))
 
     embeddings = model.encode(texts)
 
