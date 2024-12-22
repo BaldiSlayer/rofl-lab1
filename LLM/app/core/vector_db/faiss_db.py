@@ -31,10 +31,11 @@ class FaissDB:
     model = None
     index = None
 
+    MAX_CONTEXT_SIZE: int
+
     def __init__(self, sentence_transformer_name: str):
         self.model = SentenceTransformer(sentence_transformer_name)
 
-        # база знаний
         with open('data.yaml', 'r') as file:
             self.data = yaml.safe_load(file)
 
@@ -43,6 +44,8 @@ class FaissDB:
             self.elem_index_questions.append(len(item['questions']))
 
         self.index = faiss.read_index('vectorized_data.faiss')
+
+        self.MAX_CONTEXT_SIZE = int(0.025 * len(self.data))
 
     def get_knowledge_base_elem(self, ans_pos: int, question_pos: int):
         elem = self.data[ans_pos]
@@ -68,7 +71,7 @@ class FaissDB:
         # TODO to not to dict
         return context
 
-    def search_similar(self, query, k_max=10, similarity_threshold=0.3):
+    def search_similar(self, query, similarity_threshold=0.3):
         """
         Dynamic search for similar objects based on similarity threshold.
         :param query: query string
@@ -83,10 +86,9 @@ class FaissDB:
 
         faiss.normalize_L2(query_embedding)
 
-        # perform a search with the maximum value of k
-        distances, indices = self.index.search(np.array(query_embedding), k_max)
+        distances, indices = self.index.search(np.array(query_embedding), 2*self.MAX_CONTEXT_SIZE)
 
-        return self.get_context(distances, indices, similarity_threshold, k_max)
+        return self.get_context(distances, indices, similarity_threshold, self.MAX_CONTEXT_SIZE)
 
 
 faiss_db = FaissDB(
