@@ -1,4 +1,4 @@
-package mclient
+package usecases
 
 var (
 	ModelContextTemplate = `

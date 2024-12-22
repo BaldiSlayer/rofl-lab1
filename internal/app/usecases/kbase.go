@@ -1,8 +1,10 @@
 package usecases
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"html/template"
 	"log/slog"
 	"strings"
 	"sync"
@@ -23,6 +25,23 @@ type KBAnswer struct {
 type AskResults struct {
 	Answers          []KBAnswer
 	QuestionsContext []models.QAPair
+	FormattedContext string
+}
+
+func getContextFromQASlice(contextQASlice []models.QAPair) (string, error) {
+	t, err := template.New("qaTemplate").Parse(ModelContextTemplate)
+	if err != nil {
+		return "", err
+	}
+
+	var output bytes.Buffer
+
+	err = t.Execute(&output, contextQASlice)
+	if err != nil {
+		return "", err
+	}
+
+	return output.String(), nil
 }
 
 func GetSimilarElements(
@@ -43,7 +62,7 @@ func GetSimilarElements(
 		},
 		{
 			Name:    fmt.Sprintf("similar.md"),
-			Content: getContextPresentationForGist(questionsContext, false),
+			Content: getContextPresentationForGist(questionsContext, "", false),
 		},
 	}
 
@@ -73,6 +92,11 @@ func AskKnowledgeBase(
 		return AskResults{}, fmt.Errorf("failed to get formatted context: %w", err)
 	}
 
+	formattedContext, err := getContextFromQASlice(questionsContext)
+	if err != nil {
+		return AskResults{}, fmt.Errorf("failed to gen template for extra prompt: %w", err)
+	}
+
 	var wg sync.WaitGroup
 
 	wg.Add(len(requests))
@@ -81,10 +105,10 @@ func AskKnowledgeBase(
 		go func(i int, request models.ModelRequest) {
 			defer wg.Done()
 
-			questionContext := []models.QAPair(nil)
+			questionContext := ""
 
 			if request.UseContext {
-				questionContext = questionsContext
+				questionContext = formattedContext
 			}
 
 			ans, err := ask(ctx, modelClient, question, request.Model, request.UseContext, questionContext)
@@ -103,6 +127,7 @@ func AskKnowledgeBase(
 	return AskResults{
 		Answers:          res,
 		QuestionsContext: questionsContext,
+		FormattedContext: formattedContext,
 	}, nil
 }
 
@@ -112,10 +137,15 @@ func ask(
 	question string,
 	model string,
 	useContext bool,
-	questionContext []models.QAPair,
+	formattedContext string,
 ) (KBAnswer, error) {
 	if useContext {
-		res, err := modelClient.AskWithContext(ctx, question, model, questionContext)
+		res, err := modelClient.AskWithContext(
+			ctx,
+			question,
+			model,
+			formattedContext,
+		)
 		if err != nil {
 			return KBAnswer{}, fmt.Errorf("failed to ask model with context: %w", err)
 		}
@@ -138,13 +168,17 @@ func ask(
 	}, nil
 }
 
-func getContextPresentationForGist(questionsContext []models.QAPair, withPrompt bool) string {
+func getContextPresentationForGist(
+	questionsContext []models.QAPair,
+	extraPrompt string,
+	withPrompt bool,
+) string {
 	var sb strings.Builder
 
 	if withPrompt {
-		sb.WriteString("## Шаблон промпта для контекста\n")
+		sb.WriteString("## Отправленный промпт с контекстом \n")
 		sb.WriteString("```")
-		sb.WriteString(mclient.ModelContextTemplate)
+		sb.WriteString(extraPrompt)
 		sb.WriteString("\n```\n")
 
 		sb.WriteString("## Контекст")
@@ -174,8 +208,12 @@ func UploadKnowledgeBaseAnswers(
 	files = append(
 		files,
 		githubclient.GistFile{
-			Name:    "context.md",
-			Content: getContextPresentationForGist(askResults.QuestionsContext, true),
+			Name: "context.md",
+			Content: getContextPresentationForGist(
+				askResults.QuestionsContext,
+				askResults.FormattedContext,
+				true,
+			),
 		},
 		githubclient.GistFile{
 			Name:    "1-question.md",
