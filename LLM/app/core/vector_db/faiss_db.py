@@ -78,8 +78,6 @@ class FaissDB:
         context = []
         kb_items_idxes_set = set()
 
-        print(distances[0][0])
-
         for i in range(0, k_max):
             if distances[0][i] < similarity_threshold:
                 break
