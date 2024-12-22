@@ -22,13 +22,13 @@
 # %% [markdown] id="eBdqyMMU0_GZ"
 # ## качаю нужные библиотеки
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="8nxzUr8-3NsH" outputId="0438dc07-03b1-46d9-be9d-e352563190d9"
+# %% colab={"base_uri": "https://localhost:8080/"} id="8nxzUr8-3NsH" outputId="3695f324-f2b5-4762-de99-a9abf732445e"
 # !pip install pymorphy2
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="E50FJEIezntI" outputId="08a7a992-129e-417e-db52-74076effc814"
+# %% colab={"base_uri": "https://localhost:8080/"} id="E50FJEIezntI" outputId="303d3cf4-aa08-43da-8ae6-3c5cbd4ad45d"
 # !pip install pdfminer.six
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="SSsLEe_zznq9" outputId="a56346db-5d2b-497b-8e54-eab5466a41d9"
+# %% colab={"base_uri": "https://localhost:8080/"} id="SSsLEe_zznq9" outputId="da9f2505-0d7d-4a1b-8f59-2f519b076990"
 # !pip install 'pdfminer.six[image]'
 
 # %% [markdown] id="CyaR7pFa1Jij"
@@ -43,17 +43,19 @@ from nltk.corpus import stopwords # убираем стоп слова
 import pymorphy2 # для лемантизации
 from collections import Counter # подсчёт частых
 from gensim.models.phrases import Phrases, Phraser # дли биграмм
+from scipy import spatial
 
 from gensim.models.word2vec import Word2Vec
+from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 
 from pdfminer.high_level import extract_text # pdf в текст
 
 from google.colab import drive # подключение к диску
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="pe5CpIvY0RY7" outputId="becca389-1a1a-4fee-f6be-7f6c51260b8e"
+# %% colab={"base_uri": "https://localhost:8080/"} id="pe5CpIvY0RY7" outputId="ba38775a-d3bb-4fc6-dd12-2ab9f2eacace"
 drive.mount('/content/drive', force_remount=True)
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="1jjMPO7aSlRS" outputId="8efedf04-17d8-49fd-8951-1cea2baa1e4c"
+# %% colab={"base_uri": "https://localhost:8080/"} id="1jjMPO7aSlRS" outputId="92d8c29f-0c5c-4069-fcb0-e15ccc8a7752"
 nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('punkt_tab')
@@ -69,14 +71,14 @@ morph = pymorphy2.MorphAnalyzer()
 # %% [markdown] id="Ot4HjDfUDErj"
 # ### книга
 
-# %% id="VvKlY3SokHGK"
+# %% colab={"background_save": true} id="VvKlY3SokHGK"
 # лекции за 2023 год + материалы итмо + книга хопкрофта на русском
 all_texts = []
 
-for i in range(1, 68):
+for i in range(1, 69):
     t = extract_text(f"/content/drive/MyDrive/texts/{i}.pdf")
     # глазами зацепилась за не оч хорошие переносы, поэтому фикс
-    t = t.replace('-\n', '')
+    t = t.replace('-\n', '').replace('\n\n', '\n')
     all_texts.append(t)
 
 
@@ -175,7 +177,8 @@ trash_dict = ['че', 'доказать', 'рассказать', 'ваш', 'п�
 # %% id="ntRI3jSxo-Xi"
 for text in all_texts:
     t = make_clean(text)
-    all_sentences = all_sentences + t
+    if len(t) > 0:
+        all_sentences = all_sentences + t
 
     # частые слова
     common = get_dict_words(t)
@@ -185,6 +188,30 @@ for text in all_texts:
 
     new_dict = dict(list(my_dict.items()) + list(useful_dict.items()))
     my_dict = new_dict.copy()
+
+# %% [markdown] id="3H7KF6QYK_TE"
+# ### предобработка перед doc2vec
+
+# %% id="EpWP_U96LFH4"
+vocab_index = [TaggedDocument(text,[k]) for k, text in enumerate(all_sentences)]
+
+model = Doc2Vec(vector_size=300, window=1, min_count=3, workers=6, epochs=20)
+
+model.build_vocab(vocab_index)
+model.train(vocab_index, total_examples=model.corpus_count, epochs=20)
+
+# %% colab={"base_uri": "https://localhost:8080/"} id="vtVaalz1Mg4i" outputId="517ce60a-d566-486a-fbfb-cb85af5ff0b1"
+s1 = model.infer_vector('дка'.split())
+s2 = model.infer_vector('регулярные языки и их свойства'.split())
+
+cos_distance = spatial.distance.cosine(s1, s2)
+
+cos_distance
+
+# %% colab={"base_uri": "https://localhost:8080/"} id="utLC_GHmN8SS" outputId="821f3ee5-9c89-4957-b23a-df67bc53f534"
+similar_vec = model.docvecs.most_similar([s2], topn=10)
+
+similar_sent = [" ".join(vocab_index[top[0]].words) for top in similar_vec]
 
 # %% [markdown] id="DqvEnLZ9spVQ"
 # ### предобработка перед w2v
@@ -208,18 +235,21 @@ def trigram_generator():
         yield trigram_transformer[bigram_transformer[[word for word in text]]]
 
 
-# %% id="_bXigcMdvQLb"
-words = [i for i in trigram_generator()]
+# %% id="QR-OKoYAPPqO"
+ok = [i for i in trigram_generator()]
 
 # %% id="fU_fJ8wnvXDt"
-model = Word2Vec(vector_size=300, window=7, min_count=3)
-model.build_vocab(words)
+model = Word2Vec(vector_size=300, window=10, min_count=3, workers=4)
+model.build_vocab(ok)
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="SOR_qrPIvdNd" outputId="4fd22705-115d-4231-971d-2b7460008482"
-model.train(words, total_examples=model.corpus_count, epochs=5)
+# %% colab={"base_uri": "https://localhost:8080/"} id="moDBxGzkPx8U" outputId="2757a0cc-6c05-497b-ac3b-80957175ff4f"
+model.corpus_count
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="N1Up3Fc31jjO" outputId="6cc8392b-cf95-4889-b80a-cf68b1b0819b"
-model.wv.similarity('слово', 'цепочка')
+# %% colab={"base_uri": "https://localhost:8080/"} id="SOR_qrPIvdNd" outputId="a4f6658a-222a-4896-edb8-75e071fc8276"
+model.train(ok, total_examples=model.corpus_count, epochs=500)
+
+# %% colab={"base_uri": "https://localhost:8080/"} id="N1Up3Fc31jjO" outputId="b0e92a6d-da09-4b0c-b743-9184e332dfa8"
+model.wv.most_similar('дка')
 
 # %% id="T2QHea_0vgBl"
 # сохраню потом
