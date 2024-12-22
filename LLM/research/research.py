@@ -22,14 +22,17 @@
 # %% [markdown] id="eBdqyMMU0_GZ"
 # ## качаю нужные библиотеки
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="8nxzUr8-3NsH" outputId="3695f324-f2b5-4762-de99-a9abf732445e"
+# %% colab={"base_uri": "https://localhost:8080/"} id="8nxzUr8-3NsH" outputId="03bfd5b3-9566-4742-cd49-d58b218c35e8"
 # !pip install pymorphy2
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="E50FJEIezntI" outputId="303d3cf4-aa08-43da-8ae6-3c5cbd4ad45d"
+# %% colab={"base_uri": "https://localhost:8080/"} id="E50FJEIezntI" outputId="b879c8b8-4c38-4678-9106-742e3a7ff19c"
 # !pip install pdfminer.six
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="SSsLEe_zznq9" outputId="da9f2505-0d7d-4a1b-8f59-2f519b076990"
+# %% colab={"base_uri": "https://localhost:8080/"} id="SSsLEe_zznq9" outputId="83671d3b-5276-4067-a625-d84fdc89d09c"
 # !pip install 'pdfminer.six[image]'
+
+# %% colab={"base_uri": "https://localhost:8080/"} id="2oObxkmlGca2" outputId="1e9711d3-9e44-4a96-f970-10ad653fddf6"
+# !pip install faiss
 
 # %% [markdown] id="CyaR7pFa1Jij"
 # ## всякие импорты
@@ -44,6 +47,8 @@ import pymorphy2 # для лемантизации
 from collections import Counter # подсчёт частых
 from gensim.models.phrases import Phrases, Phraser # дли биграмм
 from scipy import spatial
+import numpy as np
+import tensorflow as tf
 
 from gensim.models.word2vec import Word2Vec
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
@@ -52,10 +57,10 @@ from pdfminer.high_level import extract_text # pdf в текст
 
 from google.colab import drive # подключение к диску
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="pe5CpIvY0RY7" outputId="ba38775a-d3bb-4fc6-dd12-2ab9f2eacace"
+# %% colab={"base_uri": "https://localhost:8080/"} id="pe5CpIvY0RY7" outputId="2ec5e0cb-2628-4afc-a03f-2022d66c3596"
 drive.mount('/content/drive', force_remount=True)
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="1jjMPO7aSlRS" outputId="92d8c29f-0c5c-4069-fcb0-e15ccc8a7752"
+# %% colab={"base_uri": "https://localhost:8080/"} id="1jjMPO7aSlRS" outputId="2db0b24a-f7dd-4752-8f36-8b9d10edd7b9"
 nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('punkt_tab')
@@ -71,7 +76,7 @@ morph = pymorphy2.MorphAnalyzer()
 # %% [markdown] id="Ot4HjDfUDErj"
 # ### книга
 
-# %% colab={"background_save": true} id="VvKlY3SokHGK"
+# %% id="VvKlY3SokHGK"
 # лекции за 2023 год + материалы итмо + книга хопкрофта на русском
 all_texts = []
 
@@ -200,15 +205,18 @@ model = Doc2Vec(vector_size=300, window=1, min_count=3, workers=6, epochs=20)
 model.build_vocab(vocab_index)
 model.train(vocab_index, total_examples=model.corpus_count, epochs=20)
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="vtVaalz1Mg4i" outputId="517ce60a-d566-486a-fbfb-cb85af5ff0b1"
+# %% colab={"base_uri": "https://localhost:8080/"} id="vtVaalz1Mg4i" outputId="65fbfa5c-44d7-4fc6-ae8d-19ec324b18b8"
 s1 = model.infer_vector('дка'.split())
 s2 = model.infer_vector('регулярные языки и их свойства'.split())
+
+s1 = tf.math.l2_normalize(s1).numpy()
+s2 = tf.math.l2_normalize(s2).numpy()
 
 cos_distance = spatial.distance.cosine(s1, s2)
 
 cos_distance
 
-# %% colab={"base_uri": "https://localhost:8080/"} id="utLC_GHmN8SS" outputId="821f3ee5-9c89-4957-b23a-df67bc53f534"
+# %% colab={"base_uri": "https://localhost:8080/"} id="utLC_GHmN8SS" outputId="81e0c3b2-39a9-47cb-e72b-c791f16af0ba"
 similar_vec = model.docvecs.most_similar([s2], topn=10)
 
 similar_sent = [" ".join(vocab_index[top[0]].words) for top in similar_vec]
@@ -283,3 +291,45 @@ my_metrics(s1, s2, trash_dict=trash_dict)
 
 # %% [markdown] id="q6QZNMrgDqvw"
 # и тут для меня дошло, что, если расписывать вопросы в БЗ, то деление на длину слов вопроса из БЗ (коих будет много) не будет явно и точно отражать близость, но относительно такой штуки можно смотреть динамику
+
+# %% colab={"base_uri": "https://localhost:8080/"} id="3C5whEvNwxFP" outputId="e80de487-b616-43bc-ec08-4ac435f4be67"
+# !pip install FlagEmbedding
+
+# %% colab={"base_uri": "https://localhost:8080/", "height": 49, "referenced_widgets": ["f82667ff6c1942e4952121ba5e1923ea", "344bdcd2123045eb83f34c54f9858a13", "b5d7daf0a9f54f35a658a41ed9f5cec8", "5af407bf6155464d8de2504fc618b4fd", "84d5c47c9fd94cc1a5c15b17629ceab6", "289845da237546a1a5bb6f6ce6d99154", "a09ee8e503a8484e8b28d13b36b224fa", "0ca3176a2c764ff082044b80916cec27", "c23595416e8d46eaa4ec7195fee48838", "8cde040e5d49452997d4de90649f486a", "078cd8bd952e4a438b458cea57602748"]} id="VI7BNclkw9Ou" outputId="8915df4e-846b-4b8e-9ab2-d212e61e8ae4"
+from FlagEmbedding import BGEM3FlagModel
+
+model = BGEM3FlagModel('BAAI/bge-m3',  use_fp16=True)
+
+# %% colab={"base_uri": "https://localhost:8080/"} id="M6pyw0cizrKr" outputId="dd24e2a1-30c2-4aee-a733-2eb17da9dd2f"
+from sentence_transformers import SentenceTransformer
+
+mmm = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+
+# %% id="vaQbzNkS2SG9"
+sentences_1 = ['че такое эти ваши производные антимирова',
+               "великая и всемогущая модель, расскажи мне про регулярные языки",
+               "правда, что любой язык детерминирован?"]
+sentences_2 = ['Как можно вычислить частичные производные Антимирова?',
+               "расскажи деревья разбора",
+               "Что представляет собой язык, распознаваемый недетерминированным конечным автоматом (НКА)?"]
+
+# %% colab={"base_uri": "https://localhost:8080/"} id="niysV3awx8eZ" outputId="f1bd3723-d09e-484a-e7f2-9853a3266480"
+embeddings_1 = model.encode(sentences_1)['dense_vecs']
+embeddings_2 = model.encode(sentences_2)['dense_vecs']
+
+# %% id="zMsCd9Ri5jvL"
+em_1 = mmm.encode(sentences_1)
+em_2 = mmm.encode(sentences_2)
+
+# %% colab={"base_uri": "https://localhost:8080/"} id="eOxM8uv74kOx" outputId="12966169-1e9a-4a76-8621-bacc66472348"
+for i in range(len(embeddings_1)):
+    for j in range(len(embeddings_2)):
+        e_1 = embeddings_1[i]
+        e_2 = embeddings_2[j]
+        st_1 = em_1[i]
+        st_2 = em_2[j]
+        s_1 = sentences_1[i]
+        s_2 = sentences_2[j]
+        print(f'{s_1} AND {s_2}: ', e_1 @ e_2, st_1 @ st_2)
+
+# %% id="cMfWelM72i4D"
