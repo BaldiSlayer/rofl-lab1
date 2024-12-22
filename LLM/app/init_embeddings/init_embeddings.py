@@ -58,8 +58,10 @@ def main():
     with open(sys.argv[1], 'r', encoding='utf-8') as file:
         content = yaml.safe_load(file)
 
+    model = SentenceTransformer(cfg.get_sentence_transformer_name())
+
     init_embeddings(
-        SentenceTransformer(cfg.get_sentence_transformer_name()),
+        model,
         content,
         sys.argv[2],
     )
