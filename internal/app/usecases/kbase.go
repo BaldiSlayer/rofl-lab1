@@ -3,11 +3,14 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
+	"sync"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/githubclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
+	commons "github.com/BaldiSlayer/rofl-lab1/internal/app/models"
 	"github.com/BaldiSlayer/rofl-lab1/internal/version"
 )
 
@@ -22,46 +25,80 @@ type AskResults struct {
 	QuestionsContext []models.QAPair
 }
 
-func AskKnowledgeBase(ctx context.Context, modelClient mclient.ModelClient, question string) (AskResults, error) {
-	requests := [...]struct {
-		model      string
-		useContext bool
-	}{
+func GetSimilarElements(
+	ctx context.Context,
+	modelClient mclient.ModelClient,
+	ghClient *githubclient.Client,
+	question string,
+) (string, error) {
+	questionsContext, err := modelClient.GetFormattedContext(ctx, question)
+	if err != nil {
+		return "", fmt.Errorf("failed to get formatted context: %w", err)
+	}
+
+	files := []githubclient.GistFile{
 		{
-			model:      "mistral-large-2411",
-			useContext: true,
+			Name:    "1-question.md",
+			Content: fmt.Sprintf("## Пользовательский вопрос\n%s", question),
 		},
 		{
-			model:      "mistral-large-2411",
-			useContext: false,
-		},
-		{
-			model:      "open-mistral-7b",
-			useContext: true,
+			Name:    fmt.Sprintf("similar.md"),
+			Content: getContextPresentationForGist(questionsContext, false),
 		},
 	}
 
-	res := make([]KBAnswer, 0, len(requests))
+	gist := githubclient.Gist{
+		Description: version.BuildVersion(),
+		Files:       files,
+	}
+
+	link, err := ghClient.GistCreate(ctx, gist)
+	if err != nil {
+		return "", fmt.Errorf("failed to create gist: %w", err)
+	}
+
+	return link, nil
+}
+
+func AskKnowledgeBase(
+	ctx context.Context,
+	modelClient mclient.ModelClient,
+	question string,
+	requests []commons.ModelRequest,
+) (AskResults, error) {
+	res := make([]KBAnswer, len(requests))
 
 	questionsContext, err := modelClient.GetFormattedContext(ctx, question)
 	if err != nil {
 		return AskResults{}, fmt.Errorf("failed to get formatted context: %w", err)
 	}
 
-	for _, request := range requests {
-		questionContext := []models.QAPair(nil)
+	var wg sync.WaitGroup
 
-		if request.useContext {
-			questionContext = questionsContext
-		}
+	wg.Add(len(requests))
 
-		ans, err := ask(ctx, modelClient, question, request.model, questionContext)
-		if err != nil {
-			return AskResults{}, fmt.Errorf("error while ask model: %w", err)
-		}
+	for i, request := range requests {
+		go func(i int, request models.ModelRequest) {
+			defer wg.Done()
 
-		res = append(res, ans)
+			questionContext := []models.QAPair(nil)
+
+			if request.UseContext {
+				questionContext = questionsContext
+			}
+
+			ans, err := ask(ctx, modelClient, question, request.Model, questionContext)
+			if err != nil {
+				slog.Error("error while asking model", "model", request.Model)
+
+				return
+			}
+
+			res[i] = ans
+		}(i, request)
 	}
+
+	wg.Wait()
 
 	return AskResults{
 		Answers:          res,
@@ -100,16 +137,18 @@ func ask(
 	}, nil
 }
 
-func getContextPresentationForGist(questionsContext []models.QAPair) string {
+func getContextPresentationForGist(questionsContext []models.QAPair, withPrompt bool) string {
 	var sb strings.Builder
 
-	sb.WriteString("## Шаблон промпта для контекста\n")
-	sb.WriteString("```")
-	sb.WriteString(mclient.ModelContextTemplate)
-	sb.WriteString("\n```\n")
+	if withPrompt {
+		sb.WriteString("## Шаблон промпта для контекста\n")
+		sb.WriteString("```")
+		sb.WriteString(mclient.ModelContextTemplate)
+		sb.WriteString("\n```\n")
 
-	sb.WriteString("## Контекст")
-	sb.WriteByte('\n')
+		sb.WriteString("## Контекст")
+		sb.WriteByte('\n')
+	}
 
 	for _, val := range questionsContext {
 		sb.WriteString("### Вопрос\n")
@@ -135,7 +174,7 @@ func UploadKnowledgeBaseAnswers(
 		files,
 		githubclient.GistFile{
 			Name:    "context.md",
-			Content: getContextPresentationForGist(askResults.QuestionsContext),
+			Content: getContextPresentationForGist(askResults.QuestionsContext, true),
 		},
 		githubclient.GistFile{
 			Name:    "1-question.md",

@@ -37,8 +37,8 @@ func (controller *Controller) extractTrs(ctx context.Context, userRequest string
 		return 0, err
 	}
 
-	extractData, err := controller.TrsUseCases.ExtractFormalTrs(ctx, userRequest)
-	return controller.handleExctractResult(ctx, update, extractData.Trs, extractData.FormalizedTrs, err)
+	extractedData, err := controller.TrsUseCases.ExtractFormalTrs(ctx, userRequest)
+	return controller.handleExctractResult(ctx, update, extractedData.Trs, extractedData.FormalizedTrs, err)
 }
 
 func (controller *Controller) handleExctractResult(ctx context.Context, update tgbotapi.Update, trs trsparser.Trs,
@@ -102,11 +102,11 @@ func (controller *Controller) ValidateTrs(ctx context.Context, update tgbotapi.U
 			return 0, err
 		}
 
-		return models.GetRequest, errors.Join(
-			controller.Bot.SendMarkdownMessage(userID, fmt.Sprintf("Результат интерпретации TRS:\n```\n%s\n```", res)),
-			controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний"),
-		)
-	} else if update.Message != nil {
+		return models.GetRequest,
+			controller.Bot.SendMarkdownMessage(userID, fmt.Sprintf("Результат интерпретации TRS:\n```\n%s\n```", res))
+	}
+
+	if update.Message != nil {
 		errorDescription := update.Message.Text
 
 		userRequest, err := controller.Storage.GetRequest(ctx, userID)
