@@ -95,7 +95,7 @@ class FaissDB:
         # TODO to not to dict
         return context
 
-    def search_similar(self, query, k_max=10, similarity_threshold=0.6):
+    def search_similar(self, query, k_max=10, similarity_threshold=0.5):
         """
         Dynamic search for similar objects based on similarity threshold.
         :param query: query string

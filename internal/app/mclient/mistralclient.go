@@ -60,6 +60,8 @@ func getContextFromQASlice(contextQASlice []models.QAPair) (string, error) {
 		return "", err
 	}
 
+	fmt.Println(output.String())
+
 	return output.String(), nil
 }
 
