@@ -1,38 +1,13 @@
 import yaml
 import faiss
-import string
 import numpy as np
-
-from nltk import download
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 
 from sentence_transformers import SentenceTransformer
 
+import app.core.vector_db.questions_preprocessing as question_preprocessor
 import app.core.vector_db.text_translator as text_translator
 import app.config.config as config
 import app.schemas.questions as schemas
-
-
-download('stopwords')
-download('punkt_tab')
-
-stop_words = set(stopwords.words('russian'))
-
-
-def prepocess_question(lang_translator, question: str) -> str:
-    question = question.strip()
-
-    # Убираем пунктуацию и переводим текст в нижний регистр
-    translator = str.maketrans('', '', string.punctuation)
-    text = question.translate(translator).lower()
-
-    words = word_tokenize(text)
-
-    # Удаляем стоп слова
-    filtered_words = [word for word in words if word not in stop_words]
-
-    return lang_translator.translate_text(' '.join(filtered_words))
 
 
 def convex_indexes(q_idx: int, counts: list[int]) -> (int, int):
@@ -56,10 +31,11 @@ class FaissDB:
     model = None
     index = None
 
+    MAX_CONTEXT_SIZE: int
+
     def __init__(self, sentence_transformer_name: str):
         self.model = SentenceTransformer(sentence_transformer_name)
 
-        # база знаний
         with open('data.yaml', 'r') as file:
             self.data = yaml.safe_load(file)
 
@@ -68,6 +44,8 @@ class FaissDB:
             self.elem_index_questions.append(len(item['questions']))
 
         self.index = faiss.read_index('vectorized_data.faiss')
+
+        self.MAX_CONTEXT_SIZE = int(0.025 * len(self.data))
 
     def get_knowledge_base_elem(self, ans_pos: int, question_pos: int):
         elem = self.data[ans_pos]
@@ -93,7 +71,7 @@ class FaissDB:
         # TODO to not to dict
         return context
 
-    def search_similar(self, query, k_max=10, similarity_threshold=0.3):
+    def search_similar(self, query, similarity_threshold=0.3):
         """
         Dynamic search for similar objects based on similarity threshold.
         :param query: query string
@@ -104,14 +82,13 @@ class FaissDB:
 
         translator = text_translator.translator
 
-        query_embedding = self.model.encode([prepocess_question(translator, query)])
+        query_embedding = self.model.encode([question_preprocessor.prepocess_question(translator, query)])
 
         faiss.normalize_L2(query_embedding)
 
-        # perform a search with the maximum value of k
-        distances, indices = self.index.search(np.array(query_embedding), k_max)
+        distances, indices = self.index.search(np.array(query_embedding), 2*self.MAX_CONTEXT_SIZE)
 
-        return self.get_context(distances, indices, similarity_threshold, k_max)
+        return self.get_context(distances, indices, similarity_threshold, self.MAX_CONTEXT_SIZE)
 
 
 faiss_db = FaissDB(
