@@ -78,12 +78,10 @@ class FaissDB:
         context = []
         kb_items_idxes_set = set()
 
-        closest_distance = distances[0][0]
-
         print(distances[0][0])
 
         for i in range(0, k_max):
-            if distances[0][i] - closest_distance > similarity_threshold:
+            if distances[0][i] < similarity_threshold:
                 break
 
             ans_pos, question_pos = convex_indexes(indices[0][i], self.elem_index_questions)
@@ -97,7 +95,7 @@ class FaissDB:
         # TODO to not to dict
         return context
 
-    def search_similar(self, query, k_max=10, similarity_threshold=0.48):
+    def search_similar(self, query, k_max=10, similarity_threshold=0.6):
         """
         Dynamic search for similar objects based on similarity threshold.
         :param query: query string
