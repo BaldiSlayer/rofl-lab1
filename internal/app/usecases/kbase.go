@@ -87,7 +87,7 @@ func AskKnowledgeBase(
 				questionContext = questionsContext
 			}
 
-			ans, err := ask(ctx, modelClient, question, request.Model, questionContext)
+			ans, err := ask(ctx, modelClient, question, request.Model, request.UseContext, questionContext)
 			if err != nil {
 				slog.Error("error while asking model", "model", request.Model)
 
@@ -109,11 +109,12 @@ func AskKnowledgeBase(
 func ask(
 	ctx context.Context,
 	modelClient mclient.ModelClient,
-	question,
+	question string,
 	model string,
+	useContext bool,
 	questionContext []models.QAPair,
 ) (KBAnswer, error) {
-	if len(questionContext) != 0 {
+	if useContext {
 		res, err := modelClient.AskWithContext(ctx, question, model, questionContext)
 		if err != nil {
 			return KBAnswer{}, fmt.Errorf("failed to ask model with context: %w", err)
