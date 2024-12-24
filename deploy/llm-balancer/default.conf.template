@@ -1,0 +1,23 @@
+client_body_buffer_size     10M;
+client_max_body_size        10M;
+
+limit_req_zone global zone=perserver:1m rate=25r/m;
+
+server {
+    resolver kube-dns.kube-system.svc.cluster.local valid=10s ipv6=off;
+    listen ${NGINX_PORT};
+
+    set $upstream_app llm.prod.svc.cluster.local;
+    set $upstream_port 8100;
+    set $upstream_proto http;
+
+    location / {
+             proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+    }
+
+    location /get_chat_response {
+             limit_req zone=perserver burst=120;
+             limit_req_status 429;
+             proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+    }
+}

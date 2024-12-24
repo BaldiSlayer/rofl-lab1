@@ -3,7 +3,7 @@ info:
   title: TFL
   version: 0.0.1
 paths:
-  /process_questions:
+  /search_similar:
     post:
       tags:
         - Questions
@@ -13,7 +13,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProcessQuestionsRequest'
+              $ref: '#/components/schemas/SearchSimilarRequest'
         required: true
       responses:
         '200':
@@ -21,7 +21,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProcessQuestionsResponse'
+                $ref: '#/components/schemas/SearchSimilarResponse'
         '422':
           description: Validation Error
           content:
@@ -53,71 +53,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /add_questions:
-    post:
-      tags:
-        - Questions
-      summary: Api Add Questions
-      operationId: api_add_questions_add_questions_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddQuestionsRequest'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /save_vectorized_data:
-    post:
-      tags:
-        - Questions
-      summary: Api Save Vectorized Data
-      operationId: api_save_vectorized_data_save_vectorized_data_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SaveVectorizedDataRequest'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
-    AddQuestionsRequest:
-      properties:
-        new_questions:
-          items:
-            $ref: '#/components/schemas/QuestionAnswer'
-          type: array
-          title: New Questions
-        filename:
-          type: string
-          title: Filename
-          default: vectorized_data
-      type: object
-      required:
-        - new_questions
-      title: AddQuestionsRequest
     GetChatResponseRequest:
       properties:
         prompt:
@@ -129,7 +66,7 @@ components:
         model:
           type: string
           title: Model
-          default: open-mistral-7b
+          default: mistral-large-2411
       type: object
       required:
         - prompt
@@ -150,31 +87,22 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
-    ProcessQuestionsRequest:
+    SearchSimilarRequest:
       properties:
-        questions_list:
-          items:
-            $ref: '#/components/schemas/QuestionAnswer'
-          type: array
-          title: Questions List
-        use_saved:
-          type: boolean
-          title: Use Saved
-          default: false
-        filename:
+        question:
           type: string
-          title: Filename
-          default: vectorized_data
+          title: question
       type: object
       required:
-        - questions_list
+        - question
       title: ProcessQuestionsRequest
-    ProcessQuestionsResponse:
+    SearchSimilarResponse:
       properties:
         result:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/QuestionAnswer'
+          title: result
       type: object
       required:
         - result
@@ -191,29 +119,6 @@ components:
         - question
         - answer
       title: QuestionAnswer
-    SaveVectorizedDataRequest:
-      properties:
-        data:
-          items:
-            $ref: '#/components/schemas/QuestionAnswer'
-          type: array
-          title: Data
-        embeddings:
-          items:
-            items:
-              type: number
-            type: array
-          type: array
-          title: Embeddings
-        filename:
-          type: string
-          title: Filename
-          default: vectorized_data
-      type: object
-      required:
-        - data
-        - embeddings
-      title: SaveVectorizedDataRequest
     ValidationError:
       properties:
         loc:

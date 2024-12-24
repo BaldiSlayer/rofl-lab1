@@ -17,6 +17,12 @@ const (
 	fixCallbackData     = "Fix"
 )
 
+type extractData struct {
+	parseError  string
+	userRequest string
+	formalTrs   string
+}
+
 func (controller *Controller) GetTrs(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
 	if update.Message == nil {
 		return models.GetTrs, nil
@@ -31,8 +37,8 @@ func (controller *Controller) extractTrs(ctx context.Context, userRequest string
 		return 0, err
 	}
 
-	trs, formalized, err := controller.TrsUseCases.ExtractFormalTrs(ctx, userRequest)
-	return controller.handleExctractResult(ctx, update, trs, formalized, err)
+	extractedData, err := controller.TrsUseCases.ExtractFormalTrs(ctx, userRequest)
+	return controller.handleExctractResult(ctx, update, extractedData.Trs, extractedData.FormalizedTrs, err)
 }
 
 func (controller *Controller) handleExctractResult(ctx context.Context, update tgbotapi.Update, trs trsparser.Trs,
@@ -55,13 +61,11 @@ func (controller *Controller) handleExctractResult(ctx context.Context, update t
 		keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Исправить", fixCallbackData),
 		))
-		formalized = tgbotapi.EscapeText(tgbotapi.ModeMarkdown, formalized)
-		llmErrorMessage := tgbotapi.EscapeText(tgbotapi.ModeMarkdown, parseError.LlmMessage)
 		return models.FixTrs, controller.Bot.SendMarkdownMessageWithKeyboard(
 			userID,
-			fmt.Sprintf("Ошибка при формализации TRS\nРезультат Formalize\\:\n```\n%s\n```\nРезультат Parse:\n```\n%s\n```\n\n"+
-				"Переформулируйте запрос в новом сообщении\\, либо запустите процесс автоматического исправления с помощью кнопки под этим сообщением",
-				formalized, llmErrorMessage),
+			fmt.Sprintf("Ошибка при формализации TRS\nРезультат Formalize:\n```\n%s\n```\nРезультат Parse:\n```\n%s\n```\n\n"+
+				"Переформулируйте запрос в новом сообщении, либо запустите процесс автоматического исправления с помощью кнопки под этим сообщением",
+				formalized, parseError.LlmMessage),
 			keyboard,
 		)
 	}
@@ -80,8 +84,8 @@ func (controller *Controller) handleExctractResult(ctx context.Context, update t
 	))
 
 	return models.ValidateTrs, controller.Bot.SendMarkdownMessageWithKeyboard(userID,
-		fmt.Sprintf("Результат формализации\\:\n```\n%s\n```\n\n"+
-			"Подтвердите его с помощью кнопки под этим сообщением\\, либо опишите ошибку в новом сообщении", toString(trs)), keyboard)
+		fmt.Sprintf("Результат формализации:\n```\n%s\n```\n\n"+
+			"Подтвердите его с помощью кнопки под этим сообщением, либо опишите ошибку в новом сообщении", toString(trs)), keyboard)
 }
 
 func (controller *Controller) ValidateTrs(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
@@ -98,13 +102,11 @@ func (controller *Controller) ValidateTrs(ctx context.Context, update tgbotapi.U
 			return 0, err
 		}
 
-		res = tgbotapi.EscapeText(tgbotapi.ModeMarkdown, res)
+		return models.GetRequest,
+			controller.Bot.SendMarkdownMessage(userID, fmt.Sprintf("Результат интерпретации TRS:\n```\n%s\n```", res))
+	}
 
-		return models.GetRequest, errors.Join(
-			controller.Bot.SendMarkdownMessage(userID, fmt.Sprintf("Результат интерпретации TRS\\:\n```\n%s\n```", res)),
-			controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний"),
-		)
-	} else if update.Message != nil {
+	if update.Message != nil {
 		errorDescription := update.Message.Text
 
 		userRequest, err := controller.Storage.GetRequest(ctx, userID)
@@ -117,8 +119,8 @@ func (controller *Controller) ValidateTrs(ctx context.Context, update tgbotapi.U
 			return 0, err
 		}
 
-		trs, formalTrs, err := controller.TrsUseCases.FixFormalTrs(ctx, userRequest, formalTrs, errorDescription)
-		return controller.handleExctractResult(ctx, update, trs, formalTrs, err)
+		fixData, err := controller.TrsUseCases.FixFormalTrs(ctx, userRequest, formalTrs, errorDescription)
+		return controller.handleExctractResult(ctx, update, fixData.Trs, fixData.FormalizedTrs, err)
 	}
 
 	return models.ValidateTrs, nil
@@ -128,44 +130,50 @@ func (controller *Controller) FixTrs(ctx context.Context, update tgbotapi.Update
 	userID := update.SentFrom().ID
 
 	if update.CallbackQuery != nil && update.CallbackQuery.Data == fixCallbackData {
-		parseError, userRequest, formalTrs, err := controller.getExtractData(ctx, userID)
+		extractData, err := controller.getExtractData(ctx, userID)
 		if err != nil {
 			return 0, err
 		}
 
-		trs, formalTrs, err := controller.TrsUseCases.FixFormalTrs(ctx, userRequest, formalTrs, parseError)
+		fixData, err := controller.TrsUseCases.FixFormalTrs(ctx,
+			extractData.userRequest, extractData.formalTrs, extractData.parseError)
 
-		return controller.handleExctractResult(ctx, update, trs, formalTrs, err)
-	} else if update.Message != nil {
+		return controller.handleExctractResult(ctx, update, fixData.Trs, fixData.FormalizedTrs, err)
+	}
+
+	if update.Message != nil {
 		userRequest := update.Message.Text
-
 		return controller.extractTrs(ctx, userRequest, update)
 	}
 
 	return models.FixTrs, nil
 }
 
-func (controller *Controller) getExtractData(ctx context.Context, userID int64) (string, string, string, error) {
+func (controller *Controller) getExtractData(ctx context.Context, userID int64) (extractData, error) {
 	parseError, err := controller.Storage.GetParseError(ctx, userID)
 	if err != nil {
-		return "", "", "", err
+		return extractData{}, err
 	}
 
 	userRequest, err := controller.Storage.GetRequest(ctx, userID)
 	if err != nil {
-		return "", "", "", err
+		return extractData{}, err
 	}
 
 	formalTrs, err := controller.Storage.GetFormalTRS(ctx, userID)
 	if err != nil {
-		return "", "", "", err
+		return extractData{}, err
 	}
 
-	return parseError, userRequest, formalTrs, nil
+	return extractData{
+		parseError:  parseError,
+		userRequest: userRequest,
+		formalTrs:   formalTrs,
+	}, err
 }
 
 func toString(trs trsparser.Trs) string {
-	var lines []string
+	lines := make([]string, 0, len(trs.Interpretations)+len(trs.Rules)+1)
 
 	variables := fmt.Sprintf("variables = %s", strings.Join(trs.Variables, ", "))
 	lines = append(lines, variables)
