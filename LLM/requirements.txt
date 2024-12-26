@@ -52,3 +52,6 @@ typing-inspect==0.9.0
 typing_extensions==4.12.2
 urllib3==2.2.3
 uvicorn==0.32.0
+joblib==1.4.2
+nltk==3.9.1
+regex==2024.11.6

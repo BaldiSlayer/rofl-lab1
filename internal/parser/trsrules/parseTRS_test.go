@@ -1,9 +1,10 @@
 package trsparser
 
 import (
+	"testing"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/lexer"
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
-	"testing"
 )
 
 const (

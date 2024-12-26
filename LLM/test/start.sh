@@ -1,3 +1,5 @@
+cp /LLM/data.yaml /LLM/test/get_similar_tests/data.yaml
+
 gunicorn app.main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8100 --timeout 240 &
 
 # дожидаемся момента, когда поднимется веб-север
