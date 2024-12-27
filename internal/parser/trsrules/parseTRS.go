@@ -2,6 +2,7 @@ package trsparser
 
 import (
 	"fmt"
+
 	"github.com/BaldiSlayer/rofl-lab1/internal/parser/models"
 )
 
