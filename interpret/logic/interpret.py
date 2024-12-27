@@ -217,7 +217,7 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
         if s[index:index + pattern_len] != pattern.split('(')[0]:
             return False
 
-        args_start = index + pattern_len + 1 
+        args_start = index + pattern_len + 1
         for i, arg in enumerate(pattern_args):
             if arg in variables:
                 arg_value = get_var_value(s, args_start, i)
@@ -226,26 +226,10 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
                 else:
                     args_mapping[arg]=arg_value
                     continue
-            arg_value = get_argument_value(s, args_start, i)
+            arg_value = get_var_value(s, args_start, i)
             if not check_pattern_match(arg_value, 0, arg, get_arguments(arg), variables, args_mapping):
                 return False
-
         return True
-
-    def get_argument_value(s, start, arg_index):
-        open_brackets = 0
-        current_index = start
-        while current_index < len(s):
-            if s[current_index] == '(':
-                open_brackets += 1
-            elif s[current_index] == ')':
-                open_brackets -= 1
-            elif s[current_index] == ',' and open_brackets == 0:
-                if arg_index == 0:
-                    return s[start:current_index].strip()
-                arg_index -= 1
-            current_index += 1
-        return s[start:current_index].strip()
 
     def get_var_value(s, start, arg_index):
         open_brackets = 0
