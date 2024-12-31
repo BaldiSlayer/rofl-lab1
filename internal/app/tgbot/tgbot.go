@@ -223,19 +223,23 @@ func (bot *App) cancelIfNotLocked(ctx context.Context, cancel context.CancelFunc
 
 func buildTransitions(controller *controllers.Controller) map[models.UserState]actpool.StateTransition {
 	return map[models.UserState]actpool.StateTransition{
-		models.Start:       controller.Start,
-		models.GetRequest:  controller.GetRequest,
-		models.GetTrs:      controller.GetTrs,
-		models.ValidateTrs: controller.ValidateTrs,
-		models.FixTrs:      controller.FixTrs,
+		models.Start:                  controller.Start,
+		models.GetRequest:             controller.GetRequest,
+		models.GetTrs:                 controller.GetTrs,
+		models.ValidateTrs:            controller.ValidateTrs,
+		models.FixTrs:                 controller.FixTrs,
+		models.GetQuestionMultiModels: controller.GetRequestMultiModels,
+		models.GetSimilar:             controller.GetSimilarRequest,
 	}
 }
 
 func buildCommands(controller *controllers.Controller) map[string]actpool.StateTransition {
 	return map[string]actpool.StateTransition{
-		"start":   controller.StartCommand,
-		"help":    controller.HelpCommand,
-		"trs":     controller.TrsCommand,
-		"version": controller.VersionCommand,
+		"start":       controller.StartCommand,
+		"help":        controller.HelpCommand,
+		"trs":         controller.TrsCommand,
+		"version":     controller.VersionCommand,
+		"multimodels": controller.CommandMultiModels,
+		"similar":     controller.CommandGetSimilar,
 	}
 }

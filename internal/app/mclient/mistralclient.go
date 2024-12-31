@@ -1,15 +1,12 @@
 package mclient
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hashicorp/go-retryablehttp"
 	"log/slog"
 	"net/http"
-	"text/template"
-
-	"github.com/hashicorp/go-retryablehttp"
 
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/mclient/mistral"
 	"github.com/BaldiSlayer/rofl-lab1/internal/app/models"
@@ -47,39 +44,19 @@ func (mc *Mistral) Ask(ctx context.Context, question string, model string) (stri
 	return mc.ask(ctx, question, nil, model)
 }
 
-func getContextFromQASlice(contextQASlice []models.QAPair) (string, error) {
-	t, err := template.New("qaTemplate").Parse(ModelContextTemplate)
-	if err != nil {
-		return "", err
-	}
-
-	var output bytes.Buffer
-
-	err = t.Execute(&output, contextQASlice)
-	if err != nil {
-		return "", err
-	}
-
-	return output.String(), nil
-}
-
 func (mc *Mistral) AskWithContext(
 	ctx context.Context,
 	question string,
 	model string,
-	questionContext []models.QAPair,
+	formattedContext string,
 ) (ResponseWithContext, error) {
-	formattedContext, err := getContextFromQASlice(questionContext)
-	if err != nil {
-		return ResponseWithContext{}, err
-	}
-
 	slog.Info("executing model request", "question", question, "context", formattedContext)
 
 	answer, err := mc.ask(ctx, question, &formattedContext, model)
 	return ResponseWithContext{
-		Answer:  answer,
-		Context: formattedContext,
+		Answer:      answer,
+		Context:     formattedContext,
+		ExtraPrompt: formattedContext,
 	}, err
 }
 
