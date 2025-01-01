@@ -3,7 +3,7 @@ import os
 
 class Config:
     mistral_api_key = ""
-    transformer_name = "sentence-transformers/all-mpnet-base-v2"
+    transformer_name = "Snowflake/snowflake-arctic-embed-l-v2.0"
 
     def __init__(self):
         self.mistral_api_key = os.environ.get("MISTRAL_API_KEY")
