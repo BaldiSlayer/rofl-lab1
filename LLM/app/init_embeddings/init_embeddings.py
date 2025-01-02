@@ -1,47 +1,19 @@
 import faiss
 import yaml
 import sys
-import string
-
-from nltk import download
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 
 from sentence_transformers import SentenceTransformer
 
-import app.core.vector_db.text_translator as text_translator
+import app.core.vector_db.questions_preprocessing as question_preprocessor
 import app.config.config as config
 
 
-download('stopwords')
-download('punkt_tab')
-
-stop_words = set(stopwords.words('russian'))
-
-
-def prepocess_question(lang_translator, question: str) -> str:
-    question = question.strip()
-
-    # Убираем пунктуацию и переводим текст в нижний регистр
-    translator = str.maketrans('', '', string.punctuation)
-    text = question.translate(translator).lower()
-
-    words = word_tokenize(text)
-
-    # Удаляем стоп слова
-    filtered_words = [word for word in words if word not in stop_words]
-
-    return lang_translator.translate_text(' '.join(filtered_words))
-
-
 def create_embeddings(model, data):
-    translator = text_translator.translator
-
     texts = []
 
     for item in data:
         for question in item["questions"]:
-            texts.append(prepocess_question(translator, question))
+            texts.append(question_preprocessor.prepocess_question(question))
 
     embeddings = model.encode(texts)
 
@@ -83,8 +55,10 @@ def main():
     with open(sys.argv[1], 'r', encoding='utf-8') as file:
         content = yaml.safe_load(file)
 
+    model = SentenceTransformer(cfg.get_sentence_transformer_name())
+
     init_embeddings(
-        SentenceTransformer(cfg.get_sentence_transformer_name()),
+        model,
         content,
         sys.argv[2],
     )

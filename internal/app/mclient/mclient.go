@@ -37,12 +37,13 @@ type ModelClient interface {
 	// Ask отправляет запрос к модели
 	Ask(ctx context.Context, question string, model string) (string, error)
 	// AskWithContext отправляет запрос к модели с использованием контекста
-	AskWithContext(ctx context.Context, question string, model string, questionContext []models.QAPair) (ResponseWithContext, error)
+	AskWithContext(ctx context.Context, question string, model string, formattedContext string) (ResponseWithContext, error)
 	// GetFormattedContext -
 	GetFormattedContext(ctx context.Context, question string) ([]models.QAPair, error)
 }
 
 type ResponseWithContext struct {
-	Answer  string
-	Context string
+	Answer      string
+	Context     string
+	ExtraPrompt string
 }
