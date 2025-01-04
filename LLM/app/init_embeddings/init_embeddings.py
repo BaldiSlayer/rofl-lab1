@@ -3,14 +3,18 @@ import yaml
 import sys
 
 from sentence_transformers import SentenceTransformer
-import app.core.vector_db.text_translator as text_translator
+
+import app.core.vector_db.questions_preprocessing as question_preprocessor
 import app.config.config as config
 
 
 def create_embeddings(model, data):
-    translator = text_translator.translator
+    texts = []
 
-    texts = [translator.translate_text(item["question"] + " " + item["answer"]) for item in data]
+    for item in data:
+        for question in item["questions"]:
+            texts.append(question_preprocessor.prepocess_question(question))
+
     embeddings = model.encode(texts)
 
     faiss.normalize_L2(embeddings)
@@ -51,8 +55,10 @@ def main():
     with open(sys.argv[1], 'r', encoding='utf-8') as file:
         content = yaml.safe_load(file)
 
+    model = SentenceTransformer(cfg.get_sentence_transformer_name())
+
     init_embeddings(
-        SentenceTransformer(cfg.get_sentence_transformer_name()),
+        model,
         content,
         sys.argv[2],
     )

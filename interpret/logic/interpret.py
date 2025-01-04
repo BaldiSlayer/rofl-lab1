@@ -172,46 +172,85 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
         s2 = s1
         for i in range(li):
             for j in trs_rules:
-                if s2.find(j[0]) != -1:
-                    a = s2.find(j[0]) + 2
-                    b = 0
-                    for rule in range(k):
-                        if terms[rule][0] == j[0]:
-                            b = rule
-                            break
-                    var_n = n[b]
-                    new_s = j[j.find('=') + 1:]
-                    sub_s = ""
-                    c = 1
-                    t = 0
-                    i = 0
-                    while t == 0:
-                        if s2[a] == ',':
-                            if c == 1:
-                                new_s = new_s.replace(terms[b][2 * i + 2], sub_s)
-                                sub_s = ""
-                                i += 1
-                            else:
-                                sub_s = sub_s + s2[a]
-                        elif s2[a] == ')':
-                            if c == 1:
-                                new_s = new_s.replace(terms[b][2 * i + 2], sub_s)
-                                sub_s = ""
-                                t = 1
-                            else:
-                                sub_s = sub_s + s2[a]
-                                c += 1
-                        elif s2[a] == '(':
-                            sub_s = sub_s + s2[a]
-                            c -= 1
-                        else:
-                            sub_s = sub_s + s2[a]
-                        a += 1
-                    s2 = s2[:s2.find(j[0])] + new_s + s2[a:]
-                    break
-        s1 = s1.replace(trs_variables[0] + '0', trs_variables[0])
-        s2 = s2.replace(trs_variables[0] + '0', trs_variables[0])
+                pattern = j.split('=')[0].strip()
+                replacement = j.split('=')[1].strip()
+                s2 = replace_pattern(s2, pattern, replacement, trs_variables)
+        s1 = s1.replace('var', trs_variables[0])
+        s2 = s2.replace('var', trs_variables[0])
         return s1, s2
+
+    def replace_pattern(s, pattern, replacement, variables):
+        pattern_args = get_arguments(pattern)
+        args_mapping = {}
+        pattern_index = s.find(pattern.split('(')[0])
+        while pattern_index != -1:
+            if check_pattern_match(s, pattern_index, pattern, pattern_args, variables, args_mapping):
+                new_replacement = replacement
+                for arg in (variables):
+                    if arg in args_mapping:
+                        new_replacement = new_replacement.replace(arg, args_mapping[arg])
+
+
+                end_index = find_end_index(s, pattern_index)
+                s = s[:pattern_index] + new_replacement + s[end_index:]
+                pattern_index = s.find(pattern.split('(')[0], pattern_index + len(new_replacement))
+            else:
+                pattern_index = s.find(pattern.split('(')[0], pattern_index + 1)
+
+        return s
+
+    def find_end_index(s, start_index):
+        open_brackets = 0
+        current_index = start_index
+        while current_index < len(s):
+            if s[current_index] == '(':
+                open_brackets += 1
+            elif s[current_index] == ')':
+                open_brackets -= 1
+                if open_brackets == 0:
+                    return current_index + 1
+            current_index += 1
+        return current_index
+
+    def check_pattern_match(s, index, pattern, pattern_args, variables, args_mapping):
+        pattern_len = len(pattern.split('(')[0])
+        if s[index:index + pattern_len] != pattern.split('(')[0]:
+            return False
+
+        args_start = index + pattern_len + 1
+        for i, arg in enumerate(pattern_args):
+            if arg in variables:
+                arg_value = get_var_value(s, args_start, i)
+                if arg in args_mapping and args_mapping[arg] != arg_value:
+                    return False
+                else:
+                    args_mapping[arg]=arg_value
+                    continue
+            arg_value = get_var_value(s, args_start, i)
+            if not check_pattern_match(arg_value, 0, arg, get_arguments(arg), variables, args_mapping):
+                return False
+        return True
+
+    def get_var_value(s, start, arg_index):
+        open_brackets = 0
+        current_index = start
+        while current_index < len(s):
+            if s[current_index] == '(':
+                open_brackets += 1
+            elif s[current_index] == ')':
+                open_brackets -= 1
+            elif s[current_index] == ',' and open_brackets == 0:
+                if arg_index == 0:
+                    return s[start:current_index].strip()
+                arg_index -= 1
+                start=current_index+1
+            current_index += 1
+        s=s[start:current_index]
+        start=0
+        while open_brackets<0:
+            s=s[start:s.rfind(")")]
+            open_brackets += 1
+        return s
 
     # -----------------------------------------------------------------------------
     start_expressions = []

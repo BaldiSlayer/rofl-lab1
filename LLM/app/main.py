@@ -7,7 +7,6 @@ from app.core.readiness_probe.readiness_probe import ReadinessProbe
 
 
 config.SingletonConfig.get_instance()
-faiss_db.init_faiss_db()
 
 # проинициализировали конфиг и ставим ready в True
 # так как загрузили индекс в память и готовы к обработке запросов

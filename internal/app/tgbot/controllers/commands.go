@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -11,7 +10,21 @@ import (
 	"github.com/BaldiSlayer/rofl-lab1/internal/version"
 )
 
-const helpMessage = `Для запроса к Базе Знаний введите запрос
+const helpMessage = `Для запроса к Базе Знаний в режиме одного запроса - просто введите запрос
+
+Для отправки запросов в несколько моделей введите: 
+
+` + "```" + `
+/multimodels [запрос]
+` + "```" + `
+либо сначала /multimodels и следующим сообщением запрос
+
+Для нахождения близих для запроса введите: 
+
+` + "```" + `
+/similar [запрос]
+` + "```" + `
+либо сначала /similar и следующим сообщением запрос
 
 Для проверки завершимости TRS введите:
 
@@ -32,10 +45,7 @@ func (controller *Controller) StartCommand(ctx context.Context, update tgbotapi.
 
 func (controller *Controller) HelpCommand(_ context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
-	return models.GetRequest, errors.Join(
-		controller.Bot.SendMarkdownMessage(userID, helpMessage),
-		controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний"),
-	)
+	return models.GetRequest, controller.Bot.SendMarkdownMessage(userID, helpMessage)
 }
 
 func (controller *Controller) TrsCommand(ctx context.Context, update tgbotapi.Update) (models.UserState, error) {
@@ -51,8 +61,6 @@ func (controller *Controller) TrsCommand(ctx context.Context, update tgbotapi.Up
 
 func (controller *Controller) VersionCommand(_ context.Context, update tgbotapi.Update) (models.UserState, error) {
 	userID := update.SentFrom().ID
-	return models.GetRequest, errors.Join(
-		controller.Bot.SendMarkdownMessage(userID, version.BuildVersionWithLink()),
-		controller.Bot.SendMessage(userID, "Введите запрос к Базе Знаний"),
-	)
+
+	return models.GetRequest, controller.Bot.SendMarkdownMessage(userID, version.BuildVersionWithLink())
 }
