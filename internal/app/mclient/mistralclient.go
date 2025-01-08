@@ -2,7 +2,6 @@ package mclient
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/hashicorp/go-retryablehttp"
 	"log/slog"
@@ -53,6 +52,7 @@ func (mc *Mistral) AskWithContext(
 	slog.Info("executing model request", "question", question, "context", formattedContext)
 
 	answer, err := mc.ask(ctx, question, &formattedContext, model)
+
 	return ResponseWithContext{
 		Answer:      answer,
 		Context:     formattedContext,
@@ -66,12 +66,13 @@ func (mc *Mistral) ask(ctx context.Context, question string, contextStr *string,
 		Model:   &model,
 		Prompt:  question,
 	})
+
 	if err != nil {
 		return "", err
 	}
+
 	if resp.StatusCode() != http.StatusOK {
-		slog.Error("error requesting LLM", "code", resp.StatusCode())
-		return "", errors.New("error requesting LLM")
+		return "", fmt.Errorf("error while requesting LLM: status code: %d", resp.StatusCode())
 	}
 
 	return resp.JSON200.Response, nil
