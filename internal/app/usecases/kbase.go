@@ -118,6 +118,11 @@ func AskKnowledgeBase(
 				return
 			}
 
+			if len(questionsContext) == 0 {
+				ans.Answer = fmt.Sprintf("**Ответ был дан только моделью без участия элементов "+
+					"базы знаний, в ответе могут содержаться ошибки / неточности**\n\n%s", ans.Answer)
+			}
+
 			res[i] = ans
 		}(i, request)
 	}

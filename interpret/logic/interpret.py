@@ -267,16 +267,38 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
 
             start_expression, start_variables_set = to_prefix_notation(start, str(cr))
             end_expression, end_variables_set = to_prefix_notation(end, str(cr))
+            mistake1=start_expression.find("^")
+            while mistake1!=-1:
+                mistake1-=1
+                var= start_expression[mistake1+3:mistake1+5]
+                mistake2=start_expression[mistake1+6:].find(')')+mistake1+6
+                power=int(start_expression[mistake1+6:mistake2])
+                powerstring='1'
+                for i in range(power):
+                    powerstring= '(* '+var+ ' ' + powerstring+')'
+                start_expression=start_expression[:mistake1]+powerstring+start_expression[mistake2:]
+                mistake1=start_expression.find("^")
+            mistake1=end_expression.find("^")
+            while mistake1!=-1:
+                mistake1-=1
+                var= end_expression[mistake1+3:mistake1+5]
+                mistake2=end_expression[mistake1+6:].find(')')+mistake1+6
+                power=int(end_expression[mistake1+6:mistake2])
+                powerstring='1'
+                for i in range(power):
+                    powerstring= '(* '+var+ ' ' + powerstring+')'
+                end_expression=end_expression[:mistake1]+powerstring+end_expression[mistake2:]
+                mistake1=end_expression.find("^")
             variables_set = start_variables_set | end_variables_set
             start_expressions.append(start_expression)
             end_expressions.append(end_expression)
             for v in variables_set:
                 f.write("(declare-fun " + v + " () Int)\n")
             for v in variables_set:
-                f.write("(assert (>= " + v + " 0))\n")
-        assert_line="(< " + start_expressions[0] + " " + end_expressions[0] + ")"
-        for cr in range(1,len(trs_rules)):
-            assert_line="(or "+ assert_line+" (< " + start_expressions[cr] + " " + end_expressions[cr] + "))"
+                f.write("(assert (> " + v + " 0))\n")
+        assert_line = "(<= " + start_expressions[0] + " " + end_expressions[0] + ")"
+        for cr in range(1, len(trs_rules)):
+            assert_line = "(or " + assert_line + " (<= " + start_expressions[cr] + " " + end_expressions[cr] + "))"
         f.write("(assert " + assert_line + ")\n")
         f.write("(check-sat)\n")
         f.write("(get-model)")
