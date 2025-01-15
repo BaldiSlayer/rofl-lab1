@@ -4,6 +4,8 @@ services:
       dockerfile: dockerfiles/llm.dockerfile
     container_name: llm
     image: stewkk/tfl-lab1-llm:latest
+    environment:
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
     healthcheck:
       test: curl --fail 'http://llm:8100/ping' || exit 1
       interval: 30s
@@ -14,6 +16,7 @@ services:
   backend:
     build:
       dockerfile: ./dockerfiles/backend.dockerfile
+    command: ["/bin/backend", "--callback-mode"]
     environment:
       - TGTOKEN=${TGTOKEN}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -26,6 +29,8 @@ services:
     depends_on:
       llm:
         condition: service_healthy
+      llm-balancer:
+        condition: service_started
       interpret:
         condition: service_healthy
       formalize:
@@ -51,7 +56,7 @@ services:
     container_name: formalize
     image: stewkk/tfl-lab1-formalize:latest
     healthcheck:
-      test: curl --fail 'http://formalize:8081/ping' || exit 1
+      test: curl --fail 'http://formalize:8000/ping' || exit 1
       interval: 30s
       timeout: 10s
       retries: 5
@@ -75,6 +80,13 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
+  llm-balancer:
+    image: public.ecr.aws/nginx/nginx:stable-alpine
+    container_name: llm-balancer
+    volumes:
+      - ./deploy/llm-balancer/compose.conf.template:/etc/nginx/templates/default.conf.template
+    environment:
+      - NGINX_PORT=80
 
 volumes:
   postgres_data:

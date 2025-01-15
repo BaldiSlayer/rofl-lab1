@@ -66,7 +66,7 @@ components:
         model:
           type: string
           title: Model
-          default: open-mistral-7b
+          default: mistral-large-2411
       type: object
       required:
         - prompt
