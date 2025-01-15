@@ -276,7 +276,7 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
                 powerstring='1'
                 for i in range(power):
                     powerstring= '(* '+var+ ' ' + powerstring+')'
-                start_expression=start_expression[:mistake1]+powerstring+start_expression[mistake2:]
+                start_expression=start_expression[:mistake1]+powerstring+start_expression[mistake2+1:]
                 mistake1=start_expression.find("^")
             mistake1=end_expression.find("^")
             while mistake1!=-1:
@@ -287,7 +287,7 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
                 powerstring='1'
                 for i in range(power):
                     powerstring= '(* '+var+ ' ' + powerstring+')'
-                end_expression=end_expression[:mistake1]+powerstring+end_expression[mistake2:]
+                end_expression=end_expression[:mistake1]+powerstring+end_expression[mistake2+1:]
                 mistake1=end_expression.find("^")
             variables_set = start_variables_set | end_variables_set
             start_expressions.append(start_expression)
