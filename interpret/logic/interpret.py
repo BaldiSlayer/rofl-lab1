@@ -317,16 +317,16 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
     elif solver_result == unsat:
         result += "Verification success\nDemo:\n"
         s1, s2 = demo()
-        result += s1 + '\n' + s2 + '\n'
+        result += 'Generated line: ' + s1 + '\nSimpified line: ' + s2 + '\n'
         s1 = substitute_interpretation(s1, constructors, grammar_rules, constants)
         s2 = substitute_interpretation(s2, constructors, grammar_rules, constants)
-        result += s1 + '\n' + s2 + '\n'
+        result += 'Interpreted generated line: ' + s1 + '\nInterpreted simpified line: ' + s2 + '\n'
 
         s1 = str(s1).replace(trs_variables[0], '1')
         s2 = str(s2).replace(trs_variables[0], '1')
         s1 = simplify_expression(s1)
         s2 = simplify_expression(s2)
-        result += s1 + '\n' + s2 + '\n'
+        result += 'Interpreted generated line weight: ' + s1 + '\nInterpreted simpified line weight: ' + s2 + '\n'
     else:
         return "Unknown"
     return result
