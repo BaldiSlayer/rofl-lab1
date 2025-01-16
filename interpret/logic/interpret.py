@@ -148,7 +148,7 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
         if l == 1:
             s = terms[t][0] + '('
             for i in range(n[t]):
-                s = s + trs_variables[0] + '0,'
+                s = s + 'var,'
             s = s[:-1] + ')'
             return s
         s = terms[t][0] + '('
