@@ -6,10 +6,10 @@ from z3 import *
 from typing import List
 
 '''
-  The simplify_expression function simplifies expressions. 
+  The simplify_expression function simplifies expressions.
   Multiplication must be entered with an asterisk '*'.
-  Exponentiation can be implemented as both x**2 and x^2. 
-  However, it's important to note that 2^4*5 will be simplified to 80. 
+  Exponentiation can be implemented as both x**2 and x^2.
+  However, it's important to note that 2^4*5 will be simplified to 80.
   So, if an expression is in the exponent, it must be enclosed in parentheses '()'.
 '''
 def simplify_expression(expression):
@@ -21,7 +21,7 @@ def simplify_expression(expression):
 
 
 '''
-  The to_prefix_notation function rewrites an expression in prefix notation. 
+  The to_prefix_notation function rewrites an expression in prefix notation.
   It also creates a set of variables contained in the resulting expression.
 '''
 def to_prefix_notation(expression, index):
@@ -255,6 +255,8 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
     # -----------------------------------------------------------------------------
     start_expressions = []
     end_expressions = []
+    starts = []
+    ends = []
     with open('lab1.txt', 'w') as f:
         for cr in range(len(trs_rules)):
             trs_rules[cr] = trs_rules[cr].replace(" ", "")
@@ -267,6 +269,16 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
 
             start_expression, start_variables_set = to_prefix_notation(start, str(cr))
             end_expression, end_variables_set = to_prefix_notation(end, str(cr))
+            for trs_var in trs_variables:
+                if start.find(trs_var) != -1:
+                    for var in start_variables_set:
+                        if var[0]==trs_var[0]:
+                            start = start.replace(trs_var, var)
+                if end.find(trs_var) != -1:
+                    for var in end_variables_set:
+                        if var[0]==trs_var[0]:
+                            end = end.replace(trs_var, var)
+
             mistake1=start_expression.find("^")
             while mistake1!=-1:
                 mistake1-=1
@@ -289,9 +301,13 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
                     powerstring= '(* '+var+ ' ' + powerstring+')'
                 end_expression=end_expression[:mistake1]+powerstring+end_expression[mistake2+1:]
                 mistake1=end_expression.find("^")
+            #print(start, start_expression)
+            #print(end, end_expression)
             variables_set = start_variables_set | end_variables_set
             start_expressions.append(start_expression)
             end_expressions.append(end_expression)
+            starts.append(start)
+            ends.append(end)
             for v in variables_set:
                 f.write("(declare-fun " + v + " () Int)\n")
             for v in variables_set:
@@ -310,23 +326,44 @@ def interpret(trs_variables: List[str], trs_rules: List[str], grammar_rules: Lis
     solver_result = solver.check()
 
     if solver_result == sat:
-        result += "Сounterexample:\n"
+        result += "Verification is not successful\n"
+        result += "Counterexample:\n"
         model = solver.model()
-        for decl in model:
-            result += f"{decl} = {model[decl]}\n"
+        n=len(starts)
+        for i in range(n):
+            changed_start = starts[i]
+            changed_end = ends[i]
+            counterexample_statement = "If "
+            for declaration in model:
+                decl=str(declaration)
+                #print(declaration, decl, model[declaration])
+                if changed_start.find(decl) != -1 or changed_end.find(decl) != -1:
+                    changed_start = changed_start.replace(decl, str(model[declaration]))
+                    changed_end = changed_end.replace(decl, str(model[declaration]))
+                    counterexample_statement = counterexample_statement + decl + " = " + str(model[declaration]) + "\n"
+            counterexample_statement = counterexample_statement + "Then " + trs_rules[i][:(trs_rules[i].find('='))] + " > " + trs_rules[i][(trs_rules[i].find('=') + 1):] +"\n"
+            counterexample_statement = counterexample_statement + "Equals " + starts[i] + " > " + ends[i] +"\n"
+            counterexample_statement = counterexample_statement + "Equals " + changed_start + " > " + changed_end +"\n"
+            #print(changed_start, changed_end)
+            counted_start = int(simplify_expression(changed_start))
+            counted_end = int(simplify_expression(changed_end))
+            if counted_start <= counted_end:
+                counterexample_statement = counterexample_statement + "But, unfortunately, " + str(counted_start) + " <= " + str(counted_end) + "\n"
+                result += counterexample_statement
     elif solver_result == unsat:
         result += "Verification success\nDemo:\n"
         s1, s2 = demo()
-        result += 'Generated line: ' + s1 + '\nSimpified line: ' + s2 + '\n'
+        while s1 == s2:
+            s1, s2 = demo()
+        result += 'Generated line: ' + s1 + '\nSimplified line: ' + s2 + '\n'
         s1 = substitute_interpretation(s1, constructors, grammar_rules, constants)
         s2 = substitute_interpretation(s2, constructors, grammar_rules, constants)
-        result += 'Interpreted generated line: ' + s1 + '\nInterpreted simpified line: ' + s2 + '\n'
-
+        result += 'Interpreted generated line: ' + s1 + '\nInterpreted simplified line: ' + s2 + '\n'
         s1 = str(s1).replace(trs_variables[0], '1')
         s2 = str(s2).replace(trs_variables[0], '1')
         s1 = simplify_expression(s1)
         s2 = simplify_expression(s2)
-        result += 'Interpreted generated line weight: ' + s1 + '\nInterpreted simpified line weight: ' + s2 + '\n'
+        result += 'Interpreted generated line weight: ' + s1 + '\nInterpreted simplified line weight: ' + s2 + '\n'
     else:
         return "Unknown"
     return result
